@@ -806,7 +806,7 @@ document.addEventListener('DOMContentLoaded',function(){
 //  ENRUTADOR
 // ============================================================
 function navigateTo(view){
-  ['dashboard','transactions','debts','savings','historial'].forEach(function(v){
+  ['dashboard','transactions','debts','savings','historial','categorias'].forEach(function(v){
     var el=document.getElementById('view-'+v);
     if(el) el.classList.toggle('d-none', v!==view);
   });
@@ -1320,6 +1320,90 @@ function showToast(msg,type){
   var stack=document.getElementById('toastStack');
   if(stack) stack.insertAdjacentHTML('beforeend',html);
   setTimeout(function(){var el=document.getElementById(id);if(el)el.remove();},4500);
+}
+// ── CATEGORÍAS PERSONALIZADAS ──────────────────────────────
+var DEFAULT_CATS_INC = ['Salario','Freelance','Negocio','Inversión','Alquiler','Otro'];
+var DEFAULT_CATS_EXP = ['Vivienda','Alimentación','Transporte','Salud','Educación','Entretenimiento','Servicios','Ropa','Tecnología','Abono Deuda','Otro'];
+
+function getCats(type){
+  var key = type==='income' ? 'fp_cats_inc' : 'fp_cats_exp';
+  var defaults = type==='income' ? DEFAULT_CATS_INC : DEFAULT_CATS_EXP;
+  try{ var s=localStorage.getItem(key); return s ? JSON.parse(s) : defaults; }catch(e){ return defaults; }
+}
+
+function saveCats(type, arr){
+  var key = type==='income' ? 'fp_cats_inc' : 'fp_cats_exp';
+  localStorage.setItem(key, JSON.stringify(arr));
+}
+
+function addCat(type){
+  var inputId = type==='income' ? 'newCatIncName' : 'newCatExpName';
+  var name = document.getElementById(inputId).value.trim();
+  if(!name){ showToast('Escribe un nombre para la categoría','danger'); return; }
+  var cats = getCats(type);
+  if(cats.indexOf(name) >= 0){ showToast('Esa categoría ya existe','danger'); return; }
+  cats.push(name);
+  saveCats(type, cats);
+  document.getElementById(inputId).value = '';
+  renderCats();
+  rebuildCatSelects();
+  showToast('Categoría "'+name+'" creada ✓','success');
+}
+
+function deleteCat(type, name){
+  if(!confirm('¿Eliminar la categoría "'+name+'"?')) return;
+  var cats = getCats(type).filter(function(c){ return c !== name; });
+  saveCats(type, cats);
+  renderCats();
+  rebuildCatSelects();
+  showToast('Categoría eliminada','warning');
+}
+
+function renderCats(){
+  var inc = getCats('income');
+  var exp = getCats('expense');
+  var cntI = document.getElementById('cntCatInc'); if(cntI) cntI.textContent = inc.length;
+  var cntE = document.getElementById('cntCatExp'); if(cntE) cntE.textContent = exp.length;
+
+  function renderList(arr, type, containerId){
+    var el = document.getElementById(containerId); if(!el) return;
+    if(!arr.length){ el.innerHTML='<div class="empty-state">Sin categorías</div>'; return; }
+    el.innerHTML = arr.map(function(c){
+      return '<div class="d-flex justify-content-between align-items-center py-2 px-3 mb-1" style="background:var(--fp-surface2);border-radius:10px;border:1px solid var(--fp-border)">'
+        +'<span style="font-weight:500">'+esc(c)+'</span>'
+        +'<button class="btn btn-sm fp-btn-ghost text-danger" style="padding:4px 10px" onclick="deleteCat(\''+type+'\',\''+esc(c)+'\')">'
+        +'<i class="bi bi-x-lg"></i></button>'
+        +'</div>';
+    }).join('');
+  }
+
+  renderList(inc, 'income',  'listCatInc');
+  renderList(exp, 'expense', 'listCatExp');
+}
+
+// Reconstruye los <select> de categoría en los modales con las cats personalizadas
+function rebuildCatSelects(){
+  var inc = getCats('income');
+  var exp = getCats('expense');
+
+  // Modal transacción
+  var sel = document.getElementById('txCategory');
+  if(sel){
+    sel.innerHTML =
+      '<optgroup label="Ingresos">'+inc.map(function(c){return '<option>'+esc(c)+'</option>';}).join('')+'</optgroup>'
+      +'<optgroup label="Egresos">'+exp.map(function(c){return '<option>'+esc(c)+'</option>';}).join('')+'</optgroup>';
+  }
+
+  // Filtros de transacciones
+  function rebuildFilter(id){
+    var s = document.getElementById(id); if(!s) return;
+    var all = inc.concat(exp.filter(function(c){ return inc.indexOf(c)<0; }));
+    var cur = s.value;
+    s.innerHTML = '<option value="">Todas</option>'+all.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
+    if(cur) s.value = cur;
+  }
+  rebuildFilter('filterTxCat');
+  rebuildFilter('hFilterCat');
 }
 </script>
 </body>
