@@ -318,6 +318,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <li><a class="sidebar-link" id="nav-savings" onclick="navigateTo('savings');return false" href="#">
           <div class="link-icon icon-gold"><i class="bi bi-piggy-bank-fill"></i></div><span>Ahorros</span>
         </a></li>
+        <li><a class="sidebar-link" id="nav-categorias" onclick="navigateTo('categorias');return false" href="#">
+          <div class="link-icon icon-teal"><i class="bi bi-tags-fill"></i></div><span>Categorías</span>
+        </a></li>
 
       </ul>
       <div class="sidebar-footer">
@@ -509,6 +512,48 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 
   </main>
 </div>
+<!-- ═══ CATEGORÍAS ═══ -->
+    <div id="view-categorias" class="d-none">
+      <div class="fp-page-header">
+        <div>
+          <div class="page-eyebrow"><i class="bi bi-tags-fill"></i> Personalización</div>
+          <h1 class="page-title">Mis <span class="title-accent">Categorías</span></h1>
+          <p class="page-sub">Crea y administra tus propias categorías de ingresos y egresos</p>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="fp-card">
+            <div class="fp-card-header">
+              <div class="fp-card-title"><i class="bi bi-arrow-up-circle-fill text-success"></i> Categorías de Ingresos</div>
+              <span class="fp-badge fp-badge-green" id="cntCatInc">0</span>
+            </div>
+            <div class="fp-card-body">
+              <div class="d-flex gap-2 mb-3">
+                <input class="fp-input" id="newCatIncName" placeholder="Nueva categoría de ingreso..." style="flex:1"/>
+                <button class="btn fp-btn-primary" onclick="addCat('income')"><i class="bi bi-plus-lg"></i></button>
+              </div>
+              <div id="listCatInc"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="fp-card">
+            <div class="fp-card-header">
+              <div class="fp-card-title"><i class="bi bi-arrow-down-circle-fill text-danger"></i> Categorías de Egresos</div>
+              <span class="fp-badge fp-badge-red" id="cntCatExp">0</span>
+            </div>
+            <div class="fp-card-body">
+              <div class="d-flex gap-2 mb-3">
+                <input class="fp-input" id="newCatExpName" placeholder="Nueva categoría de egreso..." style="flex:1"/>
+                <button class="btn fp-btn-danger" onclick="addCat('expense')"><i class="bi bi-plus-lg"></i></button>
+              </div>
+              <div id="listCatExp"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
 <!-- FAB -->
 <button class="fp-fab d-lg-none" onclick="handleFab()"><i class="bi bi-plus-lg"></i></button>
