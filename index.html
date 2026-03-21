@@ -318,6 +318,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <li><a class="sidebar-link" id="nav-savings" onclick="navigateTo('savings');return false" href="#">
           <div class="link-icon icon-gold"><i class="bi bi-piggy-bank-fill"></i></div><span>Ahorros</span>
         </a></li>
+        <li><a class="sidebar-link" id="nav-historial" onclick="navigateTo('historial');return false" href="#">
+          <div class="link-icon icon-violet"><i class="bi bi-clock-history"></i></div><span>Historial</span>
+        </a></li>
       </ul>
       <div class="sidebar-footer">
         <div class="stat-mini"><i class="bi bi-cloud-check-fill" style="color:#057a55"></i><span>Datos guardados localmente</span></div>
@@ -435,6 +438,75 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="fp-balance-chip fp-balance-gold"><i class="bi bi-piggy-bank-fill"></i><span>Total ahorrado: <strong id="savingsTotal">$0</strong></span></div>
       </div>
       <div id="savingsGrid" class="row g-4"></div>
+    </div>
+    <!-- ═══ HISTORIAL ═══ -->
+    <div id="view-historial" class="d-none">
+      <div class="fp-page-header">
+        <div>
+          <div class="page-eyebrow"><i class="bi bi-clock-history"></i> Registro completo</div>
+          <h1 class="page-title">Historial <span class="title-accent">General</span></h1>
+          <p class="page-sub">Historial detallado separado por módulo</p>
+        </div>
+      </div>
+      <div class="hist-tabs-wrap mb-4">
+        <div class="hist-tabs">
+          <button class="hist-tab active" onclick="switchHistTab('tx',this)"><i class="bi bi-arrow-left-right"></i> Ingresos y Egresos</button>
+          <button class="hist-tab" onclick="switchHistTab('debts',this)"><i class="bi bi-file-earmark-text-fill"></i> Deudas y Abonos</button>
+          <button class="hist-tab" onclick="switchHistTab('savings',this)"><i class="bi bi-piggy-bank-fill"></i> Ahorros</button>
+        </div>
+      </div>
+      <div id="htab-tx">
+        <div class="row g-3 mb-4">
+          <div class="col-md-4"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-3"><div class="kpi-sm-icon"><i class="bi bi-arrow-up-circle-fill"></i></div><div><p class="kpi-label mb-0">Total Ingresos</p><h3 class="kpi-sm-val text-success" id="hTotalInc">$0</h3></div></div></div></div>
+          <div class="col-md-4"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-3"><div class="kpi-sm-icon"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label mb-0">Total Egresos</p><h3 class="kpi-sm-val text-danger" id="hTotalExp">$0</h3></div></div></div></div>
+          <div class="col-md-4"><div class="fp-card kpi-sm kpi-blue"><div class="d-flex align-items-center gap-3"><div class="kpi-sm-icon"><i class="bi bi-wallet2"></i></div><div><p class="kpi-label mb-0">Balance neto</p><h3 class="kpi-sm-val" id="hTotalNet">$0</h3></div></div></div></div>
+        </div>
+        <div class="fp-card mb-3">
+          <div class="fp-card-body py-3">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-3"><label class="fp-label">Tipo</label><select class="fp-select" id="hFilterType" onchange="renderHistTx()"><option value="">Todos</option><option value="income">Ingresos</option><option value="expense">Egresos</option></select></div>
+              <div class="col-md-3"><label class="fp-label">Categoría</label><select class="fp-select" id="hFilterCat" onchange="renderHistTx()"><option value="">Todas</option><option>Salario</option><option>Freelance</option><option>Negocio</option><option>Inversión</option><option>Vivienda</option><option>Alimentación</option><option>Transporte</option><option>Salud</option><option>Educación</option><option>Entretenimiento</option><option>Servicios</option><option>Otro</option></select></div>
+              <div class="col-md-2"><label class="fp-label">Desde</label><input type="date" class="fp-input" id="hFilterFrom" onchange="renderHistTx()"/></div>
+              <div class="col-md-2"><label class="fp-label">Hasta</label><input type="date" class="fp-input" id="hFilterTo" onchange="renderHistTx()"/></div>
+              <div class="col-md-2"><button class="btn fp-btn-ghost w-100" onclick="clearHistFilters()"><i class="bi bi-x-circle"></i> Limpiar</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="fp-card">
+          <div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-table"></i> Todos los movimientos</div><span class="fp-badge fp-badge-blue" id="hTxCount">0 registros</span></div>
+          <div class="table-responsive"><table class="fp-table"><thead><tr><th>Tipo</th><th>Descripción</th><th>Categoría</th><th>Monto</th><th>Fecha</th><th class="text-end">Acción</th></tr></thead><tbody id="hTxBody"></tbody></table></div>
+          <div class="fp-card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted small" id="hTxPagInfo">Página 1 de 1</span>
+            <div class="d-flex gap-2">
+              <button class="btn fp-btn-ghost btn-sm" id="hTxPrev" onclick="hTxDir(-1)" disabled><i class="bi bi-chevron-left"></i></button>
+              <button class="btn fp-btn-ghost btn-sm" id="hTxNext" onclick="hTxDir(1)" disabled><i class="bi bi-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="htab-debts" class="d-none">
+        <div class="row g-3 mb-4">
+          <div class="col-md-4"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-3"><div class="kpi-sm-icon"><i class="bi bi-bank2"></i></div><div><p class="kpi-label mb-0">Capital total prestado</p><h3 class="kpi-sm-val text-danger" id="hDebtCapTotal">$0</h3></div></div></div></div>
+          <div class="col-md-4"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-3"><div class="kpi-sm-icon"><i class="bi bi-percent"></i></div><div><p class="kpi-label mb-0">Total abonado</p><h3 class="kpi-sm-val" style="color:var(--fp-orange)" id="hDebtPaidTotal">$0</h3></div></div></div></div>
+          <div class="col-md-4"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-3"><div class="kpi-sm-icon"><i class="bi bi-check2-circle"></i></div><div><p class="kpi-label mb-0">Saldo pendiente total</p><h3 class="kpi-sm-val" id="hDebtRemTotal">$0</h3></div></div></div></div>
+        </div>
+        <div class="fp-card mb-4">
+          <div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-plus-circle-fill text-danger"></i> Deudas registradas</div><span class="fp-badge fp-badge-red" id="hDebtCreatedCount">0</span></div>
+          <div class="table-responsive"><table class="fp-table"><thead><tr><th>Acreedor</th><th>Descripción</th><th>Capital inicial</th><th>Tasa</th><th>Saldo actual</th><th>Fecha inicio</th><th>Progreso</th></tr></thead><tbody id="hDebtCreatedBody"></tbody></table></div>
+        </div>
+        <div class="fp-card">
+          <div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-cash-coin text-success"></i> Todos los abonos realizados</div><span class="fp-badge fp-badge-green" id="hAbonosCount">0 abonos</span></div>
+          <div class="table-responsive"><table class="fp-table"><thead><tr><th>Deuda / Acreedor</th><th>Fecha</th><th>Monto abonado</th><th>→ Interés</th><th>→ Capital</th></tr></thead><tbody id="hAbonosBody"></tbody></table></div>
+        </div>
+      </div>
+      <div id="htab-savings" class="d-none">
+        <div class="row g-3 mb-4">
+          <div class="col-md-4"><div class="fp-card kpi-sm kpi-gold"><div class="d-flex align-items-center gap-3"><div class="kpi-sm-icon"><i class="bi bi-piggy-bank-fill"></i></div><div><p class="kpi-label mb-0">Total en ahorros</p><h3 class="kpi-sm-val" style="color:var(--fp-gold)" id="hSavTotal">$0</h3></div></div></div></div>
+          <div class="col-md-4"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-3"><div class="kpi-sm-icon"><i class="bi bi-arrow-up-circle-fill"></i></div><div><p class="kpi-label mb-0">Total depositado</p><h3 class="kpi-sm-val text-success" id="hSavDeposited">$0</h3></div></div></div></div>
+          <div class="col-md-4"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-3"><div class="kpi-sm-icon"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label mb-0">Total retirado/usado</p><h3 class="kpi-sm-val text-danger" id="hSavWithdrawn">$0</h3></div></div></div></div>
+        </div>
+        <div id="hSavAccordion"></div>
+      </div>
     </div>
 
   </main>
@@ -691,7 +763,7 @@ document.addEventListener('DOMContentLoaded',function(){
 //  ENRUTADOR
 // ============================================================
 function navigateTo(view){
-  ['dashboard','transactions','debts','savings'].forEach(function(v){
+  ['dashboard','transactions','debts','savings','historial'].forEach(function(v){
     var el=document.getElementById('view-'+v);
     if(el) el.classList.toggle('d-none', v!==view);
   });
