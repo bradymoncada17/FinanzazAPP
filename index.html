@@ -612,12 +612,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   <label class="fp-label"><i class="bi bi-wallet2 me-1"></i> ¿De dónde sale el dinero?</label>
   <div id="txSourceList" style="max-height:220px;overflow-y:auto;margin-top:6px"></div>
   <input type="hidden" id="txSourceSelected" value="libre"/>
-  <!-- Si es tarjeta de crédito -->
   <div id="txTarjetaInfo" style="display:none;margin-top:8px;background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.15);border-radius:9px;padding:10px 13px;font-size:12.5px">
     <i class="bi bi-credit-card-2-front-fill me-1" style="color:var(--fp-primary)"></i>
     Cupo disponible: <strong id="txTarjetaCupo" style="font-family:'JetBrains Mono',monospace;color:var(--fp-primary)">$0</strong>
     <span id="txTarjetaNombre" style="color:var(--fp-text2)"></span>
   </div>
+</div>
+    </div>
+    <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-primary" onclick="saveTx()"><i class="bi bi-check-lg"></i> Guardar</button></div>
+  </div></div>
 </div>
 
 <!-- MODAL NUEVA DEUDA -->
@@ -626,7 +629,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
     <div class="modal-header"><h5 class="modal-title" id="modalDebtTitle"><i class="bi bi-file-earmark-plus-fill me-2"></i>Registrar Deuda</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="debtEditId"/>
-      <!-- TIPO DE DEUDA -->
       <!-- TIPO DE DEUDA -->
 <div class="mb-3">
   <label class="fp-label">Tipo de deuda</label>
@@ -1537,7 +1539,8 @@ function renderDebts(){
       +(d.tarjeta.tasaTarjeta?'<span><i class="bi bi-percent me-1"></i>'+d.tarjeta.tasaTarjeta+'%/mes</span>':'')
     +'</div>'
   +'</div>'
-:'')      +'<div class="d-flex justify-content-between mb-1" style="font-size:11px"><span class="text-muted">Pagado '+pct+'%</span><span class="text-muted">'+fmt(d.totalAmount-d.remainingBalance)+' / '+fmt(d.totalAmount)+'</span></div>'
+:'')      
++'<div class="d-flex justify-content-between mb-1" style="font-size:11px"><span class="text-muted">Pagado '+pct+'%</span><span class="text-muted">'+fmt(d.totalAmount-d.remainingBalance)+' / '+fmt(d.totalAmount)+'</span></div>'
       +'<div class="fp-progress"><div class="fp-progress-bar'+(pct<20?' bar-danger':'')+'" style="width:'+pct+'%"></div></div>'
       +'<div class="d-flex gap-2 mt-3 flex-wrap">'
         +'<button class="btn fp-btn-primary fp-btn-sm" style="flex:1" onclick="openDebtDetail(\''+d.id+'\')" ><i class="bi bi-eye-fill"></i> Detalle</button>'
