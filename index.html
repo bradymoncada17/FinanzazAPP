@@ -918,11 +918,29 @@ function calcSaldos(){
 }
 function calcSaldosPorCat(){
   var txs=lsGet(KEYS.TX);
+  // Ingresos reales por categoría
   var incByCat={};
-  txs.filter(function(t){return t.type==='income';}).forEach(function(t){incByCat[t.category]=(incByCat[t.category]||0)+t.amount;});
+  txs.filter(function(t){return t.type==='income';}).forEach(function(t){
+    incByCat[t.category]=(incByCat[t.category]||0)+t.amount;
+  });
+  // Egresos reales por categoría de origen (si tienen fuente registrada)
+  // Los egresos sin fuente se descuentan del total libre general
+  var expByCat={};
+  txs.filter(function(t){return t.type==='expense';}).forEach(function(t){
+    // Si el egreso tiene una categoría de ingreso como fuente, descontarlo de esa fuente
+    // Si no, se acumula como egreso general
+    expByCat['__general']=(expByCat['__general']||0)+t.amount;
+  });
   var totalInc=Object.values(incByCat).reduce(function(s,v){return s+v;},0)||1;
-  var totalExp=txs.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
-  return Object.keys(incByCat).map(function(cat){var peso=incByCat[cat]/totalInc;return{cat:cat,totalInc:incByCat[cat],libre:incByCat[cat]-totalExp*peso};}).sort(function(a,b){return b.totalInc-a.totalInc;});
+  var totalExp=expByCat['__general']||0;
+  // Distribuir egresos proporcional pero mostrar el ingreso real de cada categoría
+  // junto con cuánto le corresponde de los gastos
+  return Object.keys(incByCat).map(function(cat){
+    var ingreso=incByCat[cat];
+    var peso=ingreso/totalInc;
+    var expAsignado=totalExp*peso;
+    return{cat:cat,totalInc:ingreso,expAsignado:expAsignado,libre:ingreso-expAsignado};
+  }).sort(function(a,b){return b.totalInc-a.totalInc;});
 }
 function getCurrentAporte(debt){
   if(!debt.hasAporte)return 0;
@@ -1179,27 +1197,59 @@ function selectTxSource(val,el){
   if(el)el.classList.add('selected');
 }
 function saveTx(){
-  var id=document.getElementById('txEditId').value;var desc=document.getElementById('txDesc').value.trim();var amt=parseFloat(document.getElementById('txAmount').value);var date=document.getElementById('txDate').value;var type=document.getElementById('txType').value;var cat=document.getElementById('txCategory').value;var srcVal=document.getElementById('txSourceSelected').value||'libre';
-  if(!desc){showToast('La descripción es obligatoria','danger');return;}if(!amt||amt<=0){showToast('El monto debe ser positivo','danger');return;}
+  var id=document.getElementById('txEditId').value;
+  var desc=document.getElementById('txDesc').value.trim();
+  var amt=parseFloat(document.getElementById('txAmount').value);
+  var date=document.getElementById('txDate').value;
+  var type=document.getElementById('txType').value;
+  var cat=document.getElementById('txCategory').value;
+  var srcVal=document.getElementById('txSourceSelected').value||'libre';
+  if(!desc){showToast('La descripción es obligatoria','danger');return;}
+  if(!amt||amt<=0){showToast('El monto debe ser positivo','danger');return;}
   var all=lsGet(KEYS.TX);
   if(id){
-    // EDITAR — solo actualizar campos, sin tocar balances
     var idx=all.findIndex(function(t){return t.id===id;});
     if(idx>=0){
-      all[idx].description=desc;all[idx].amount=amt;all[idx].date=date;all[idx].type=type;all[idx].category=cat;
-      lsSet(KEYS.TX,all);showToast('Actualizada ✓','success');
+      all[idx].description=desc;
+      all[idx].amount=amt;
+      all[idx].date=date;
+      all[idx].type=type;
+      all[idx].category=cat;
+      // No tocamos el source al editar para no romper balances
+      lsSet(KEYS.TX,all);
+      showToast('Actualizada ✓','success');
     }
   } else {
-    // NUEVO — si es egreso desde ahorros, descontar
-    if(type==='expense'&&srcVal.indexOf('sav_')===0){
-      var sid=srcVal.replace('sav_','');var allSav=lsGet(KEYS.SAV);var sidx=allSav.findIndex(function(s){return s.id===sid;});
-      if(sidx>=0){if(amt>allSav[sidx].currentBalance){showToast('Saldo insuficiente en ese ahorro','danger');return;}allSav[sidx].currentBalance-=amt;allSav[sidx].transactions=allSav[sidx].transactions||[];allSav[sidx].transactions.push({id:genId(),type:'use',amount:amt,description:'Egreso: '+desc,date:date||today()});lsSet(KEYS.SAV,allSav);}
+    var sourceCat=null;
+    // Si es egreso desde una categoría de ingreso específica, guardamos esa fuente
+    if(type==='expense'&&srcVal.indexOf('cat_')===0){
+      sourceCat=srcVal.replace('cat_','');
     }
-    all.push({id:genId(),type:type,description:desc,amount:amt,date:date,category:cat});
-    lsSet(KEYS.TX,all);showToast('Registrada ✓','success');
+    // Si es egreso desde ahorros, descontar del ahorro
+    if(type==='expense'&&srcVal.indexOf('sav_')===0){
+      var sid=srcVal.replace('sav_','');
+      var allSav=lsGet(KEYS.SAV);
+      var sidx=allSav.findIndex(function(s){return s.id===sid;});
+      if(sidx>=0){
+        if(amt>allSav[sidx].currentBalance){showToast('Saldo insuficiente en ese ahorro','danger');return;}
+        allSav[sidx].currentBalance-=amt;
+        allSav[sidx].transactions=allSav[sidx].transactions||[];
+        allSav[sidx].transactions.push({id:genId(),type:'use',amount:amt,description:'Egreso: '+desc,date:date||today()});
+        lsSet(KEYS.SAV,allSav);
+      }
+    }
+    all.push({
+      id:genId(),type:type,description:desc,amount:amt,
+      date:date,category:cat,
+      sourceCat:sourceCat, // guardamos de qué categoría de ingreso salió
+      sourceType:srcVal.indexOf('sav_')===0?'saving':srcVal.indexOf('cat_')===0?'category':'libre'
+    });
+    lsSet(KEYS.TX,all);
+    showToast('Registrada ✓','success');
   }
   bootstrap.Modal.getInstance(document.getElementById('modalTx')).hide();
-  renderTransactions();updateChips();if(State.currentView==='dashboard')renderDashboard();
+  renderTransactions();updateChips();
+  if(State.currentView==='dashboard')renderDashboard();
 }
 function editTx(id){openTxModal(id);}
 function deleteTx(id){if(!confirm('¿Eliminar?'))return;lsSet(KEYS.TX,lsGet(KEYS.TX).filter(function(t){return t.id!==id;}));renderTransactions();updateChips();showToast('Eliminada','warning');}
