@@ -607,15 +607,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   </div>
 </div>
       </div>
-      <!-- FUENTE DEL EGRESO -->
-      <div id="txSourceSection" style="display:none;margin-top:16px">
-        <label class="fp-label"><i class="bi bi-wallet2 me-1"></i> ¿De dónde sale el dinero?</label>
-        <div id="txSourceList" style="max-height:220px;overflow-y:auto;margin-top:6px"></div>
-        <input type="hidden" id="txSourceSelected" value="libre"/>
-      </div>
-    </div>
-    <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-primary" onclick="saveTx()"><i class="bi bi-check-lg"></i> Guardar</button></div>
-  </div></div>
+<!-- FUENTE DEL EGRESO -->
+<div id="txSourceSection" style="display:none;margin-top:16px">
+  <label class="fp-label"><i class="bi bi-wallet2 me-1"></i> ¿De dónde sale el dinero?</label>
+  <div id="txSourceList" style="max-height:220px;overflow-y:auto;margin-top:6px"></div>
+  <input type="hidden" id="txSourceSelected" value="libre"/>
+  <!-- Si es tarjeta de crédito -->
+  <div id="txTarjetaInfo" style="display:none;margin-top:8px;background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.15);border-radius:9px;padding:10px 13px;font-size:12.5px">
+    <i class="bi bi-credit-card-2-front-fill me-1" style="color:var(--fp-primary)"></i>
+    Cupo disponible: <strong id="txTarjetaCupo" style="font-family:'JetBrains Mono',monospace;color:var(--fp-primary)">$0</strong>
+    <span id="txTarjetaNombre" style="color:var(--fp-text2)"></span>
+  </div>
 </div>
 
 <!-- MODAL NUEVA DEUDA -->
@@ -625,17 +627,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
     <div class="modal-body">
       <input type="hidden" id="debtEditId"/>
       <!-- TIPO DE DEUDA -->
-      <div class="mb-3">
-        <label class="fp-label">Tipo de deuda</label>
-        <div class="fp-toggle-group">
-          <button type="button" class="fp-toggle-btn active" id="btnDebtEfectivo" onclick="setDebtType('efectivo')"><i class="bi bi-cash-coin"></i> Dinero en efectivo</button>
-          <button type="button" class="fp-toggle-btn" id="btnDebtVirtual" onclick="setDebtType('virtual')"><i class="bi bi-credit-card-fill"></i> Compra virtual / crédito</button>
-        </div>
-        <input type="hidden" id="debtType" value="efectivo"/>
-        <div id="debtTypeInfo" class="mt-2" style="font-size:12px;color:var(--fp-text2);background:var(--fp-success-lt);border-radius:8px;padding:8px 12px">
-          <i class="bi bi-info-circle me-1" style="color:var(--fp-success)"></i>Deuda de dinero: se mostrará cuánto dinero disponible te queda de esta deuda.
-        </div>
-      </div>
+      <!-- TIPO DE DEUDA -->
+<div class="mb-3">
+  <label class="fp-label">Tipo de deuda</label>
+  <div class="fp-toggle-group">
+    <button type="button" class="fp-toggle-btn active" id="btnDebtEfectivo" onclick="setDebtType('efectivo')"><i class="bi bi-cash-coin"></i> Dinero en efectivo</button>
+    <button type="button" class="fp-toggle-btn" id="btnDebtVirtual" onclick="setDebtType('virtual')"><i class="bi bi-credit-card-fill"></i> Compra virtual / crédito</button>
+    <button type="button" class="fp-toggle-btn" id="btnDebtTarjeta" onclick="setDebtType('tarjeta')"><i class="bi bi-credit-card-2-front-fill"></i> Tarjeta de crédito</button>
+  </div>
+  <input type="hidden" id="debtType" value="efectivo"/>
+  <div id="debtTypeInfo" class="mt-2" style="font-size:12px;color:var(--fp-text2);background:var(--fp-success-lt);border-radius:8px;padding:8px 12px">
+    <i class="bi bi-info-circle me-1" style="color:var(--fp-success)"></i>Deuda de dinero: se mostrará cuánto dinero disponible te queda.
+  </div>
+</div>
       <div class="row g-3">
         <div class="col-md-6"><label class="fp-label">Acreedor / Nombre *</label><input class="fp-input" type="text" id="debtCreditor" placeholder="Ej: Banco, Cooperativa..."/></div>
         <div class="col-md-6"><label class="fp-label" id="debtTotalLabel">Capital inicial ($) *</label><input class="fp-input fp-input-mono" type="number" id="debtTotal" placeholder="0" min="0.01" step="0.01" oninput="previewCuota()"/></div>
@@ -696,6 +700,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div style="font-size:11px;color:var(--fp-text2);margin-top:4px"><i class="bi bi-info-circle me-1" style="color:var(--fp-primary)"></i>Dinero disponible = Capital inicial - Lo que ya gastaste</div>
           </div>
         </div>
+        <!-- TARJETA DE CRÉDITO -->
+<div class="col-12" id="debtTarjetaSection" style="display:none">
+  <div style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.15);border-radius:10px;padding:14px">
+    <div style="font-size:12.5px;font-weight:700;color:var(--fp-primary);margin-bottom:10px"><i class="bi bi-credit-card-2-front-fill me-1"></i>Datos de la Tarjeta de Crédito</div>
+    <div class="row g-3">
+      <div class="col-md-4"><label class="fp-label" style="color:var(--fp-primary)">Cupo aprobado ($)</label><input class="fp-input fp-input-mono" type="number" id="debtCupoAprobado" placeholder="Ej: 5000000" min="0" step="0.01" value="0" oninput="calcCupoDisponible()"/></div>
+      <div class="col-md-4"><label class="fp-label" style="color:var(--fp-primary)">Cupo usado ($)</label><input class="fp-input fp-input-mono" type="number" id="debtCupoUsado" placeholder="0" min="0" step="0.01" value="0" oninput="calcCupoDisponible()"/></div>
+      <div class="col-md-4"><label class="fp-label" style="color:var(--fp-primary)">Cupo disponible</label><div id="cupoDisponiblePreview" style="background:#fff;border:1px solid rgba(26,86,219,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--fp-primary)">$0</div></div>
+      <div class="col-md-4"><label class="fp-label" style="color:var(--fp-primary)">Día de corte</label><input class="fp-input" type="number" id="debtDiaCorte" placeholder="Ej: 15" min="1" max="31" value=""/></div>
+      <div class="col-md-4"><label class="fp-label" style="color:var(--fp-primary)">Día de pago</label><input class="fp-input" type="number" id="debtDiaPago" placeholder="Ej: 5" min="1" max="31" value=""/></div>
+      <div class="col-md-4"><label class="fp-label" style="color:var(--fp-primary)">Tasa interés mensual (%)</label><input class="fp-input fp-input-mono" type="number" id="debtTasaTarjeta" placeholder="Ej: 3.2" min="0" step="0.01" value="0"/></div>
+      <div class="col-12"><div style="background:rgba(26,86,219,.06);border-radius:8px;padding:8px 12px;font-size:11.5px;color:var(--fp-text2)"><i class="bi bi-info-circle me-1" style="color:var(--fp-primary)"></i>Al registrar egresos puedes indicar que salieron de esta tarjeta. El sistema calculará automáticamente lo que debes según tus gastos y la fecha de corte.</div></div>
+    </div>
+  </div>
+</div>
         <div class="col-md-6"><label class="fp-label">Fecha inicio</label><input class="fp-input" type="date" id="debtStart"/></div>
         <div class="col-md-6"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="debtDesc" placeholder="Detalle..."/></div>
       </div>
@@ -1284,6 +1303,19 @@ function setTxType(type){
   }
 }
 
+function calcCupoDisponibleTarjeta(debt){
+  if(!debt.tarjeta)return 0;
+  var cupoAprobado=debt.tarjeta.cupoAprobado||0;
+  // Sumar todos los egresos que usaron esta tarjeta
+  var txs=lsGet(KEYS.TX);
+  var gastadoTarjeta=txs.filter(function(t){
+    return t.type==='expense'&&t.sourceTarjetaId===debt.id;
+  }).reduce(function(s,t){return s+t.amount;},0);
+  // Restar también los abonos hechos a la tarjeta
+  var abonado=(debt.payments||[]).reduce(function(s,p){return s+p.capital;},0);
+  return Math.max(0,cupoAprobado-(debt.tarjeta.cupoUsado||0)-gastadoTarjeta+abonado);
+}
+
 function buildTxSourceList(){
   var s=calcSaldos();var catSaldos=calcSaldosPorCat();var savs=lsGet(KEYS.SAV);
   var list=document.getElementById('txSourceList');if(!list)return;
@@ -1291,6 +1323,15 @@ function buildTxSourceList(){
   var html='<div class="source-opt selected" id="txsrc-libre" onclick="selectTxSource(\'libre\',this)"><div class="source-opt-name"><i class="bi bi-wallet-fill" style="color:var(--fp-success)"></i> Dinero libre</div><span class="source-opt-bal" style="color:var(--fp-success)">'+fmt(s.saldoLibre)+'</span></div>';
   if(catSaldos.length){html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fp-text3);padding:6px 0 3px">Por categoría</div>';catSaldos.forEach(function(item){var color=CAT_COLORS[item.cat]||'#94a3b8';html+='<div class="source-opt" onclick="selectTxSource(\'cat_'+esc(item.cat)+'\',this)"><div class="source-opt-name"><span style="width:8px;height:8px;border-radius:50%;background:'+color+';display:inline-block"></span> '+esc(item.cat)+'</div><span class="source-opt-bal" style="color:'+(item.libre>=0?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(item.libre)+'</span></div>';});}
   if(savs.length){html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fp-text3);padding:6px 0 3px">Desde ahorros</div>';savs.forEach(function(sv){html+='<div class="source-opt" onclick="selectTxSource(\'sav_'+sv.id+'\',this)"><div class="source-opt-name"><i class="bi bi-piggy-bank-fill" style="color:var(--fp-gold)"></i> '+esc(sv.name)+'</div><span class="source-opt-bal" style="color:var(--fp-gold)">'+fmt(sv.currentBalance)+'</span></div>';});}
+  // Tarjetas de crédito
+var tarjetas=lsGet(KEYS.DEBTS).filter(function(d){return d.debtType==='tarjeta'&&d.tarjeta;});
+if(tarjetas.length){
+  html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fp-text3);padding:6px 0 3px">Tarjetas de crédito</div>';
+  tarjetas.forEach(function(d){
+    var cupoDisp=calcCupoDisponibleTarjeta(d);
+    html+='<div class="source-opt" onclick="selectTxSource(\'tc_'+d.id+'\',this)"><div class="source-opt-name"><i class="bi bi-credit-card-2-front-fill" style="color:var(--fp-primary)"></i> '+esc(d.creditor)+'</div><span class="source-opt-bal" style="color:var(--fp-primary)">'+fmt(cupoDisp)+' disp.</span></div>';
+  });
+}
   list.innerHTML=html;
 }
 
@@ -1298,6 +1339,20 @@ function selectTxSource(val,el){
   document.getElementById('txSourceSelected').value=val;
   document.querySelectorAll('#txSourceList .source-opt').forEach(function(o){o.classList.remove('selected');});
   if(el)el.classList.add('selected');
+  // Mostrar info de tarjeta si se seleccionó una
+  var tarjetaInfo=document.getElementById('txTarjetaInfo');
+  if(val.indexOf('tc_')===0){
+    var tid=val.replace('tc_','');
+    var d=lsGet(KEYS.DEBTS).find(function(x){return x.id===tid;});
+    if(d&&tarjetaInfo){
+      tarjetaInfo.style.display='block';
+      var cupo=calcCupoDisponibleTarjeta(d);
+      var tc=document.getElementById('txTarjetaCupo');if(tc)tc.textContent=fmt(cupo);
+      var tn=document.getElementById('txTarjetaNombre');if(tn)tn.textContent=' · '+d.creditor;
+    }
+  } else {
+    if(tarjetaInfo)tarjetaInfo.style.display='none';
+  }
 }
 
 function checkNuevoConcepto(sel){
@@ -1361,12 +1416,17 @@ function saveTx(){
         lsSet(KEYS.SAV,allSav);
       }
     }
-    all.push({
-      id:genId(),type:type,description:desc,amount:amt,
-      date:date,category:cat,concepto:concepto,
-      sourceCat:sourceCat,
-      sourceType:srcVal.indexOf('sav_')===0?'saving':srcVal.indexOf('cat_')===0?'category':'libre'
-    });
+  var sourceTarjetaId=null;
+if(type==='expense'&&srcVal.indexOf('tc_')===0){
+  sourceTarjetaId=srcVal.replace('tc_','');
+}
+all.push({
+  id:genId(),type:type,description:desc,amount:amt,
+  date:date,category:cat,concepto:concepto,
+  sourceCat:sourceCat,
+  sourceType:srcVal.indexOf('sav_')===0?'saving':srcVal.indexOf('cat_')===0?'category':srcVal.indexOf('tc_')===0?'tarjeta':'libre',
+  sourceTarjetaId:sourceTarjetaId
+});
     lsSet(KEYS.TX,all);
     showToast('Registrada ✓','success');
   }
@@ -1393,14 +1453,37 @@ function setDebtType(type){
   document.getElementById('debtType').value=type;
   document.getElementById('btnDebtEfectivo').classList.toggle('active',type==='efectivo');
   document.getElementById('btnDebtVirtual').classList.toggle('active',type==='virtual');
-  var info=document.getElementById('debtTypeInfo');var lbl=document.getElementById('debtTotalLabel');var sec=document.getElementById('debtDisponibleSection');
+  document.getElementById('btnDebtTarjeta').classList.toggle('active',type==='tarjeta');
+  var info=document.getElementById('debtTypeInfo');
+  var lbl=document.getElementById('debtTotalLabel');
+  var sec=document.getElementById('debtDisponibleSection');
+  var tarjetaSec=document.getElementById('debtTarjetaSection');
   if(type==='efectivo'){
-    info.style.background='var(--fp-success-lt)';info.innerHTML='<i class="bi bi-info-circle me-1" style="color:var(--fp-success)"></i>Deuda de dinero: se mostrará cuánto dinero disponible te queda.';
-    if(lbl)lbl.textContent='Capital prestado ($) *';if(sec)sec.style.display='block';
-  } else {
-    info.style.background='var(--fp-violet-lt)';info.innerHTML='<i class="bi bi-info-circle me-1" style="color:var(--fp-violet)"></i>Compra virtual o crédito: solo se muestra la deuda pendiente, no dinero disponible.';
-    if(lbl)lbl.textContent='Monto de la compra ($) *';if(sec)sec.style.display='none';
+    info.style.background='var(--fp-success-lt)';
+    info.innerHTML='<i class="bi bi-info-circle me-1" style="color:var(--fp-success)"></i>Deuda de dinero: se mostrará cuánto dinero disponible te queda.';
+    if(lbl)lbl.textContent='Capital prestado ($) *';
+    if(sec)sec.style.display='block';
+    if(tarjetaSec)tarjetaSec.style.display='none';
+  } else if(type==='virtual'){
+    info.style.background='var(--fp-violet-lt)';
+    info.innerHTML='<i class="bi bi-info-circle me-1" style="color:var(--fp-violet)"></i>Compra virtual o crédito: solo se muestra la deuda pendiente, no dinero disponible.';
+    if(lbl)lbl.textContent='Monto de la compra ($) *';
+    if(sec)sec.style.display='none';
+    if(tarjetaSec)tarjetaSec.style.display='none';
+  } else if(type==='tarjeta'){
+    info.style.background='var(--fp-primary-lt)';
+    info.innerHTML='<i class="bi bi-info-circle me-1" style="color:var(--fp-primary)"></i>Tarjeta de crédito: define cupo, fecha de corte y pago. Los egresos con esta tarjeta se acumulan como deuda.';
+    if(lbl)lbl.textContent='Saldo actual de la deuda ($)';
+    if(sec)sec.style.display='none';
+    if(tarjetaSec)tarjetaSec.style.display='block';
   }
+}
+function calcCupoDisponible(){
+  var aprobado=parseFloat(document.getElementById('debtCupoAprobado').value)||0;
+  var usado=parseFloat(document.getElementById('debtCupoUsado').value)||0;
+  var disp=aprobado-usado;
+  var prev=document.getElementById('cupoDisponiblePreview');
+  if(prev){prev.textContent=fmt(disp);prev.style.color=disp>=0?'var(--fp-primary)':'var(--fp-danger)';}
 }
 function previewCuota(){
   var cap=parseFloat(document.getElementById('debtTotal').value)||0;var rate=parseFloat(document.getElementById('debtRate').value)||0;var months=parseInt(document.getElementById('debtMonths').value)||0;
@@ -1442,7 +1525,19 @@ function renderDebts(){
         +'</div>'
       +'</div>'
       +(esEfectivo?'<div style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.12);border-radius:8px;padding:7px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--fp-primary);font-weight:600"><i class="bi bi-cash-stack me-1"></i>Disponible</span><span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--fp-primary)">'+fmt(disponible)+'</span></div>':'')
-      +'<div class="d-flex justify-content-between mb-1" style="font-size:11px"><span class="text-muted">Pagado '+pct+'%</span><span class="text-muted">'+fmt(d.totalAmount-d.remainingBalance)+' / '+fmt(d.totalAmount)+'</span></div>'
++(d.debtType==='tarjeta'&&d.tarjeta?
+  '<div style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.12);border-radius:8px;padding:7px 10px;margin-bottom:8px">'
+    +'<div class="d-flex justify-content-between align-items-center mb-1">'
+      +'<span style="font-size:11px;color:var(--fp-primary);font-weight:600"><i class="bi bi-credit-card-2-front-fill me-1"></i>Cupo disponible</span>'
+      +'<span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--fp-primary)">'+fmt(calcCupoDisponibleTarjeta(d))+'</span>'
+    +'</div>'
+    +'<div class="d-flex gap-3" style="font-size:11px;color:var(--fp-text2)">'
+      +(d.tarjeta.diaCorte?'<span><i class="bi bi-scissors me-1"></i>Corte: día '+d.tarjeta.diaCorte+'</span>':'')
+      +(d.tarjeta.diaPago?'<span><i class="bi bi-calendar-check me-1"></i>Pago: día '+d.tarjeta.diaPago+'</span>':'')
+      +(d.tarjeta.tasaTarjeta?'<span><i class="bi bi-percent me-1"></i>'+d.tarjeta.tasaTarjeta+'%/mes</span>':'')
+    +'</div>'
+  +'</div>'
+:'')      +'<div class="d-flex justify-content-between mb-1" style="font-size:11px"><span class="text-muted">Pagado '+pct+'%</span><span class="text-muted">'+fmt(d.totalAmount-d.remainingBalance)+' / '+fmt(d.totalAmount)+'</span></div>'
       +'<div class="fp-progress"><div class="fp-progress-bar'+(pct<20?' bar-danger':'')+'" style="width:'+pct+'%"></div></div>'
       +'<div class="d-flex gap-2 mt-3 flex-wrap">'
         +'<button class="btn fp-btn-primary fp-btn-sm" style="flex:1" onclick="openDebtDetail(\''+d.id+'\')" ><i class="bi bi-eye-fill"></i> Detalle</button>'
@@ -1466,7 +1561,13 @@ function openDebtModal(){
   document.getElementById('debtHasSeguro').checked=false;document.getElementById('debtSeguroBase').value='0';document.getElementById('seguroFields').style.display='none';
   var mc=document.getElementById('debtManualCuota');if(mc)mc.checked=false;var mf=document.getElementById('manualCuotaField');if(mf)mf.style.display='none';var dcm=document.getElementById('debtCuotaManual');if(dcm)dcm.value='0';
   var dg=document.getElementById('debtGastado');if(dg)dg.value='0';
-  document.getElementById('cuotaPreview').textContent='$0';document.getElementById('cuotaTotalPreview').textContent='$0';
+  document.getElementById('cuotaPreview').textContent='$0';var cta=document.getElementById('debtCupoAprobado');if(cta)cta.value='0';
+var ctu=document.getElementById('debtCupoUsado');if(ctu)ctu.value='0';
+var ctd=document.getElementById('cupoDisponiblePreview');if(ctd)ctd.textContent='$0';
+var ddc=document.getElementById('debtDiaCorte');if(ddc)ddc.value='';
+var ddp=document.getElementById('debtDiaPago');if(ddp)ddp.value='';
+var dtt=document.getElementById('debtTasaTarjeta');if(dtt)dtt.value='0';
+var dts=document.getElementById('debtTarjetaSection');if(dts)dts.style.display='none';document.getElementById('cuotaTotalPreview').textContent='$0';
   setDebtType('efectivo');
   document.getElementById('modalDebtTitle').innerHTML='<i class="bi bi-file-earmark-plus-fill me-2"></i>Registrar Deuda';
   new bootstrap.Modal(document.getElementById('modalDebt')).show();
@@ -1477,13 +1578,30 @@ function saveDebt(){
   var hasAporte=document.getElementById('debtHasAporte').checked;var aporteBase=hasAporte?parseFloat(document.getElementById('debtAporteBase').value)||0:0;
   var hasSeguro=document.getElementById('debtHasSeguro').checked;var seguroBase=hasSeguro?parseFloat(document.getElementById('debtSeguroBase').value)||0:0;
   var debtType=document.getElementById('debtType').value;var gastado=debtType==='efectivo'?parseFloat(document.getElementById('debtGastado').value)||0:0;
+var tarjetaData=null;
+if(debtType==='tarjeta'){
+  tarjetaData={
+    cupoAprobado:parseFloat(document.getElementById('debtCupoAprobado').value)||0,
+    cupoUsado:parseFloat(document.getElementById('debtCupoUsado').value)||0,
+    diaCorte:parseInt(document.getElementById('debtDiaCorte').value)||0,
+    diaPago:parseInt(document.getElementById('debtDiaPago').value)||0,
+    tasaTarjeta:parseFloat(document.getElementById('debtTasaTarjeta').value)||0
+  };
+}
   var manualChk=document.getElementById('debtManualCuota');var esManual=manualChk&&manualChk.checked;
   var cuota=esManual?(parseFloat((document.getElementById('debtCuotaManual')||{}).value)||0):calcCuotaMensual(tot,rate,months);
   if(!cred){showToast('El acreedor es obligatorio','danger');return;}if(!tot||tot<=0){showToast('El monto debe ser positivo','danger');return;}
   var aporteAjustes=hasAporte&&aporteBase>0?[{id:genId(),date:st||today(),value:aporteBase,note:'Valor inicial'}]:[];
   var seguroAjustes=hasSeguro&&seguroBase>0?[{id:genId(),date:st||today(),value:seguroBase,note:'Valor inicial'}]:[];
   var all=lsGet(KEYS.DEBTS);
-  var newDebt={id:genId(),creditor:cred,description:desc,debtType:debtType,totalAmount:tot,interestRate:rate,months:months,cuota:cuota,hasAporte:hasAporte,aporteBase:aporteBase,aporteAjustes:aporteAjustes,hasSeguro:hasSeguro,seguroBase:seguroBase,seguroAjustes:seguroAjustes,startDate:st||today(),remainingBalance:tot,gastado:gastado,payments:[]};
+  var newDebt={id:genId(),creditor:cred,description:desc,debtType:debtType,
+  totalAmount:tot,interestRate:debtType==='tarjeta'?(tarjetaData?tarjetaData.tasaTarjeta:rate):rate,
+  months:months,cuota:cuota,
+  hasAporte:hasAporte,aporteBase:aporteBase,aporteAjustes:aporteAjustes,
+  hasSeguro:hasSeguro,seguroBase:seguroBase,seguroAjustes:seguroAjustes,
+  startDate:st||today(),remainingBalance:tot,gastado:gastado,
+  tarjeta:tarjetaData,
+  payments:[]};
   all.push(newDebt);lsSet(KEYS.DEBTS,all);
   // Si es deuda de efectivo, registrar como ingreso en transacciones
   if(debtType==='efectivo'){
