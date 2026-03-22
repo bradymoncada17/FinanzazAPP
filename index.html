@@ -924,21 +924,26 @@ function calcSaldosPorCat(){
   });
   if(!Object.keys(incByCat).length)return[];
 
-  // Calcular total de egresos que NO tienen fuente específica de categoría de ingreso
   var expByCat={};
-  var expSinFuente=0;
   txs.filter(function(t){return t.type==='expense';}).forEach(function(t){
-    if(t.sourceCat&&incByCat[t.sourceCat]!==undefined){
-      // Egreso asignado explícitamente a una categoría de ingreso
-      expByCat[t.sourceCat]=(expByCat[t.sourceCat]||0)+t.amount;
-    } else if(t.sourceType==='saving'){
-      // Salió de ahorros, no afecta las categorías de ingreso
-    } else {
-      // Sin fuente: se reparte proporcionalmente
-      expSinFuente+=t.amount;
+    if(t.sourceType==='saving'){
+      // Salió de ahorros — no afecta ninguna categoría de ingreso
+      return;
     }
+    if(t.sourceCat&&incByCat[t.sourceCat]!==undefined){
+      // Tiene fuente explícita — descontar solo de esa categoría
+      expByCat[t.sourceCat]=(expByCat[t.sourceCat]||0)+t.amount;
+    }
+    // Sin fuente y sin saving — NO distribuir proporcionalmente
+    // Cada categoría muestra su ingreso real menos solo lo que salió de ella
   });
 
+  return Object.keys(incByCat).map(function(cat){
+    var ingreso=incByCat[cat];
+    var expDirecto=expByCat[cat]||0;
+    return{cat:cat,totalInc:ingreso,libre:ingreso-expDirecto};
+  }).sort(function(a,b){return b.totalInc-a.totalInc;});
+}
   var totalInc=Object.values(incByCat).reduce(function(s,v){return s+v;},0)||1;
 
   return Object.keys(incByCat).map(function(cat){
