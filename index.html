@@ -912,9 +912,18 @@ function calcSaldos(){
   var txs=lsGet(KEYS.TX);
   var totalInc=txs.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);
   var totalExp=txs.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
-  var totalSav=lsGet(KEYS.SAV).reduce(function(s,a){return s+a.currentBalance;},0);
-  var totalDebt=lsGet(KEYS.DEBTS).reduce(function(s,d){return s+d.remainingBalance;},0);
-  return{totalInc:totalInc,totalExp:totalExp,totalSav:totalSav,totalDebt:totalDebt,saldoLibre:totalInc-totalExp};
+  var expByCat={};
+  txs.filter(function(t){return t.type==='expense';}).forEach(function(t){
+    if(t.sourceCat&&incByCat[t.sourceCat]!==undefined){
+      expByCat[t.sourceCat]=(expByCat[t.sourceCat]||0)+t.amount;
+    }
+  });
+  return Object.keys(incByCat).map(function(cat){
+    var ingreso=incByCat[cat];
+    var expDirecto=expByCat[cat]||0;
+    var libre=ingreso-expDirecto;
+    return{cat:cat,totalInc:ingreso,libre:libre};
+  }).sort(function(a,b){return b.totalInc-a.totalInc;});
 }
 function calcSaldosPorCat(){
   var txs=lsGet(KEYS.TX);
