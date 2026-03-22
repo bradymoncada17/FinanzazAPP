@@ -378,6 +378,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
       <div class="nav-section-label mt-3">Finanzas</div>
       <ul class="sidebar-menu">
         <li><a class="sidebar-link" id="nav-debts" onclick="navigateTo('debts');return false" href="#"><div class="link-icon icon-red"><i class="bi bi-file-earmark-text-fill"></i></div><span>Deudas</span><span class="fp-badge-count" id="badgeDebts">0</span></a></li>
+        <li><a class="sidebar-link" id="nav-tarjetas" onclick="navigateTo('tarjetas');return false" href="#"><div class="link-icon" style="background:rgba(26,86,219,.15)!important;color:#60a5fa"><i class="bi bi-credit-card-2-front-fill"></i></div><span>Tarjetas</span><span class="fp-badge-count" id="badgeTarjetas">0</span></a></li>
         <li><a class="sidebar-link" id="nav-savings" onclick="navigateTo('savings');return false" href="#"><div class="link-icon icon-gold"><i class="bi bi-piggy-bank-fill"></i></div><span>Ahorros</span></a></li>
         <li><a class="sidebar-link" id="nav-historial" onclick="navigateTo('historial');return false" href="#"><div class="link-icon icon-violet"><i class="bi bi-clock-history"></i></div><span>Historial</span></a></li>
       </ul>
@@ -488,6 +489,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-check2-all"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Activas</p><h3 class="kpi-sm-val" id="debtCount">0</h3></div></div></div></div>
       </div>
       <div id="debtsList" class="row g-3"></div>
+    </div>
+
+    <!-- TARJETAS DE CRÉDITO -->
+    <div id="view-tarjetas" class="d-none">
+      <div class="fp-page-header">
+        <div><div class="page-eyebrow"><i class="bi bi-credit-card-2-front-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-primary)">Tarjetas</span></h1><p class="page-sub">Administra tus tarjetas y cupo disponible</p></div>
+        <button class="btn fp-btn-primary fp-btn-sm" onclick="openTarjetaModal()"><i class="bi bi-plus-lg"></i> Nueva Tarjeta</button>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-blue"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-credit-card-2-front-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Cupo Total</p><h3 class="kpi-sm-val" id="tcTotalCupo">$0</h3></div></div></div></div>
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-bar-chart-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Usado</p><h3 class="kpi-sm-val" id="tcTotalUsado">$0</h3></div></div></div></div>
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-wallet-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Disponible</p><h3 class="kpi-sm-val" id="tcTotalDisp">$0</h3></div></div></div></div>
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-calendar-check"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Activas</p><h3 class="kpi-sm-val" id="tcCount">0</h3></div></div></div></div>
+      </div>
+      <div id="tarjetasList" class="row g-3"></div>
     </div>
 
     <!-- AHORROS -->
@@ -914,6 +930,32 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   </div></div>
 </div>
 
+
+<!-- MODAL TARJETA DE CRÉDITO -->
+<div class="modal fade fp-modal" id="modalTarjeta" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="modalTarjetaTitle"><i class="bi bi-credit-card-2-front-fill me-2"></i>Nueva Tarjeta</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="tcEditId"/>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="fp-label">Nombre / Banco *</label><input class="fp-input" type="text" id="tcNombre" placeholder="Ej: Visa Bancolombia..."/></div>
+        <div class="col-md-6"><label class="fp-label">Franquicia</label><select class="fp-select" id="tcFranquicia"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="amex">American Express</option><option value="otro">Otro</option></select></div>
+        <div class="col-md-4"><label class="fp-label">Cupo aprobado ($) *</label><input class="fp-input fp-input-mono" type="number" id="tcCupoAprobado" placeholder="Ej: 5000000" min="0" step="0.01" value="0" oninput="calcTcDisponible()"/></div>
+        <div class="col-md-4"><label class="fp-label">Saldo usado actual ($)</label><input class="fp-input fp-input-mono" type="number" id="tcCupoUsado" placeholder="0" min="0" step="0.01" value="0" oninput="calcTcDisponible()"/></div>
+        <div class="col-md-4"><label class="fp-label">Cupo disponible</label><div id="tcDisponiblePreview" style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--fp-primary)">$0</div></div>
+        <div class="col-md-4"><label class="fp-label">Tasa interés mensual (%)</label><input class="fp-input fp-input-mono" type="number" id="tcTasa" placeholder="Ej: 3.2" min="0" step="0.01" value="0"/></div>
+        <div class="col-md-4"><label class="fp-label">Día de corte</label><input class="fp-input" type="number" id="tcDiaCorte" placeholder="Ej: 15" min="1" max="31"/></div>
+        <div class="col-md-4"><label class="fp-label">Día de pago</label><input class="fp-input" type="number" id="tcDiaPago" placeholder="Ej: 5" min="1" max="31"/></div>
+        <div class="col-12"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="tcDesc" placeholder="Ej: Tarjeta personal..."/></div>
+      </div>
+      <div style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.12);border-radius:9px;padding:10px 14px;margin-top:14px;font-size:12px;color:var(--fp-text2)">
+        <i class="bi bi-info-circle me-1" style="color:var(--fp-primary)"></i>Al registrar egresos podrás indicar que salieron de esta tarjeta. El cupo disponible se actualiza automáticamente.
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-primary" onclick="saveTarjeta()"><i class="bi bi-check-lg"></i> Guardar Tarjeta</button></div>
+  </div></div>
+</div>
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastStack" style="z-index:9999"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -1142,12 +1184,13 @@ document.addEventListener('DOMContentLoaded',function(){
 //  NAVEGACIÓN
 // ══════════════════════════════════════════════════════
 function navigateTo(view){
-  ['dashboard','transactions','debts','savings','historial','categorias','config'].forEach(function(v){var el=document.getElementById('view-'+v);if(el)el.classList.toggle('d-none',v!==view);});
+  ['dashboard','transactions','debts','tarjetas','savings','historial','categorias','config'].forEach(function(v){var el=document.getElementById('view-'+v);if(el)el.classList.toggle('d-none',v!==view);});
   document.querySelectorAll('.sidebar-link').forEach(function(l){l.classList.toggle('active',l.id==='nav-'+view);});
   State.currentView=view;closeSidebar();
   if(view==='dashboard')renderDashboard();
   if(view==='transactions')renderTransactions();
   if(view==='debts')renderDebts();
+  if(view==='tarjetas')renderTarjetas();
   if(view==='savings')renderSavings();
   if(view==='historial')initHistorial();
   if(view==='categorias'){renderCats();rebuildCatSelects();}
@@ -1305,18 +1348,6 @@ function setTxType(type){
   }
 }
 
-function calcCupoDisponibleTarjeta(debt){
-  if(!debt.tarjeta)return 0;
-  var cupoAprobado=debt.tarjeta.cupoAprobado||0;
-  // Sumar todos los egresos que usaron esta tarjeta
-  var txs=lsGet(KEYS.TX);
-  var gastadoTarjeta=txs.filter(function(t){
-    return t.type==='expense'&&t.sourceTarjetaId===debt.id;
-  }).reduce(function(s,t){return s+t.amount;},0);
-  // Restar también los abonos hechos a la tarjeta
-  var abonado=(debt.payments||[]).reduce(function(s,p){return s+p.capital;},0);
-  return Math.max(0,cupoAprobado-(debt.tarjeta.cupoUsado||0)-gastadoTarjeta+abonado);
-}
 
 function buildTxSourceList(){
   var s=calcSaldos();var catSaldos=calcSaldosPorCat();var savs=lsGet(KEYS.SAV);
@@ -1334,27 +1365,27 @@ if(tarjetas.length){
     html+='<div class="source-opt" onclick="selectTxSource(\'tc_'+d.id+'\',this)"><div class="source-opt-name"><i class="bi bi-credit-card-2-front-fill" style="color:var(--fp-primary)"></i> '+esc(d.creditor)+'</div><span class="source-opt-bal" style="color:var(--fp-primary)">'+fmt(cupoDisp)+' disp.</span></div>';
   });
 }
+  // Tarjetas de credito
+  var tarjetas=getTarjetas();
+  if(tarjetas.length){
+    html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fp-text3);padding:6px 0 3px">Tarjetas de crédito</div>';
+    tarjetas.forEach(function(tc){
+      var cupoDisp=calcTcCupoDisponible(tc);
+      html+='<div class="source-opt" onclick="selectTxSource(\'tc_'+tc.id+'\',this)"><div class="source-opt-name"><i class="bi bi-credit-card-2-front-fill" style="color:var(--fp-primary)"></i> '+esc(tc.nombre)+'</div><span class="source-opt-bal" style="color:var(--fp-primary)">'+fmt(cupoDisp)+' disp.</span></div>';
+    });
+  }
   list.innerHTML=html;
 }
 
 function selectTxSource(val,el){
   document.getElementById('txSourceSelected').value=val;
-  document.querySelectorAll('#txSourceList .source-opt').forEach(function(o){o.classList.remove('selected');});
+  document.querySelectorAll('#paySourceList .source-opt, #txSourceList .source-opt').forEach(function(o){o.classList.remove('selected');});
   if(el)el.classList.add('selected');
-  // Mostrar info de tarjeta si se seleccionó una
-  var tarjetaInfo=document.getElementById('txTarjetaInfo');
-  if(val.indexOf('tc_')===0){
-    var tid=val.replace('tc_','');
-    var d=lsGet(KEYS.DEBTS).find(function(x){return x.id===tid;});
-    if(d&&tarjetaInfo){
-      tarjetaInfo.style.display='block';
-      var cupo=calcCupoDisponibleTarjeta(d);
-      var tc=document.getElementById('txTarjetaCupo');if(tc)tc.textContent=fmt(cupo);
-      var tn=document.getElementById('txTarjetaNombre');if(tn)tn.textContent=' · '+d.creditor;
-    }
-  } else {
-    if(tarjetaInfo)tarjetaInfo.style.display='none';
-  }
+  var ti=document.getElementById('txTarjetaInfo');
+  if(val&&val.indexOf('tc_')===0){
+    var tid=val.replace('tc_','');var tc=getTarjetas().find(function(x){return x.id===tid;});
+    if(tc&&ti){ti.style.display='block';var tcu=document.getElementById('txTarjetaCupo');if(tcu)tcu.textContent=fmt(calcTcCupoDisponible(tc));var tn=document.getElementById('txTarjetaNombre');if(tn)tn.textContent=' · '+tc.nombre;}
+  } else {if(ti)ti.style.display='none';}
 }
 
 function checkNuevoConcepto(sel){
@@ -1989,6 +2020,207 @@ function renderHistSavings(){
   }).join('');
 }
 function toggleAcc(id){var body=document.getElementById(id);var chev=document.getElementById('chev-'+id);if(!body)return;body.classList.toggle('d-none');if(chev)chev.style.transform=body.classList.contains('d-none')?'':'rotate(180deg)';}
+
+
+// ══════════════════════════════════════════════════════
+//  TARJETAS DE CRÉDITO
+// ══════════════════════════════════════════════════════
+var KEYS_TC='fp_tarjetas';
+function getTarjetas(){try{return JSON.parse(localStorage.getItem(KEYS_TC))||[];}catch(e){return[];}}
+function setTarjetas(arr){localStorage.setItem(KEYS_TC,JSON.stringify(arr));}
+
+function calcTcUsado(tc){
+  var base=tc.cupoUsado||0;
+  var txs=lsGet(KEYS.TX);
+  var gastado=txs.filter(function(t){return t.type==='expense'&&t.sourceTarjetaId===tc.id;}).reduce(function(s,t){return s+t.amount;},0);
+  var abonado=txs.filter(function(t){return t.type==='income'&&t.origin==='tarjeta_pago'&&t.tarjetaId===tc.id;}).reduce(function(s,t){return s+t.amount;},0);
+  return Math.max(0,base+gastado-abonado);
+}
+
+function calcTcCupoDisponible(tc){
+  return Math.max(0,(tc.cupoAprobado||0)-calcTcUsado(tc));
+}
+
+function calcTcDisponible(){
+  var ap=parseFloat(document.getElementById('tcCupoAprobado').value)||0;
+  var us=parseFloat(document.getElementById('tcCupoUsado').value)||0;
+  var prev=document.getElementById('tcDisponiblePreview');
+  if(prev){prev.textContent=fmt(ap-us);prev.style.color=(ap-us)>=0?'var(--fp-primary)':'var(--fp-danger)';}
+}
+
+function renderTarjetas(){
+  var tcs=getTarjetas();
+  var totCupo=tcs.reduce(function(s,t){return s+(t.cupoAprobado||0);},0);
+  var totUsado=tcs.reduce(function(s,t){return s+calcTcUsado(t);},0);
+  var totDisp=tcs.reduce(function(s,t){return s+calcTcCupoDisponible(t);},0);
+  var elCupo=document.getElementById('tcTotalCupo');if(elCupo)elCupo.textContent=fmt(totCupo);
+  var elUsado=document.getElementById('tcTotalUsado');if(elUsado)elUsado.textContent=fmt(totUsado);
+  var elDisp=document.getElementById('tcTotalDisp');if(elDisp)elDisp.textContent=fmt(totDisp);
+  var elCnt=document.getElementById('tcCount');if(elCnt)elCnt.textContent=tcs.length;
+  var badge=document.getElementById('badgeTarjetas');if(badge)badge.textContent=tcs.length;
+  var grid=document.getElementById('tarjetasList');if(!grid)return;
+  if(!tcs.length){
+    grid.innerHTML='<div class="col-12"><div class="empty-state-large"><i class="bi bi-credit-card-2-front-fill" style="font-size:3rem;color:var(--fp-primary)"></i><h4 class="mt-3">Sin tarjetas registradas</h4><button class="btn fp-btn-primary mt-2" onclick="openTarjetaModal()"><i class="bi bi-plus-lg"></i> Agregar Tarjeta</button></div></div>';
+    return;
+  }
+  var now=new Date();
+  grid.innerHTML=tcs.map(function(tc){
+    var disp=calcTcCupoDisponible(tc);
+    var usado=calcTcUsado(tc);
+    var pct=tc.cupoAprobado>0?Math.min(100,Math.round(usado/tc.cupoAprobado*100)):0;
+    var barColor=pct>=90?'bar-danger':pct>=70?'bar-gold':'bar-success';
+    var franqLabel={visa:'VISA',mastercard:'MC',amex:'AMEX',otro:'TC'}[tc.franquicia||'otro']||'TC';
+    var franqColor={visa:'#1a56db',mastercard:'#c81e1e',amex:'#057a55',otro:'#475569'}[tc.franquicia||'otro']||'#475569';
+    var proxCorte='';var proxPago='';
+    if(tc.diaCorte){var corte=new Date(now.getFullYear(),now.getMonth(),tc.diaCorte);if(corte<=now)corte=new Date(now.getFullYear(),now.getMonth()+1,tc.diaCorte);var dc=Math.ceil((corte-now)/(1000*60*60*24));proxCorte='Corte: '+dc+' días (día '+tc.diaCorte+')';}
+    if(tc.diaPago){var pago=new Date(now.getFullYear(),now.getMonth(),tc.diaPago);if(pago<=now)pago=new Date(now.getFullYear(),now.getMonth()+1,tc.diaPago);var dp=Math.ceil((pago-now)/(1000*60*60*24));proxPago='Pago: '+dp+' días (día '+tc.diaPago+')';}
+    var tid=esc(tc.id);
+    return '<div class="col-lg-6 col-md-12">'
+      +'<div class="fp-card" style="overflow:hidden">'
+        +'<div style="height:3px;background:linear-gradient(90deg,var(--fp-primary),#6366f1)"></div>'
+        +'<div class="fp-card-body">'
+          +'<div class="d-flex justify-content-between align-items-start mb-3">'
+            +'<div>'
+              +'<div style="font-size:15px;font-weight:800;color:var(--fp-text)">'+esc(tc.nombre)+'</div>'
+              +(tc.descripcion?'<div style="font-size:11.5px;color:var(--fp-text3)">'+esc(tc.descripcion)+'</div>':'')
+            +'</div>'
+            +'<div class="d-flex align-items-center gap-2">'
+              +'<div style="background:var(--fp-primary-lt);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:900;font-style:italic;color:'+franqColor+'">'+franqLabel+'</div>'
+              +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openTarjetaModal(\''+tid+'\')" title="Editar"><i class="bi bi-pencil" style="color:var(--fp-primary)"></i></button>'
+              +'<button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deleteTarjeta(\''+tid+'\')" title="Eliminar"><i class="bi bi-trash3"></i></button>'
+            +'</div>'
+          +'</div>'
+          +'<div class="row g-2 mb-3">'
+            +'<div class="col-4"><div style="background:var(--fp-primary-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-primary);font-weight:700;margin-bottom:2px">Cupo</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:var(--fp-primary)">'+fmt(tc.cupoAprobado)+'</div></div></div>'
+            +'<div class="col-4"><div style="background:var(--fp-danger-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-danger);font-weight:700;margin-bottom:2px">Usado</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:var(--fp-danger)">'+fmt(usado)+'</div></div></div>'
+            +'<div class="col-4"><div style="background:var(--fp-success-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-success);font-weight:700;margin-bottom:2px">Disponible</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:var(--fp-success)">'+fmt(disp)+'</div></div></div>'
+          +'</div>'
+          +'<div class="d-flex justify-content-between mb-1" style="font-size:11px"><span class="text-muted">Uso: '+pct+'%</span><span class="text-muted">'+fmt(usado)+' / '+fmt(tc.cupoAprobado)+'</span></div>'
+          +'<div class="fp-progress mb-3" style="height:6px"><div class="fp-progress-bar '+barColor+'" style="width:'+pct+'%;animation:none"></div></div>'
+          +'<div class="d-flex gap-3 flex-wrap mb-3" style="font-size:11.5px;color:var(--fp-text2)">'
+            +(tc.tasa?'<span><i class="bi bi-percent me-1" style="color:var(--fp-orange)"></i>'+tc.tasa+'%/mes</span>':'')
+            +(proxCorte?'<span><i class="bi bi-scissors me-1" style="color:var(--fp-violet)"></i>'+proxCorte+'</span>':'')
+            +(proxPago?'<span><i class="bi bi-calendar-check me-1" style="color:var(--fp-success)"></i>'+proxPago+'</span>':'')
+          +'</div>'
+          +'<div class="d-flex gap-2">'
+            +'<button class="btn fp-btn-primary fp-btn-sm flex-fill" onclick="openTcPagoModal(\''+tid+'\')"><i class="bi bi-cash-coin me-1"></i> Registrar pago</button>'
+            +'<button class="btn fp-btn-ghost fp-btn-sm flex-fill" onclick="verMovsTarjeta(\''+tid+'\')"><i class="bi bi-list-ul me-1"></i> Movimientos</button>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+function openTarjetaModal(editId){
+  document.getElementById('tcEditId').value=editId||'';
+  document.getElementById('tcNombre').value='';document.getElementById('tcFranquicia').value='visa';
+  document.getElementById('tcCupoAprobado').value='0';document.getElementById('tcCupoUsado').value='0';
+  document.getElementById('tcTasa').value='0';document.getElementById('tcDiaCorte').value='';
+  document.getElementById('tcDiaPago').value='';document.getElementById('tcDesc').value='';
+  document.getElementById('tcDisponiblePreview').textContent='$0';
+  if(editId){
+    var tc=getTarjetas().find(function(t){return t.id===editId;});
+    if(tc){
+      document.getElementById('modalTarjetaTitle').innerHTML='<i class="bi bi-pencil-fill me-2"></i>Editar Tarjeta';
+      document.getElementById('tcNombre').value=tc.nombre||'';
+      document.getElementById('tcFranquicia').value=tc.franquicia||'visa';
+      document.getElementById('tcCupoAprobado').value=tc.cupoAprobado||0;
+      document.getElementById('tcCupoUsado').value=tc.cupoUsado||0;
+      document.getElementById('tcTasa').value=tc.tasa||0;
+      document.getElementById('tcDiaCorte').value=tc.diaCorte||'';
+      document.getElementById('tcDiaPago').value=tc.diaPago||'';
+      document.getElementById('tcDesc').value=tc.descripcion||'';
+      calcTcDisponible();
+    }
+  } else {
+    document.getElementById('modalTarjetaTitle').innerHTML='<i class="bi bi-credit-card-2-front-fill me-2"></i>Nueva Tarjeta';
+  }
+  new bootstrap.Modal(document.getElementById('modalTarjeta')).show();
+}
+
+function saveTarjeta(){
+  var editId=document.getElementById('tcEditId').value;
+  var nombre=document.getElementById('tcNombre').value.trim();
+  var cupoAp=parseFloat(document.getElementById('tcCupoAprobado').value)||0;
+  if(!nombre){showToast('El nombre es obligatorio','danger');return;}
+  if(cupoAp<=0){showToast('El cupo aprobado debe ser mayor a 0','danger');return;}
+  var all=getTarjetas();
+  var tc={id:editId||genId(),nombre:nombre,franquicia:document.getElementById('tcFranquicia').value,cupoAprobado:cupoAp,cupoUsado:parseFloat(document.getElementById('tcCupoUsado').value)||0,tasa:parseFloat(document.getElementById('tcTasa').value)||0,diaCorte:parseInt(document.getElementById('tcDiaCorte').value)||0,diaPago:parseInt(document.getElementById('tcDiaPago').value)||0,descripcion:document.getElementById('tcDesc').value.trim()};
+  if(editId){var idx=all.findIndex(function(t){return t.id===editId;});if(idx>=0)all[idx]=tc;else all.push(tc);}
+  else all.push(tc);
+  setTarjetas(all);
+  bootstrap.Modal.getInstance(document.getElementById('modalTarjeta')).hide();
+  renderTarjetas();
+  showToast((editId?'Tarjeta actualizada':'Tarjeta registrada')+' ✓','success');
+}
+
+function deleteTarjeta(id){
+  if(!confirm('¿Eliminar esta tarjeta?'))return;
+  setTarjetas(getTarjetas().filter(function(t){return t.id!==id;}));
+  renderTarjetas();showToast('Tarjeta eliminada','warning');
+}
+
+function openTcPagoModal(id){
+  var tc=getTarjetas().find(function(t){return t.id===id;});if(!tc)return;
+  var usado=calcTcUsado(tc);var disp=calcTcCupoDisponible(tc);
+  var html='<div class="debt-detail-overlay" id="tcPagoOverlay" onclick="if(event.target===this)document.getElementById(\'tcPagoOverlay\').remove()">'
+    +'<div class="debt-detail-box" style="max-width:480px">'
+      +'<div class="debt-detail-header">'
+        +'<div class="d-flex justify-content-between align-items-start">'
+          +'<div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(59,130,246,.8);margin-bottom:4px"><i class="bi bi-credit-card-2-front-fill me-1"></i>Pago de Tarjeta</div><h3 style="font-size:18px;font-weight:800;color:#fff;margin:0">'+esc(tc.nombre)+'</h3></div>'
+          +'<button onclick="document.getElementById(\'tcPagoOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="bi bi-x-lg"></i></button>'
+        +'</div>'
+        +'<div class="row g-2 mt-2">'
+          +'<div class="col-4"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Cupo</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#93c5fd">'+fmt(tc.cupoAprobado)+'</div></div></div>'
+          +'<div class="col-4"><div style="background:rgba(220,38,38,.15);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(252,165,165,.7);margin-bottom:2px">Usado</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#fca5a5">'+fmt(usado)+'</div></div></div>'
+          +'<div class="col-4"><div style="background:rgba(5,122,85,.15);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(110,231,183,.7);margin-bottom:2px">Disponible</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#6ee7b7">'+fmt(disp)+'</div></div></div>'
+        +'</div>'
+      +'</div>'
+      +'<div class="debt-detail-body">'
+        +'<div class="row g-3">'
+          +'<div class="col-12"><label class="fp-label">Monto del pago ($) *</label><input class="fp-input fp-input-mono" type="number" id="tcPagoMonto" placeholder="0" min="0.01" step="0.01"/></div>'
+          +'<div class="col-12"><label class="fp-label">Fecha</label><input class="fp-input" type="date" id="tcPagoFecha" value="'+today()+'"/></div>'
+          +'<div class="col-12"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="tcPagoDesc" placeholder="Ej: Pago mínimo, pago total..."/></div>'
+        +'</div>'
+        +'<div class="d-flex gap-2 mt-3">'
+          +'<button class="btn fp-btn-ghost flex-fill" onclick="document.getElementById(\'tcPagoOverlay\').remove()">Cancelar</button>'
+          +'<button class="btn fp-btn-primary flex-fill" onclick="saveTcPago(\''+esc(tc.id)+'\')"><i class="bi bi-check-lg me-1"></i>Confirmar Pago</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  var ex=document.getElementById('tcPagoOverlay');if(ex)ex.remove();
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function saveTcPago(tcId){
+  var monto=parseFloat(document.getElementById('tcPagoMonto').value)||0;
+  var fecha=document.getElementById('tcPagoFecha').value;
+  var desc=document.getElementById('tcPagoDesc').value.trim();
+  if(!monto||monto<=0){showToast('Ingresa un monto válido','danger');return;}
+  var tc=getTarjetas().find(function(t){return t.id===tcId;});
+  var txAll=lsGet(KEYS.TX);
+  txAll.push({id:genId(),type:'income',description:'Pago tarjeta: '+(tc?tc.nombre:tcId)+(desc?' — '+desc:''),amount:monto,date:fecha||today(),category:'Otro',origin:'tarjeta_pago',tarjetaId:tcId,sourceType:'tarjeta_pago'});
+  lsSet(KEYS.TX,txAll);
+  var ex=document.getElementById('tcPagoOverlay');if(ex)ex.remove();
+  renderTarjetas();updateChips();
+  if(State.currentView==='transactions')renderTransactions();
+  showToast('Pago de '+fmt(monto)+' registrado ✓ Cupo recuperado','success');
+}
+
+function verMovsTarjeta(id){
+  var tc=getTarjetas().find(function(t){return t.id===id;});if(!tc)return;
+  var txs=lsGet(KEYS.TX).filter(function(t){return t.sourceTarjetaId===id||(t.origin==='tarjeta_pago'&&t.tarjetaId===id);}).sort(function(a,b){return b.date.localeCompare(a.date);});
+  var rows=txs.length?txs.map(function(t){var esPago=t.origin==='tarjeta_pago';return '<tr><td><span class="fp-badge '+(esPago?'fp-badge-green':'fp-badge-red')+'" style="font-size:9.5px">'+(esPago?'<i class="bi bi-arrow-up-circle me-1"></i>Pago':'<i class="bi bi-arrow-down-circle me-1"></i>Gasto')+'</span></td><td style="font-size:12px">'+esc(t.description)+'</td><td class="amount-mono '+(esPago?'text-success':'text-danger')+'" style="font-size:12px">'+(esPago?'+':'-')+fmt(t.amount)+'</td><td style="font-size:11px;color:var(--fp-text2)">'+fmtDate(t.date)+'</td></tr>';}).join(''):'<tr><td colspan="4" class="text-center py-3 text-muted">Sin movimientos</td></tr>';
+  var html='<div class="debt-detail-overlay" id="tcMovsOverlay" onclick="if(event.target===this)document.getElementById(\'tcMovsOverlay\').remove()">'
+    +'<div class="debt-detail-box" style="max-width:600px">'
+      +'<div class="debt-detail-header"><div class="d-flex justify-content-between align-items-center"><h3 style="font-size:18px;font-weight:800;color:#fff;margin:0"><i class="bi bi-list-ul me-2"></i>'+esc(tc.nombre)+'</h3><button onclick="document.getElementById(\'tcMovsOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="bi bi-x-lg"></i></button></div></div>'
+      +'<div class="debt-detail-body"><div class="table-responsive"><table class="fp-table"><thead><tr><th>Tipo</th><th>Descripción</th><th>Monto</th><th>Fecha</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'
+    +'</div></div>';
+  var ex=document.getElementById('tcMovsOverlay');if(ex)ex.remove();
+  document.body.insertAdjacentHTML('beforeend',html);
+}
 
 // ══════════════════════════════════════════════════════
 //  GIST SYNC
