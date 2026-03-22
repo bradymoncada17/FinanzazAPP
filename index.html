@@ -592,7 +592,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="col-12"><label class="fp-label">Descripción *</label><input class="fp-input" type="text" id="txDesc" placeholder="Ej: Salario mensual..."/></div>
         <div class="col-md-6"><label class="fp-label">Monto ($) *</label><input class="fp-input fp-input-mono" type="number" id="txAmount" placeholder="0" min="0.01" step="0.01"/></div>
         <div class="col-md-6"><label class="fp-label">Fecha *</label><input class="fp-input" type="date" id="txDate"/></div>
-        <div class="col-12"><label class="fp-label">Categoría</label><select class="fp-select" id="txCategory"></select></div>
+       <div class="col-12"><label class="fp-label">Categoría</label><select class="fp-select" id="txCategory" onchange="updateConceptoSelect(this.value)"></select></div>
+<div class="col-12" id="txConceptoWrap" style="display:none">
+  <label class="fp-label">Concepto <span style="color:var(--fp-text3);font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+  <select class="fp-select" id="txConcepto" onchange="checkNuevoConcepto(this)">
+    <option value="">-- Seleccionar concepto --</option>
+  </select>
+</div>
+<div class="col-12" id="txConceptoNuevoWrap" style="display:none">
+  <label class="fp-label">Nuevo concepto</label>
+  <div class="d-flex gap-2">
+    <input class="fp-input" type="text" id="txConceptoNuevo" placeholder="Escribe el concepto..."/>
+    <button class="btn fp-btn-success fp-btn-sm" onclick="guardarNuevoConcepto()"><i class="bi bi-plus-lg"></i></button>
+  </div>
+</div>
       </div>
       <!-- FUENTE DEL EGRESO -->
       <div id="txSourceSection" style="display:none;margin-top:16px">
@@ -957,7 +970,67 @@ function calcCuotaMensual(cap,tasa,meses){
 //  CATEGORÍAS
 // ══════════════════════════════════════════════════════
 var DEFAULT_CATS_INC=['Salario','Freelance','Negocio','Inversión','Alquiler','Préstamo recibido','Otro'];
-var DEFAULT_CATS_EXP=['Vivienda','Alimentación','Transporte','Salud','Educación','Entretenimiento','Servicios','Ropa','Tecnología','Abono Deuda','Ahorros-Gasto','Ahorros-Retiro','Otro'];
+var DEFAULT_CATS_EXP=['Vivienda','Comida','Servicios Personales','Entretenimiento','Transporte','OtrosGastos','Deudas','Ahorros','Familiares','Gastos de Ahorro','Abono Deuda','Ahorros-Gasto','Ahorros-Retiro','Otro'];
+
+var DEFAULT_CONCEPTOS={
+  'Vivienda':['Arriendo','Plan Celular','Impuestos'],
+  'Comida':['Mercado','Mecato','Restaurante'],
+  'Servicios Personales':['Ropa y Calzado','Productos de Aseo','Barbería','Uñas','Medicinas','Citas Médicas'],
+  'Entretenimiento':['Evento','Cine','Viajes y vacaciones','Diversión'],
+  'Transporte':['Transporte Público','Gasolina','Parqueadero','Lavada Moto','Impuestos Moto','Soat','Tecno','Transporte Privado Antonella','Mantenimiento Moto'],
+  'OtrosGastos':['Regalos y celebraciones','Emergencias y contingencias','Donaciones y caridad','Incentivos','Sin registros'],
+  'Deudas':['Tío','Addi','Abuela','Padre','Invermonk','Cotrafa','Abono a Capital Cotrafa','Tita','Bancolombia'],
+  'Ahorros':['Casa','Carro','Soat','Estrenos Antonella','Uniformes Antonella','Lujos Personales'],
+  'Familiares':['Manutención Hija'],
+  'Gastos de Ahorro':['Manutención Hija'],
+  'Salud':['Medicinas','Citas Médicas'],
+  'Educación':[],
+  'Abono Deuda':[],
+  'Ahorros-Gasto':[],
+  'Ahorros-Retiro':[],
+  'Otro':[]
+};
+function getConceptos(cat){
+  try{
+    var stored=localStorage.getItem('fp_conceptos');
+    var all=stored?JSON.parse(stored):{};
+    var custom=all[cat]||[];
+    var defaults=DEFAULT_CONCEPTOS[cat]||[];
+    var merged=defaults.slice();
+    custom.forEach(function(c){if(merged.indexOf(c)<0)merged.push(c);});
+    return merged;
+  }catch(e){return DEFAULT_CONCEPTOS[cat]||[];}
+}
+function saveConcepto(cat,concepto){
+  try{
+    var stored=localStorage.getItem('fp_conceptos');
+    var all=stored?JSON.parse(stored):{};
+    all[cat]=all[cat]||[];
+    if(all[cat].indexOf(concepto)<0)all[cat].push(concepto);
+    localStorage.setItem('fp_conceptos',JSON.stringify(all));
+  }catch(e){}
+}
+function deleteConcepto(cat,concepto){
+  try{
+    var stored=localStorage.getItem('fp_conceptos');
+    var all=stored?JSON.parse(stored):{};
+    all[cat]=(all[cat]||[]).filter(function(c){return c!==concepto;});
+    localStorage.setItem('fp_conceptos',JSON.stringify(all));
+  }catch(e){}
+}
+function updateConceptoSelect(cat){
+  var sel=document.getElementById('txConcepto');
+  var wrap=document.getElementById('txConceptoWrap');
+  if(!sel||!wrap)return;
+  var type=document.getElementById('txType').value;
+  if(type!=='expense'){wrap.style.display='none';return;}
+  var conceptos=getConceptos(cat);
+  if(!conceptos.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  sel.innerHTML='<option value="">-- Seleccionar concepto --</option>'
+    +conceptos.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('')
+    +'<option value="__nuevo">+ Nuevo concepto...</option>';
+}
 function getCats(type){var key=type==='income'?KEYS.CATS_INC:KEYS.CATS_EXP;var def=type==='income'?DEFAULT_CATS_INC:DEFAULT_CATS_EXP;try{var s=localStorage.getItem(key);return s?JSON.parse(s):def;}catch(e){return def;}}
 function saveCats(type,arr){localStorage.setItem(type==='income'?KEYS.CATS_INC:KEYS.CATS_EXP,JSON.stringify(arr));}
 function addCat(type){var iid=type==='income'?'newCatIncName':'newCatExpName';var name=document.getElementById(iid).value.trim();if(!name){showToast('Escribe un nombre','danger');return;}var cats=getCats(type);if(cats.indexOf(name)>=0){showToast('Ya existe','danger');return;}cats.push(name);saveCats(type,cats);document.getElementById(iid).value='';renderCats();rebuildCatSelects();showToast('"'+name+'" creada ✓','success');}
@@ -1140,19 +1213,35 @@ function renderTransactions(){
   tbody.innerHTML=slice.map(function(t){
     var inc=t.type==='income';
     var ob=t.origin==='debt_payment'?'<span class="fp-badge fp-badge-red" style="font-size:9.5px"><i class="bi bi-file-earmark-text-fill me-1"></i>Abono</span>':t.origin==='debt_income'?'<span class="fp-badge fp-badge-green" style="font-size:9.5px"><i class="bi bi-cash-coin me-1"></i>Préstamo</span>':t.origin==='saving_move'?'<span class="fp-badge fp-badge-gold" style="font-size:9.5px"><i class="bi bi-piggy-bank-fill me-1"></i>Ahorro</span>':'<span class="fp-badge fp-badge-gray" style="font-size:9.5px">Manual</span>';
-    return '<tr><td><span class="fp-badge '+(inc?'fp-badge-green':'fp-badge-red')+'"><i class="bi bi-arrow-'+(inc?'up':'down')+'-circle me-1"></i>'+(inc?'Ingreso':'Egreso')+'</span></td><td style="max-width:120px;word-break:break-word"><strong style="font-size:12px">'+esc(t.description)+'</strong></td><td><span class="fp-badge fp-badge-gray" style="font-size:9.5px">'+esc(t.category)+'</span></td><td class="amount-mono '+(inc?'text-success':'text-danger')+'">'+(inc?'+':'-')+fmt(t.amount)+'</td><td>'+ob+'</td><td class="text-muted" style="font-size:11px;white-space:nowrap">'+fmtDate(t.date)+'</td><td class="text-end" style="white-space:nowrap">'+(t.origin?'<span style="padding:4px 7px;font-size:10px;color:var(--fp-text3)"><i class="bi bi-lock-fill"></i></span>':'<button class="btn fp-btn-ghost fp-btn-sm me-1" onclick="editTx(\''+t.id+'\')" title="Editar"><i class="bi bi-pencil"></i></button>')+'<button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deleteTx(\''+t.id+'\')" title="Eliminar"><i class="bi bi-trash3"></i></button></td></tr>';
+    return '<tr><td><span class="fp-badge '+(inc?'fp-badge-green':'fp-badge-red')+'"><i class="bi bi-arrow-'+(inc?'up':'down')+'-circle me-1"></i>'+(inc?'Ingreso':'Egreso')+'</span></td>'
+      +'<td style="max-width:140px;word-break:break-word"><strong style="font-size:12px">'+esc(t.description)+'</strong>'+(t.concepto?'<div style="font-size:10px;color:var(--fp-text3);margin-top:1px"><i class="bi bi-tag-fill me-1"></i>'+esc(t.concepto)+'</div>':'')+'</td>'
+      +'<td><span class="fp-badge fp-badge-gray" style="font-size:9.5px">'+esc(t.category)+'</span>'+(t.sourceCat?'<div style="font-size:9px;color:var(--fp-primary);margin-top:1px"><i class="bi bi-arrow-return-right me-1"></i>'+esc(t.sourceCat)+'</div>':'')+'</td>'
+      +'<td class="amount-mono '+(inc?'text-success':'text-danger')+'">'+(inc?'+':'-')+fmt(t.amount)+'</td>'
+      +'<td>'+ob+'</td>'
+      +'<td class="text-muted" style="font-size:11px;white-space:nowrap">'+fmtDate(t.date)+'</td>'
+      +'<td class="text-end" style="white-space:nowrap">'+(t.origin?'<span style="padding:4px 7px;font-size:10px;color:var(--fp-text3)"><i class="bi bi-lock-fill"></i></span>':'<button class="btn fp-btn-ghost fp-btn-sm me-1" onclick="editTx(\''+t.id+'\')" title="Editar"><i class="bi bi-pencil"></i></button>')+'<button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deleteTx(\''+t.id+'\')" title="Eliminar"><i class="bi bi-trash3"></i></button></td></tr>';
   }).join('');
 }
+
 function renderTxDistChart(s){
   var ctx=document.getElementById('chartTxDist');if(!ctx)return;
   if(window._txDistChart){window._txDistChart.destroy();window._txDistChart=null;}
   window._txDistChart=new Chart(ctx,{type:'bar',data:{labels:['Saldo Libre','Ahorros','Deudas'],datasets:[{data:[Math.max(0,s.saldoLibre),s.totalSav,s.totalDebt],backgroundColor:['rgba(5,122,85,.8)','rgba(180,83,9,.8)','rgba(200,30,30,.8)'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+fmt(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{callback:function(v){return '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'k');},font:{size:10}}}}}});
 }
+
 function txPage(dir){var pages=Math.ceil(State.txFiltered.length/State.txPageSize);State.txPage=Math.max(1,Math.min(pages,State.txPage+dir));renderTransactions();}
 
 function openTxModal(editId){
-  document.getElementById('txEditId').value=editId||'';document.getElementById('txDesc').value='';document.getElementById('txAmount').value='';document.getElementById('txDate').value=today();setTxType('income');
-  document.getElementById('txSourceSection').style.display='none';document.getElementById('txSourceSelected').value='libre';
+  document.getElementById('txEditId').value=editId||'';
+  document.getElementById('txDesc').value='';
+  document.getElementById('txAmount').value='';
+  document.getElementById('txDate').value=today();
+  setTxType('income');
+  document.getElementById('txSourceSection').style.display='none';
+  document.getElementById('txSourceSelected').value='libre';
+  var wc=document.getElementById('txConceptoWrap');if(wc)wc.style.display='none';
+  var wc2=document.getElementById('txConceptoNuevoWrap');if(wc2)wc2.style.display='none';
+  var sc=document.getElementById('txConcepto');if(sc)sc.value='';
   if(editId){
     var tx=lsGet(KEYS.TX).find(function(t){return t.id===editId;});
     if(tx){
@@ -1161,7 +1250,16 @@ function openTxModal(editId){
       document.getElementById('txAmount').value=tx.amount;
       document.getElementById('txDate').value=tx.date;
       setTxType(tx.type);
-      setTimeout(function(){document.getElementById('txCategory').value=tx.category;},50);
+      setTimeout(function(){
+        document.getElementById('txCategory').value=tx.category;
+        if(tx.type==='expense'){
+          updateConceptoSelect(tx.category);
+          setTimeout(function(){
+            var sc=document.getElementById('txConcepto');
+            if(sc&&tx.concepto)sc.value=tx.concepto;
+          },100);
+        }
+      },50);
       if(tx.type==='expense'){buildTxSourceList();document.getElementById('txSourceSection').style.display='block';}
     }
   } else {
@@ -1169,13 +1267,23 @@ function openTxModal(editId){
   }
   new bootstrap.Modal(document.getElementById('modalTx')).show();
 }
+
 function setTxType(type){
   document.getElementById('txType').value=type;
   document.getElementById('btnIncome').classList.toggle('active',type==='income');
   document.getElementById('btnExpense').classList.toggle('active',type==='expense');
-  if(type==='expense'){buildTxSourceList();document.getElementById('txSourceSection').style.display='block';}
-  else{document.getElementById('txSourceSection').style.display='none';}
+  if(type==='expense'){
+    buildTxSourceList();
+    document.getElementById('txSourceSection').style.display='block';
+    var cat=document.getElementById('txCategory').value;
+    if(cat)updateConceptoSelect(cat);
+  } else {
+    document.getElementById('txSourceSection').style.display='none';
+    var w=document.getElementById('txConceptoWrap');if(w)w.style.display='none';
+    var w2=document.getElementById('txConceptoNuevoWrap');if(w2)w2.style.display='none';
+  }
 }
+
 function buildTxSourceList(){
   var s=calcSaldos();var catSaldos=calcSaldosPorCat();var savs=lsGet(KEYS.SAV);
   var list=document.getElementById('txSourceList');if(!list)return;
@@ -1185,11 +1293,31 @@ function buildTxSourceList(){
   if(savs.length){html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fp-text3);padding:6px 0 3px">Desde ahorros</div>';savs.forEach(function(sv){html+='<div class="source-opt" onclick="selectTxSource(\'sav_'+sv.id+'\',this)"><div class="source-opt-name"><i class="bi bi-piggy-bank-fill" style="color:var(--fp-gold)"></i> '+esc(sv.name)+'</div><span class="source-opt-bal" style="color:var(--fp-gold)">'+fmt(sv.currentBalance)+'</span></div>';});}
   list.innerHTML=html;
 }
+
 function selectTxSource(val,el){
   document.getElementById('txSourceSelected').value=val;
   document.querySelectorAll('#txSourceList .source-opt').forEach(function(o){o.classList.remove('selected');});
   if(el)el.classList.add('selected');
 }
+
+function checkNuevoConcepto(sel){
+  var wrap=document.getElementById('txConceptoNuevoWrap');
+  if(!wrap)return;
+  wrap.style.display=sel.value==='__nuevo'?'block':'none';
+}
+
+function guardarNuevoConcepto(){
+  var cat=document.getElementById('txCategory').value;
+  var nuevo=document.getElementById('txConceptoNuevo').value.trim();
+  if(!nuevo){showToast('Escribe un concepto','danger');return;}
+  saveConcepto(cat,nuevo);
+  updateConceptoSelect(cat);
+  setTimeout(function(){document.getElementById('txConcepto').value=nuevo;},50);
+  document.getElementById('txConceptoNuevoWrap').style.display='none';
+  document.getElementById('txConceptoNuevo').value='';
+  showToast('"'+nuevo+'" añadido ✓','success');
+}
+
 function saveTx(){
   var id=document.getElementById('txEditId').value;
   var desc=document.getElementById('txDesc').value.trim();
@@ -1198,6 +1326,9 @@ function saveTx(){
   var type=document.getElementById('txType').value;
   var cat=document.getElementById('txCategory').value;
   var srcVal=document.getElementById('txSourceSelected').value||'libre';
+  var conceptoEl=document.getElementById('txConcepto');
+  var concepto=conceptoEl?conceptoEl.value:'';
+  if(concepto==='__nuevo')concepto='';
   if(!desc){showToast('La descripción es obligatoria','danger');return;}
   if(!amt||amt<=0){showToast('El monto debe ser positivo','danger');return;}
   var all=lsGet(KEYS.TX);
@@ -1209,17 +1340,15 @@ function saveTx(){
       all[idx].date=date;
       all[idx].type=type;
       all[idx].category=cat;
-      // No tocamos el source al editar para no romper balances
+      all[idx].concepto=concepto;
       lsSet(KEYS.TX,all);
       showToast('Actualizada ✓','success');
     }
   } else {
     var sourceCat=null;
-    // Si es egreso desde una categoría de ingreso específica, guardamos esa fuente
     if(type==='expense'&&srcVal.indexOf('cat_')===0){
       sourceCat=srcVal.replace('cat_','');
     }
-    // Si es egreso desde ahorros, descontar del ahorro
     if(type==='expense'&&srcVal.indexOf('sav_')===0){
       var sid=srcVal.replace('sav_','');
       var allSav=lsGet(KEYS.SAV);
@@ -1234,8 +1363,8 @@ function saveTx(){
     }
     all.push({
       id:genId(),type:type,description:desc,amount:amt,
-      date:date,category:cat,
-      sourceCat:sourceCat, // guardamos de qué categoría de ingreso salió
+      date:date,category:cat,concepto:concepto,
+      sourceCat:sourceCat,
       sourceType:srcVal.indexOf('sav_')===0?'saving':srcVal.indexOf('cat_')===0?'category':'libre'
     });
     lsSet(KEYS.TX,all);
@@ -1245,6 +1374,7 @@ function saveTx(){
   renderTransactions();updateChips();
   if(State.currentView==='dashboard')renderDashboard();
 }
+
 function editTx(id){openTxModal(id);}
 function deleteTx(id){if(!confirm('¿Eliminar?'))return;lsSet(KEYS.TX,lsGet(KEYS.TX).filter(function(t){return t.id!==id;}));renderTransactions();updateChips();showToast('Eliminada','warning');}
 
