@@ -923,36 +923,17 @@ function calcSaldosPorCat(){
     incByCat[t.category]=(incByCat[t.category]||0)+t.amount;
   });
   if(!Object.keys(incByCat).length)return[];
-
   var expByCat={};
   txs.filter(function(t){return t.type==='expense';}).forEach(function(t){
-    if(t.sourceType==='saving'){
-      // Salió de ahorros — no afecta ninguna categoría de ingreso
-      return;
-    }
+    if(t.sourceType==='saving')return;
     if(t.sourceCat&&incByCat[t.sourceCat]!==undefined){
-      // Tiene fuente explícita — descontar solo de esa categoría
       expByCat[t.sourceCat]=(expByCat[t.sourceCat]||0)+t.amount;
     }
-    // Sin fuente y sin saving — NO distribuir proporcionalmente
-    // Cada categoría muestra su ingreso real menos solo lo que salió de ella
   });
-
   return Object.keys(incByCat).map(function(cat){
     var ingreso=incByCat[cat];
     var expDirecto=expByCat[cat]||0;
     return{cat:cat,totalInc:ingreso,libre:ingreso-expDirecto};
-  }).sort(function(a,b){return b.totalInc-a.totalInc;});
-}
-  var totalInc=Object.values(incByCat).reduce(function(s,v){return s+v;},0)||1;
-
-  return Object.keys(incByCat).map(function(cat){
-    var ingreso=incByCat[cat];
-    var expDirecto=expByCat[cat]||0;
-    var peso=ingreso/totalInc;
-    var expProporcional=expSinFuente*peso;
-    var libre=ingreso-expDirecto-expProporcional;
-    return{cat:cat,totalInc:ingreso,libre:libre};
   }).sort(function(a,b){return b.totalInc-a.totalInc;});
 }
 function getCurrentAporte(debt){
@@ -1690,14 +1671,34 @@ function setSavMoveType(type){
   if(type==='deposit')buildSavDepositSourceList();
 }
 function saveSavingMove(){
-  var id=document.getElementById('savMoveId').value;var type=document.getElementById('savMoveType').value;var amt=parseFloat(document.getElementById('savMoveAmount').value);var desc=document.getElementById('savMoveDesc').value.trim();var date=document.getElementById('savMoveDate').value;var srcVal=document.getElementById('savDepositSource').value||'libre';
+  var id=document.getElementById('savMoveId').value;
+  var type=document.getElementById('savMoveType').value;
+  var amt=parseFloat(document.getElementById('savMoveAmount').value);
+  var desc=document.getElementById('savMoveDesc').value.trim();
+  var date=document.getElementById('savMoveDate').value;
+  var srcVal=document.getElementById('savDepositSource')?document.getElementById('savDepositSource').value||'libre':'libre';
   if(!amt||amt<=0){showToast('El monto debe ser positivo','danger');return;}
   var all=lsGet(KEYS.SAV);var idx=all.findIndex(function(s){return s.id===id;});if(idx<0)return;var acc=all[idx];
   if((type==='withdraw'||type==='use')&&amt>acc.currentBalance){showToast('Saldo insuficiente','danger');return;}
-  acc.transactions=acc.transactions||[];acc.transactions.push({id:genId(),type:type,amount:amt,description:desc||(type==='deposit'?'Depósito':type==='withdraw'?'Retiro':'Gasto'),date:date||today()});
-  acc.currentBalance=type==='deposit'?acc.currentBalance+amt:acc.currentBalance-amt;all[idx]=acc;lsSet(KEYS.SAV,all);
- if(type==='use'||type==='withdraw'){var txAll=lsGet(KEYS.TX);txAll.push({id:genId(),type:'expense',description:(type==='use'?'Gasto':'Retiro')+' ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date||today(),category:type==='use'?'Ahorros-Gasto':'Ahorros-Retiro',origin:'saving_move',savingId:id,sourceType:'saving'});lsSet(KEYS.TX,txAll);}
-  bootstrap.Modal.getInstance(document.getElementById('modalSavMove')).hide();renderSavings();updateChips();if(State.currentView==='dashboard')renderDashboard();if(State.currentView==='transactions')renderTransactions();
+  acc.transactions=acc.transactions||[];
+  acc.transactions.push({id:genId(),type:type,amount:amt,description:desc||(type==='deposit'?'Depósito':type==='withdraw'?'Retiro':'Gasto'),date:date||today()});
+  acc.currentBalance=type==='deposit'?acc.currentBalance+amt:acc.currentBalance-amt;
+  all[idx]=acc;lsSet(KEYS.SAV,all);
+  var txAll=lsGet(KEYS.TX);
+  if(type==='use'||type==='withdraw'){
+    // Retiro o gasto — sale de ahorros, no afecta categorías de ingreso
+    txAll.push({id:genId(),type:'expense',description:(type==='use'?'Gasto':'Retiro')+' ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date||today(),category:type==='use'?'Ahorros-Gasto':'Ahorros-Retiro',origin:'saving_move',savingId:id,sourceType:'saving'});
+    lsSet(KEYS.TX,txAll);
+  } else if(type==='deposit'&&srcVal.indexOf('cat_')===0){
+    // Depósito desde una categoría de ingreso — registrar egreso de esa categoría
+    var depCat=srcVal.replace('cat_','');
+    txAll.push({id:genId(),type:'expense',description:'Depósito a ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date||today(),category:'Ahorros-Gasto',origin:'saving_deposit',savingId:id,sourceCat:depCat,sourceType:'category'});
+    lsSet(KEYS.TX,txAll);
+  }
+  bootstrap.Modal.getInstance(document.getElementById('modalSavMove')).hide();
+  renderSavings();updateChips();
+  if(State.currentView==='dashboard')renderDashboard();
+  if(State.currentView==='transactions')renderTransactions();
   showToast((type==='deposit'?'Depósito':'Retiro/Gasto')+' de '+fmt(amt)+' ✓','success');
 }
 
