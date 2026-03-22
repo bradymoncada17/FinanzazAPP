@@ -946,6 +946,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="col-md-4"><label class="fp-label">Tasa interés mensual (%)</label><input class="fp-input fp-input-mono" type="number" id="tcTasa" placeholder="Ej: 3.2" min="0" step="0.01" value="0"/></div>
         <div class="col-md-4"><label class="fp-label">Día de corte</label><input class="fp-input" type="number" id="tcDiaCorte" placeholder="Ej: 15" min="1" max="31"/></div>
         <div class="col-md-4"><label class="fp-label">Día de pago</label><input class="fp-input" type="number" id="tcDiaPago" placeholder="Ej: 5" min="1" max="31"/></div>
+        <div class="col-md-4"><label class="fp-label">Fecha de aprobación / inicio</label><input class="fp-input" type="date" id="tcFechaInicio"/></div>
         <div class="col-12"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="tcDesc" placeholder="Ej: Tarjeta personal..."/></div>
       </div>
       <div style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.12);border-radius:9px;padding:10px 14px;margin-top:14px;font-size:12px;color:var(--fp-text2)">
@@ -2100,7 +2101,8 @@ function renderTarjetas(){
           +'<div class="d-flex gap-3 flex-wrap mb-3" style="font-size:11.5px;color:var(--fp-text2)">'
             +(tc.tasa?'<span><i class="bi bi-percent me-1" style="color:var(--fp-orange)"></i>'+tc.tasa+'%/mes</span>':'')
             +(proxCorte?'<span><i class="bi bi-scissors me-1" style="color:var(--fp-violet)"></i>'+proxCorte+'</span>':'')
-            +(proxPago?'<span><i class="bi bi-calendar-check me-1" style="color:var(--fp-success)"></i>'+proxPago+'</span>':'')
+           +(proxPago?'<span><i class="bi bi-calendar-check me-1" style="color:var(--fp-success)"></i>'+proxPago+'</span>':'')
+            +(tc.fechaInicio?'<span><i class="bi bi-calendar-plus me-1" style="color:var(--fp-teal)"></i>Desde: '+fmtDate(tc.fechaInicio)+'</span>':'')
           +'</div>'
           +'<div class="d-flex gap-2">'
             +'<button class="btn fp-btn-primary fp-btn-sm flex-fill" onclick="openTcPagoModal(\''+tid+'\')"><i class="bi bi-cash-coin me-1"></i> Registrar pago</button>'
@@ -2114,11 +2116,16 @@ function renderTarjetas(){
 
 function openTarjetaModal(editId){
   document.getElementById('tcEditId').value=editId||'';
-  document.getElementById('tcNombre').value='';document.getElementById('tcFranquicia').value='visa';
-  document.getElementById('tcCupoAprobado').value='0';document.getElementById('tcCupoUsado').value='0';
-  document.getElementById('tcTasa').value='0';document.getElementById('tcDiaCorte').value='';
-  document.getElementById('tcDiaPago').value='';document.getElementById('tcDesc').value='';
+  document.getElementById('tcNombre').value='';
+  document.getElementById('tcFranquicia').value='visa';
+  document.getElementById('tcCupoAprobado').value='0';
+  document.getElementById('tcCupoUsado').value='0';
+  document.getElementById('tcTasa').value='0';
+  document.getElementById('tcDiaCorte').value='';
+  document.getElementById('tcDiaPago').value='';
+  document.getElementById('tcDesc').value='';
   document.getElementById('tcDisponiblePreview').textContent='$0';
+  var tfi=document.getElementById('tcFechaInicio');if(tfi)tfi.value='';
   if(editId){
     var tc=getTarjetas().find(function(t){return t.id===editId;});
     if(tc){
@@ -2131,6 +2138,7 @@ function openTarjetaModal(editId){
       document.getElementById('tcDiaCorte').value=tc.diaCorte||'';
       document.getElementById('tcDiaPago').value=tc.diaPago||'';
       document.getElementById('tcDesc').value=tc.descripcion||'';
+      if(tfi)tfi.value=tc.fechaInicio||'';
       calcTcDisponible();
     }
   } else {
@@ -2146,7 +2154,8 @@ function saveTarjeta(){
   if(!nombre){showToast('El nombre es obligatorio','danger');return;}
   if(cupoAp<=0){showToast('El cupo aprobado debe ser mayor a 0','danger');return;}
   var all=getTarjetas();
-  var tc={id:editId||genId(),nombre:nombre,franquicia:document.getElementById('tcFranquicia').value,cupoAprobado:cupoAp,cupoUsado:parseFloat(document.getElementById('tcCupoUsado').value)||0,tasa:parseFloat(document.getElementById('tcTasa').value)||0,diaCorte:parseInt(document.getElementById('tcDiaCorte').value)||0,diaPago:parseInt(document.getElementById('tcDiaPago').value)||0,descripcion:document.getElementById('tcDesc').value.trim()};
+  var tc={id:editId||genId(),nombre:nombre,franquicia:document.getElementById('tcFranquicia').value,cupoAprobado:cupoAp,cupoUsado:parseFloat(document.getElementById('tcCupoUsado').value)||0,tasa:parseFloat(document.getElementById('tcTasa').value)||0,diaCorte:parseInt(document.getElementById('tcDiaCorte').value)||0,diaPago:parseInt(document.getElementById('tcDiaPago').value)||0,descripcion:document.getElementById('tcDesc').value.trim(),
+fechaInicio:document.getElementById('tcFechaInicio').value||''};
   if(editId){var idx=all.findIndex(function(t){return t.id===editId;});if(idx>=0)all[idx]=tc;else all.push(tc);}
   else all.push(tc);
   setTarjetas(all);
@@ -2164,8 +2173,13 @@ function deleteTarjeta(id){
 function openTcPagoModal(id){
   var tc=getTarjetas().find(function(t){return t.id===id;});if(!tc)return;
   var usado=calcTcUsado(tc);var disp=calcTcCupoDisponible(tc);
+  var s=calcSaldos();var catSaldos=calcSaldosPorCat();var savs=lsGet(KEYS.SAV);
+  // Construir opciones de fuente
+  var srcHtml='<div class="source-opt selected" id="tcpago-src-libre" onclick="selectTcPagoSource(\'libre\',this)"><div class="source-opt-name"><i class="bi bi-wallet-fill" style="color:var(--fp-success)"></i> Dinero libre</div><span class="source-opt-bal" style="color:var(--fp-success)">'+fmt(s.saldoLibre)+'</span></div>';
+  if(catSaldos.length){srcHtml+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fp-text3);padding:6px 0 3px">Por categoría</div>';catSaldos.forEach(function(item){var color=CAT_COLORS[item.cat]||'#94a3b8';srcHtml+='<div class="source-opt" onclick="selectTcPagoSource(\'cat_'+esc(item.cat)+'\',this)"><div class="source-opt-name"><span style="width:8px;height:8px;border-radius:50%;background:'+color+';display:inline-block"></span> '+esc(item.cat)+'</div><span class="source-opt-bal" style="color:'+(item.libre>=0?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(item.libre)+'</span></div>';});}
+  if(savs.length){srcHtml+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fp-text3);padding:6px 0 3px">Desde ahorros</div>';savs.forEach(function(sv){srcHtml+='<div class="source-opt" onclick="selectTcPagoSource(\'sav_'+sv.id+'\',this)"><div class="source-opt-name"><i class="bi bi-piggy-bank-fill" style="color:var(--fp-gold)"></i> '+esc(sv.name)+'</div><span class="source-opt-bal" style="color:var(--fp-gold)">'+fmt(sv.currentBalance)+'</span></div>';});}
   var html='<div class="debt-detail-overlay" id="tcPagoOverlay" onclick="if(event.target===this)document.getElementById(\'tcPagoOverlay\').remove()">'
-    +'<div class="debt-detail-box" style="max-width:480px">'
+    +'<div class="debt-detail-box" style="max-width:680px">'
       +'<div class="debt-detail-header">'
         +'<div class="d-flex justify-content-between align-items-start">'
           +'<div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(59,130,246,.8);margin-bottom:4px"><i class="bi bi-credit-card-2-front-fill me-1"></i>Pago de Tarjeta</div><h3 style="font-size:18px;font-weight:800;color:#fff;margin:0">'+esc(tc.nombre)+'</h3></div>'
@@ -2179,9 +2193,18 @@ function openTcPagoModal(id){
       +'</div>'
       +'<div class="debt-detail-body">'
         +'<div class="row g-3">'
-          +'<div class="col-12"><label class="fp-label">Monto del pago ($) *</label><input class="fp-input fp-input-mono" type="number" id="tcPagoMonto" placeholder="0" min="0.01" step="0.01"/></div>'
-          +'<div class="col-12"><label class="fp-label">Fecha</label><input class="fp-input" type="date" id="tcPagoFecha" value="'+today()+'"/></div>'
-          +'<div class="col-12"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="tcPagoDesc" placeholder="Ej: Pago mínimo, pago total..."/></div>'
+          +'<div class="col-md-5">'
+            +'<div class="row g-3">'
+              +'<div class="col-12"><label class="fp-label">Monto del pago ($) *</label><input class="fp-input fp-input-mono" type="number" id="tcPagoMonto" placeholder="0" min="0.01" step="0.01"/></div>'
+              +'<div class="col-12"><label class="fp-label">Fecha</label><input class="fp-input" type="date" id="tcPagoFecha" value="'+today()+'"/></div>'
+              +'<div class="col-12"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="tcPagoDesc" placeholder="Ej: Pago mínimo, pago total..."/></div>'
+            +'</div>'
+          +'</div>'
+          +'<div class="col-md-7">'
+            +'<label class="fp-label"><i class="bi bi-wallet2 me-1"></i> ¿De dónde sale el dinero?</label>'
+            +'<div style="max-height:240px;overflow-y:auto;margin-top:6px" id="tcPagoSrcList">'+srcHtml+'</div>'
+            +'<input type="hidden" id="tcPagoSource" value="libre"/>'
+          +'</div>'
         +'</div>'
         +'<div class="d-flex gap-2 mt-3">'
           +'<button class="btn fp-btn-ghost flex-fill" onclick="document.getElementById(\'tcPagoOverlay\').remove()">Cancelar</button>'
@@ -2194,18 +2217,41 @@ function openTcPagoModal(id){
   document.body.insertAdjacentHTML('beforeend',html);
 }
 
+function selectTcPagoSource(val,el){
+  var inp=document.getElementById('tcPagoSource');if(inp)inp.value=val;
+  document.querySelectorAll('#tcPagoSrcList .source-opt').forEach(function(o){o.classList.remove('selected');});
+  if(el)el.classList.add('selected');
+}
+
 function saveTcPago(tcId){
   var monto=parseFloat(document.getElementById('tcPagoMonto').value)||0;
   var fecha=document.getElementById('tcPagoFecha').value;
   var desc=document.getElementById('tcPagoDesc').value.trim();
+  var srcVal=document.getElementById('tcPagoSource')?document.getElementById('tcPagoSource').value||'libre':'libre';
   if(!monto||monto<=0){showToast('Ingresa un monto válido','danger');return;}
   var tc=getTarjetas().find(function(t){return t.id===tcId;});
+  // Si sale de ahorros, descontar del ahorro
+  if(srcVal.indexOf('sav_')===0){
+    var sid=srcVal.replace('sav_','');var allSav=lsGet(KEYS.SAV);var sidx=allSav.findIndex(function(s){return s.id===sid;});
+    if(sidx>=0){
+      if(monto>allSav[sidx].currentBalance){showToast('Saldo insuficiente en ese ahorro','danger');return;}
+      allSav[sidx].currentBalance-=monto;
+      allSav[sidx].transactions=allSav[sidx].transactions||[];
+      allSav[sidx].transactions.push({id:genId(),type:'use',amount:monto,description:'Pago tarjeta: '+(tc?tc.nombre:tcId),date:fecha||today()});
+      lsSet(KEYS.SAV,allSav);
+    }
+  }
+  var sourceCat=srcVal.indexOf('cat_')===0?srcVal.replace('cat_',''):null;
   var txAll=lsGet(KEYS.TX);
-  txAll.push({id:genId(),type:'income',description:'Pago tarjeta: '+(tc?tc.nombre:tcId)+(desc?' — '+desc:''),amount:monto,date:fecha||today(),category:'Otro',origin:'tarjeta_pago',tarjetaId:tcId,sourceType:'tarjeta_pago'});
+  // Registrar el egreso real (sale de tu bolsillo)
+  txAll.push({id:genId(),type:'expense',description:'Pago tarjeta: '+(tc?tc.nombre:tcId)+(desc?' — '+desc:''),amount:monto,date:fecha||today(),category:'Abono Deuda',origin:'tarjeta_pago_egreso',tarjetaId:tcId,sourceCat:sourceCat,sourceType:srcVal.indexOf('sav_')===0?'saving':srcVal.indexOf('cat_')===0?'category':'libre'});
+  // Registrar ingreso especial que recupera el cupo
+  txAll.push({id:genId(),type:'income',description:'Cupo recuperado: '+(tc?tc.nombre:tcId)+(desc?' — '+desc:''),amount:monto,date:fecha||today(),category:'Otro',origin:'tarjeta_pago',tarjetaId:tcId,sourceType:'tarjeta_pago'});
   lsSet(KEYS.TX,txAll);
   var ex=document.getElementById('tcPagoOverlay');if(ex)ex.remove();
   renderTarjetas();updateChips();
   if(State.currentView==='transactions')renderTransactions();
+  if(State.currentView==='savings')renderSavings();
   showToast('Pago de '+fmt(monto)+' registrado ✓ Cupo recuperado','success');
 }
 
