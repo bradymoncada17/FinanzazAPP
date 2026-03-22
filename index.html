@@ -923,16 +923,30 @@ function calcSaldosPorCat(){
     incByCat[t.category]=(incByCat[t.category]||0)+t.amount;
   });
   if(!Object.keys(incByCat).length)return[];
+
+  // Calcular total de egresos que NO tienen fuente específica de categoría de ingreso
   var expByCat={};
+  var expSinFuente=0;
   txs.filter(function(t){return t.type==='expense';}).forEach(function(t){
     if(t.sourceCat&&incByCat[t.sourceCat]!==undefined){
+      // Egreso asignado explícitamente a una categoría de ingreso
       expByCat[t.sourceCat]=(expByCat[t.sourceCat]||0)+t.amount;
+    } else if(t.sourceType==='saving'){
+      // Salió de ahorros, no afecta las categorías de ingreso
+    } else {
+      // Sin fuente: se reparte proporcionalmente
+      expSinFuente+=t.amount;
     }
   });
+
+  var totalInc=Object.values(incByCat).reduce(function(s,v){return s+v;},0)||1;
+
   return Object.keys(incByCat).map(function(cat){
     var ingreso=incByCat[cat];
     var expDirecto=expByCat[cat]||0;
-    var libre=ingreso-expDirecto;
+    var peso=ingreso/totalInc;
+    var expProporcional=expSinFuente*peso;
+    var libre=ingreso-expDirecto-expProporcional;
     return{cat:cat,totalInc:ingreso,libre:libre};
   }).sort(function(a,b){return b.totalInc-a.totalInc;});
 }
@@ -1538,7 +1552,12 @@ function savePayment(){
   }
   d.payments=d.payments||[];d.payments.push({id:editId||genId(),date:date||today(),amount:amt,interest:pInt,capital:pCap,aporte:aporteVal,seguro:seguroVal,source:sourceName});
   d.remainingBalance=newBal;allDebts[idx]=d;lsSet(KEYS.DEBTS,allDebts);
-  var txAll=lsGet(KEYS.TX);txAll.push({id:genId(),type:'expense',description:'Pago deuda: '+d.creditor+(sourceLabel!=='Dinero libre'?' ('+sourceLabel+')':''),amount:amt,date:date||today(),category:'Abono Deuda',origin:'debt_payment',debtId:id});lsSet(KEYS.TX,txAll);
+ var txAll=lsGet(KEYS.TX);
+  var payTx={id:genId(),type:'expense',description:'Pago deuda: '+d.creditor+(sourceLabel!=='Dinero libre'?' ('+sourceLabel+')':''),amount:amt,date:date||today(),category:'Abono Deuda',origin:'debt_payment',debtId:id};
+  if(srcVal.indexOf('cat_')===0){payTx.sourceCat=srcVal.replace('cat_','');payTx.sourceType='category';}
+  else if(srcVal.indexOf('sav_')===0){payTx.sourceType='saving';}
+  else{payTx.sourceType='libre';}
+  txAll.push(payTx);lsSet(KEYS.TX,txAll);
   bootstrap.Modal.getInstance(document.getElementById('modalPayment')).hide();
   renderDebts();updateChips();if(State.currentView==='dashboard')renderDashboard();if(State.currentView==='transactions')renderTransactions();
   showToast('Pago registrado ✓ Cap: '+fmt(pCap)+' | Int: '+fmt(pInt),'success');
@@ -1672,7 +1691,7 @@ function saveSavingMove(){
   if((type==='withdraw'||type==='use')&&amt>acc.currentBalance){showToast('Saldo insuficiente','danger');return;}
   acc.transactions=acc.transactions||[];acc.transactions.push({id:genId(),type:type,amount:amt,description:desc||(type==='deposit'?'Depósito':type==='withdraw'?'Retiro':'Gasto'),date:date||today()});
   acc.currentBalance=type==='deposit'?acc.currentBalance+amt:acc.currentBalance-amt;all[idx]=acc;lsSet(KEYS.SAV,all);
-  if(type==='use'||type==='withdraw'){var txAll=lsGet(KEYS.TX);txAll.push({id:genId(),type:'expense',description:(type==='use'?'Gasto':'Retiro')+' ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date||today(),category:type==='use'?'Ahorros-Gasto':'Ahorros-Retiro',origin:'saving_move',savingId:id});lsSet(KEYS.TX,txAll);}
+ if(type==='use'||type==='withdraw'){var txAll=lsGet(KEYS.TX);txAll.push({id:genId(),type:'expense',description:(type==='use'?'Gasto':'Retiro')+' ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date||today(),category:type==='use'?'Ahorros-Gasto':'Ahorros-Retiro',origin:'saving_move',savingId:id,sourceType:'saving'});lsSet(KEYS.TX,txAll);}
   bootstrap.Modal.getInstance(document.getElementById('modalSavMove')).hide();renderSavings();updateChips();if(State.currentView==='dashboard')renderDashboard();if(State.currentView==='transactions')renderTransactions();
   showToast((type==='deposit'?'Depósito':'Retiro/Gasto')+' de '+fmt(amt)+' ✓','success');
 }
