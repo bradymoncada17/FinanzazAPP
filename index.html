@@ -912,6 +912,17 @@ function calcSaldos(){
   var txs=lsGet(KEYS.TX);
   var totalInc=txs.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);
   var totalExp=txs.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
+  var totalSav=lsGet(KEYS.SAV).reduce(function(s,a){return s+a.currentBalance;},0);
+  var totalDebt=lsGet(KEYS.DEBTS).reduce(function(s,d){return s+d.remainingBalance;},0);
+  return{totalInc:totalInc,totalExp:totalExp,totalSav:totalSav,totalDebt:totalDebt,saldoLibre:totalInc-totalExp};
+}
+function calcSaldosPorCat(){
+  var txs=lsGet(KEYS.TX);
+  var incByCat={};
+  txs.filter(function(t){return t.type==='income';}).forEach(function(t){
+    incByCat[t.category]=(incByCat[t.category]||0)+t.amount;
+  });
+  if(!Object.keys(incByCat).length)return[];
   var expByCat={};
   txs.filter(function(t){return t.type==='expense';}).forEach(function(t){
     if(t.sourceCat&&incByCat[t.sourceCat]!==undefined){
@@ -923,32 +934,6 @@ function calcSaldos(){
     var expDirecto=expByCat[cat]||0;
     var libre=ingreso-expDirecto;
     return{cat:cat,totalInc:ingreso,libre:libre};
-  }).sort(function(a,b){return b.totalInc-a.totalInc;});
-}
-function calcSaldosPorCat(){
-  var txs=lsGet(KEYS.TX);
-  // Ingresos reales por categoría
-  var incByCat={};
-  txs.filter(function(t){return t.type==='income';}).forEach(function(t){
-    incByCat[t.category]=(incByCat[t.category]||0)+t.amount;
-  });
-  // Egresos reales por categoría de origen (si tienen fuente registrada)
-  // Los egresos sin fuente se descuentan del total libre general
-  var expByCat={};
-  txs.filter(function(t){return t.type==='expense';}).forEach(function(t){
-    // Si el egreso tiene una categoría de ingreso como fuente, descontarlo de esa fuente
-    // Si no, se acumula como egreso general
-    expByCat['__general']=(expByCat['__general']||0)+t.amount;
-  });
-  var totalInc=Object.values(incByCat).reduce(function(s,v){return s+v;},0)||1;
-  var totalExp=expByCat['__general']||0;
-  // Distribuir egresos proporcional pero mostrar el ingreso real de cada categoría
-  // junto con cuánto le corresponde de los gastos
-  return Object.keys(incByCat).map(function(cat){
-    var ingreso=incByCat[cat];
-    var peso=ingreso/totalInc;
-    var expAsignado=totalExp*peso;
-    return{cat:cat,totalInc:ingreso,expAsignado:expAsignado,libre:ingreso-expAsignado};
   }).sort(function(a,b){return b.totalInc-a.totalInc;});
 }
 function getCurrentAporte(debt){
