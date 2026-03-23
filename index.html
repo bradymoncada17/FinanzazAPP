@@ -848,13 +848,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
       <div class="mb-3"><label class="fp-label">Tipo</label>
         <div class="fp-toggle-group">
           <button type="button" class="fp-toggle-btn active" id="btnDeposit" onclick="setSavMoveType('deposit')"><i class="bi bi-plus-circle-fill"></i> Depositar</button>
-          <button type="button" class="fp-toggle-btn" id="btnWithdraw" onclick="setSavMoveType('withdraw')"><i class="bi bi-dash-circle-fill"></i> Retirar</button>
+          <button type="button" class="fp-toggle-btn" id="btnWithdraw" onclick="setSavMoveType('withdraw')"><i class="bi bi-dash-circle-fill"></i> Retirar (egreso)</button>
+          <button type="button" class="fp-toggle-btn" id="btnReincorporate" onclick="setSavMoveType('reincorporate')"><i class="bi bi-arrow-return-left"></i> Retirar (reincorporar)</button>
           <button type="button" class="fp-toggle-btn" id="btnUse" onclick="setSavMoveType('use')"><i class="bi bi-cart-fill"></i> Usar/Gastar</button>
         </div>
         <input type="hidden" id="savMoveType" value="deposit"/>
       </div>
-      <div id="savMoveNote" style="display:none;background:var(--fp-orange-lt);border:1px solid rgba(234,88,12,.15);border-radius:9px;padding:10px 13px;font-size:12px;color:var(--fp-orange);margin-bottom:12px">
-        <i class="bi bi-info-circle-fill me-1"></i>Este movimiento también se registrará como egreso en Transacciones.
+      <div id="savMoveNote" style="display:none;border-radius:9px;padding:10px 13px;font-size:12px;margin-bottom:12px">
+        <i class="bi bi-info-circle-fill me-1"></i><span id="savMoveNoteText"></span>
       </div>
       <div class="row g-3">
         <div class="col-md-6"><label class="fp-label">Monto ($) *</label><input class="fp-input fp-input-mono" type="number" id="savMoveAmount" placeholder="0" min="0.01" step="0.01"/></div>
@@ -866,6 +867,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <label class="fp-label"><i class="bi bi-wallet2 me-1"></i> ¿De dónde sale el dinero para este ahorro?</label>
         <div id="savDepositSourceList" style="max-height:200px;overflow-y:auto;margin-top:6px"></div>
         <input type="hidden" id="savDepositSource" value="libre"/>
+      </div>
+      <!-- DESTINO AL REINCORPORAR -->
+      <div id="savReincorpSection" style="display:none;margin-top:14px">
+        <label class="fp-label"><i class="bi bi-arrow-return-left me-1" style="color:var(--fp-teal)"></i> ¿A dónde se reincorpora el dinero?</label>
+        <div style="font-size:11.5px;color:var(--fp-text2);margin-bottom:8px">El dinero volverá a sumarse al saldo de la fuente original. Selecciona la categoría de ingreso a la que pertenece.</div>
+        <div id="savReincorpList" style="max-height:200px;overflow-y:auto;margin-top:6px"></div>
+        <input type="hidden" id="savReincorpTarget" value="libre"/>
       </div>
       <div class="mt-3" id="savMoveHistory"></div>
     </div>
@@ -1122,20 +1130,27 @@ function isCurrent(){var n=new Date();return FilterMonth.year===n.getFullYear()&
 // ══════════════════════════════════════════════════════
 function calcSaldos(){
   var txs=lsGet(KEYS.TX);
-  // Ingresos: excluir los que son recuperación de cupo de tarjeta o cobros internos
+  // Ingresos reales: excluir recuperaciones internas de tarjeta y reincorporaciones de ahorro
+  // (las reincorporaciones se reflejan directamente en el saldo libre al reducir totalSav)
   var totalInc=txs.filter(function(t){
-    return t.type==='income'&&t.origin!=='tarjeta_pago';
+    return t.type==='income'
+      &&t.origin!=='tarjeta_pago'
+      &&t.origin!=='saving_reincorp';
   }).reduce(function(s,t){return s+t.amount;},0);
-  // Egresos: excluir retiros/gastos de ahorro (saving_move/saving_deposit) porque
-  // ese dinero ya salió del saldo libre cuando se depositó originalmente
+  // Egresos reales: excluir depósitos a ahorro (saving_deposit) porque no son gastos,
+  // solo trasladan dinero de saldo libre a ahorro (ya reflejado en totalSav).
+  // SÍ incluir retiros como egreso (saving_move con savType='use' o 'withdraw')
+  // pero NO los retiros para reincorporar (origin='saving_reincorp_egreso')
   var totalExp=txs.filter(function(t){
     return t.type==='expense'
-      &&t.origin!=='saving_move'
-      &&t.origin!=='saving_deposit';
+      &&t.origin!=='saving_deposit'
+      &&t.origin!=='saving_reincorp_egreso';
   }).reduce(function(s,t){return s+t.amount;},0);
   var totalSav=lsGet(KEYS.SAV).reduce(function(s,a){return s+a.currentBalance;},0);
   var totalDebt=lsGet(KEYS.DEBTS).reduce(function(s,d){return s+d.remainingBalance;},0);
-  return{totalInc:totalInc,totalExp:totalExp,totalSav:totalSav,totalDebt:totalDebt,saldoLibre:totalInc-totalExp};
+  // Saldo libre = Ingresos - Egresos reales - Ahorros acumulados
+  var saldoLibre=totalInc-totalExp-totalSav;
+  return{totalInc:totalInc,totalExp:totalExp,totalSav:totalSav,totalDebt:totalDebt,saldoLibre:saldoLibre};
 }
 function calcSaldosPorCat(){
   var txs=lsGet(KEYS.TX);
@@ -2023,7 +2038,7 @@ function renderSavings(){
   grid.innerHTML=accs.map(function(s){
     var pct=s.goal>0?Math.min(100,Math.round(s.currentBalance/s.goal*100)):0;var off=circ-(pct/100)*circ;
     var movs=(s.transactions||[]).slice(-3).reverse();
-    var hist=movs.length?'<div class="mt-2"><div class="history-title"><i class="bi bi-clock-history"></i> Recientes</div>'+movs.map(function(m){var ic={'deposit':'bi-arrow-up-circle','withdraw':'bi-arrow-down-circle','use':'bi-cart3'}[m.type]||'bi-circle';var col={'deposit':'text-success','withdraw':'text-danger','use':'text-warning'}[m.type]||'';return '<div class="history-item"><span class="d-flex align-items-center gap-1"><i class="bi '+ic+' '+col+'"></i><span class="text-muted" style="font-size:11px">'+esc(m.description)+'</span></span><span style="font-family:JetBrains Mono,monospace;font-size:11.5px;font-weight:600" class="'+col+'">'+(m.type==='deposit'?'+':'-')+fmt(m.amount)+'</span></div>';}).join('')+'</div>':'';
+    var hist=movs.length?'<div class="mt-2"><div class="history-title"><i class="bi bi-clock-history"></i> Recientes</div>'+movs.map(function(m){var ic={'deposit':'bi-arrow-up-circle','withdraw':'bi-arrow-down-circle','use':'bi-cart3','reincorporate':'bi-arrow-return-left'}[m.type]||'bi-circle';var col={'deposit':'text-success','withdraw':'text-danger','use':'text-warning','reincorporate':'text-info'}[m.type]||'';return '<div class="history-item"><span class="d-flex align-items-center gap-1"><i class="bi '+ic+' '+col+'"></i><span class="text-muted" style="font-size:11px">'+esc(m.description)+'</span></span><span style="font-family:JetBrains Mono,monospace;font-size:11.5px;font-weight:600" class="'+col+'">'+(m.type==='deposit'?'+':'-')+fmt(m.amount)+'</span></div>';}).join('')+'</div>':'';
     return '<div class="col-xl-4 col-md-6"><div class="saving-card"><div class="saving-card-top"></div><div class="saving-card-body">'
       +'<div class="d-flex justify-content-between align-items-start mb-2">'
         +'<div><div class="saving-name">'+esc(s.name)+'</div>'+(s.description?'<div class="text-muted" style="font-size:11px">'+esc(s.description)+'</div>':'')+'</div>'
@@ -2072,12 +2087,13 @@ function openSavingMoveModal(id,tipo){
   tipo=tipo||'deposit';var acc=lsGet(KEYS.SAV).find(function(s){return s.id===id;});if(!acc)return;
   document.getElementById('savMoveId').value=id;document.getElementById('savMoveAmount').value='';document.getElementById('savMoveDate').value=today();document.getElementById('savMoveDesc').value='';
   setSavMoveType(tipo);document.getElementById('modalSavMoveTitle').innerHTML='<i class="bi bi-cash-stack me-2"></i>'+esc(acc.name);
-  var note=document.getElementById('savMoveNote');if(note)note.style.display=(tipo==='withdraw'||tipo==='use')?'block':'none';
+  // setSavMoveType maneja la nota
   // Sección fuente del depósito
   var dss=document.getElementById('savDepositSourceSection');if(dss)dss.style.display=tipo==='deposit'?'block':'none';
+  var rss=document.getElementById('savReincorpSection');if(rss)rss.style.display=tipo==='reincorporate'?'block':'none';
   if(tipo==='deposit')buildSavDepositSourceList();
   var movs=(acc.transactions||[]).slice(-3).reverse();var hel=document.getElementById('savMoveHistory');
-  var tl={deposit:'Depósito',withdraw:'Retiro',use:'Gasto'};var tc={deposit:'text-success',withdraw:'text-danger',use:'text-warning'};
+  var tl={deposit:'Depósito',withdraw:'Retiro (egreso)',use:'Gasto',reincorporate:'Retiro (reincorporado)'};var tc={deposit:'text-success',withdraw:'text-danger',use:'text-warning',reincorporate:'text-info'};
   if(movs.length)hel.innerHTML='<div class="history-title"><i class="bi bi-clock-history"></i> Recientes</div>'+movs.map(function(m){return '<div class="history-item"><span class="text-muted" style="font-size:11px">'+(tl[m.type]||m.type)+' · '+esc(m.description)+'</span><span style="font-family:JetBrains Mono,monospace;font-size:11.5px;font-weight:600" class="'+(tc[m.type]||'')+'">'+(m.type==='deposit'?'+':'-')+fmt(m.amount)+'</span></div>';}).join('');
   else hel.innerHTML='';
   new bootstrap.Modal(document.getElementById('modalSavMove')).show();
@@ -2091,44 +2107,96 @@ function buildSavDepositSourceList(){
   list.innerHTML=html;
 }
 function selectSavDepSource(val,el){document.getElementById('savDepositSource').value=val;document.querySelectorAll('#savDepositSourceList .source-opt').forEach(function(o){o.classList.remove('selected');});if(el)el.classList.add('selected');}
+function buildSavReincorpList(){
+  var s=calcSaldos();var catSaldos=calcSaldosPorCat();
+  var list=document.getElementById('savReincorpList');if(!list)return;
+  document.getElementById('savReincorpTarget').value='libre';
+  // Opción "Saldo libre general"
+  var html='<div class="source-opt selected" onclick="selectSavReincorp(\'libre\',this)"><div class="source-opt-name"><i class="bi bi-wallet-fill" style="color:var(--fp-success)"></i> Saldo libre general</div><span class="source-opt-bal" style="color:var(--fp-success)">'+fmt(s.saldoLibre)+'</span></div>';
+  if(catSaldos.length){
+    html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--fp-text3);padding:5px 0 2px">Reincorporar a categoría de ingreso</div>';
+    catSaldos.forEach(function(item){
+      var color=CAT_COLORS[item.cat]||'#94a3b8';
+      html+='<div class="source-opt" onclick="selectSavReincorp(\'cat_'+esc(item.cat)+'\',this)"><div class="source-opt-name"><span style="width:8px;height:8px;border-radius:50%;background:'+color+';display:inline-block"></span> '+esc(item.cat)+'</div><span class="source-opt-bal" style="color:'+(item.libre>=0?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(item.libre)+'</span></div>';
+    });
+  }
+  list.innerHTML=html;
+}
+function selectSavReincorp(val,el){
+  var h=document.getElementById('savReincorpTarget');if(h)h.value=val;
+  document.querySelectorAll('#savReincorpList .source-opt').forEach(function(o){o.classList.remove('selected');});
+  if(el)el.classList.add('selected');
+}
 function setSavMoveType(type){
   document.getElementById('savMoveType').value=type;
-  ['deposit','withdraw','use'].forEach(function(t){var el=document.getElementById('btn'+t.charAt(0).toUpperCase()+t.slice(1));if(el)el.classList.toggle('active',t===type);});
-  var labels={deposit:'Confirmar Depósito',withdraw:'Confirmar Retiro',use:'Confirmar Gasto'};var btn=document.getElementById('savMoveConfirmBtn');if(btn)btn.innerHTML='<i class="bi bi-check-lg"></i> '+(labels[type]||'Confirmar');
-  var note=document.getElementById('savMoveNote');if(note)note.style.display=(type==='withdraw'||type==='use')?'block':'none';
+  ['deposit','withdraw','reincorporate','use'].forEach(function(t){
+    var key=t==='reincorporate'?'Reincorporate':t.charAt(0).toUpperCase()+t.slice(1);
+    var el=document.getElementById('btn'+key);if(el)el.classList.toggle('active',t===type);
+  });
+  var labels={deposit:'Confirmar Depósito',withdraw:'Confirmar Retiro (egreso)',reincorporate:'Confirmar Retiro (reincorporar)',use:'Confirmar Gasto'};
+  var btn=document.getElementById('savMoveConfirmBtn');if(btn)btn.innerHTML='<i class="bi bi-check-lg"></i> '+(labels[type]||'Confirmar');
+  // Nota informativa
+  var note=document.getElementById('savMoveNote');
+  var noteText=document.getElementById('savMoveNoteText');
+  if(type==='withdraw'||type==='use'){
+    if(note)note.style.display='block';
+    if(note)note.style.background='var(--fp-orange-lt)';if(note)note.style.border='1px solid rgba(234,88,12,.15)';if(note)note.style.color='var(--fp-orange)';
+    if(noteText)noteText.textContent=type==='use'?'Este gasto se registrará como egreso en Transacciones.':'Este retiro se registrará como egreso en Transacciones. El dinero sale del ahorro y de tu patrimonio.';
+  } else if(type==='reincorporate'){
+    if(note)note.style.display='block';
+    if(note)note.style.background='var(--fp-teal-lt)';if(note)note.style.border='1px solid rgba(8,145,178,.15)';if(note)note.style.color='var(--fp-teal)';
+    if(noteText)noteText.textContent='El dinero vuelve al saldo libre. No se registra como egreso — solo se reduce el ahorro.';
+  } else {
+    if(note)note.style.display='none';
+  }
+  // Secciones contextuales
   var dss=document.getElementById('savDepositSourceSection');if(dss)dss.style.display=type==='deposit'?'block':'none';
+  var rss=document.getElementById('savReincorpSection');if(rss)rss.style.display=type==='reincorporate'?'block':'none';
   if(type==='deposit')buildSavDepositSourceList();
+  if(type==='reincorporate')buildSavReincorpList();
 }
 function saveSavingMove(){
   var id=document.getElementById('savMoveId').value;
   var type=document.getElementById('savMoveType').value;
   var amt=parseFloat(document.getElementById('savMoveAmount').value);
   var desc=document.getElementById('savMoveDesc').value.trim();
-  var date=document.getElementById('savMoveDate').value;
+  var date=document.getElementById('savMoveDate').value||today();
   var srcVal=document.getElementById('savDepositSource')?document.getElementById('savDepositSource').value||'libre':'libre';
+  var reincorpTarget=document.getElementById('savReincorpTarget')?document.getElementById('savReincorpTarget').value||'libre':'libre';
   if(!amt||amt<=0){showToast('El monto debe ser positivo','danger');return;}
   var all=lsGet(KEYS.SAV);var idx=all.findIndex(function(s){return s.id===id;});if(idx<0)return;var acc=all[idx];
-  if((type==='withdraw'||type==='use')&&amt>acc.currentBalance){showToast('Saldo insuficiente','danger');return;}
+  if((type==='withdraw'||type==='use'||type==='reincorporate')&&amt>acc.currentBalance){showToast('Saldo insuficiente','danger');return;}
   acc.transactions=acc.transactions||[];
-  acc.transactions.push({id:genId(),type:type,amount:amt,description:desc||(type==='deposit'?'Depósito':type==='withdraw'?'Retiro':'Gasto'),date:date||today()});
-  acc.currentBalance=type==='deposit'?acc.currentBalance+amt:acc.currentBalance-amt;
-  all[idx]=acc;lsSet(KEYS.SAV,all);
   var txAll=lsGet(KEYS.TX);
-  if(type==='use'||type==='withdraw'){
-    // Retiro o gasto — sale de ahorros, no afecta categorías de ingreso
-    txAll.push({id:genId(),type:'expense',description:(type==='use'?'Gasto':'Retiro')+' ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date||today(),category:type==='use'?'Ahorros-Gasto':'Ahorros-Retiro',origin:'saving_move',savingId:id,sourceType:'saving'});
-    lsSet(KEYS.TX,txAll);
-  } else if(type==='deposit'&&srcVal.indexOf('cat_')===0){
-    // Depósito desde una categoría de ingreso — registrar egreso de esa categoría
-    var depCat=srcVal.replace('cat_','');
-    txAll.push({id:genId(),type:'expense',description:'Depósito a ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date||today(),category:'Ahorros-Gasto',origin:'saving_deposit',savingId:id,sourceCat:depCat,sourceType:'category'});
-    lsSet(KEYS.TX,txAll);
+  if(type==='deposit'){
+    // DEPOSITAR: solo se traslada saldo libre → ahorro. No es egreso real.
+    // El saldo libre baja porque totalSav sube (fórmula: libre = inc - exp - sav)
+    acc.currentBalance+=amt;
+    acc.transactions.push({id:genId(),type:'deposit',amount:amt,description:desc||'Depósito',date:date,source:srcVal});
+    // Registrar informativo en TX (origin='saving_deposit' excluido de egresos)
+    txAll.push({id:genId(),type:'expense',description:'Depósito a ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date,category:'Ahorros-Gasto',origin:'saving_deposit',savingId:id,sourceCat:srcVal.indexOf('cat_')===0?srcVal.replace('cat_',''):null,sourceType:srcVal.indexOf('cat_')===0?'category':'libre'});
+    showToast('Depósito de '+fmt(amt)+' ✓ El saldo libre se ajusta automáticamente','success');
+  } else if(type==='withdraw'||type==='use'){
+    // RETIRAR COMO EGRESO / GASTAR: dinero sale del ahorro y se gasta. SÍ cuenta como egreso.
+    acc.currentBalance-=amt;
+    acc.transactions.push({id:genId(),type:type,amount:amt,description:desc||(type==='use'?'Gasto':'Retiro'),date:date});
+    txAll.push({id:genId(),type:'expense',description:(type==='use'?'Gasto':'Retiro')+' ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date,category:type==='use'?'Ahorros-Gasto':'Ahorros-Retiro',origin:'saving_move',savingId:id,sourceType:'saving'});
+    showToast((type==='use'?'Gasto':'Retiro')+' de '+fmt(amt)+' registrado como egreso ✓','success');
+  } else if(type==='reincorporate'){
+    // RETIRAR PARA REINCORPORAR: vuelve al saldo libre. NO es egreso.
+    // El saldo libre sube porque totalSav baja (fórmula: libre = inc - exp - sav)
+    acc.currentBalance-=amt;
+    acc.transactions.push({id:genId(),type:'reincorporate',amount:amt,description:desc||'Retiro — reincorporado al saldo',date:date,reincorpTarget:reincorpTarget});
+    // Solo informativo en TX (ambos excluidos del cálculo)
+    txAll.push({id:genId(),type:'expense',description:'Retiro ahorro (reincorporado): '+acc.name+(desc?' — '+desc:''),amount:amt,date:date,category:'Ahorros-Retiro',origin:'saving_reincorp_egreso',savingId:id,sourceType:'saving'});
+    showToast('Retiro de '+fmt(amt)+' reincorporado al saldo libre ✓','success');
   }
+  lsSet(KEYS.TX,txAll);
+  all[idx]=acc;lsSet(KEYS.SAV,all);
   bootstrap.Modal.getInstance(document.getElementById('modalSavMove')).hide();
   renderSavings();updateChips();
   if(State.currentView==='dashboard')renderDashboard();
   if(State.currentView==='transactions')renderTransactions();
-  showToast((type==='deposit'?'Depósito':'Retiro/Gasto')+' de '+fmt(amt)+' ✓','success');
 }
 
 // ══════════════════════════════════════════════════════
@@ -2155,7 +2223,7 @@ function renderHistSavings(){
   var eto=document.getElementById('hSavTotal');if(eto)eto.textContent=fmt(totBal);var ede=document.getElementById('hSavDeposited');if(ede)ede.textContent=fmt(totDep);var ewi=document.getElementById('hSavWithdrawn');if(ewi)ewi.textContent=fmt(totWith);
   var container=document.getElementById('hSavAccordion');if(!container)return;
   if(!accs.length){container.innerHTML='<div class="empty-state-large"><i class="bi bi-piggy-bank" style="font-size:3rem;color:var(--fp-gold)"></i><h4 class="mt-3">Sin cuentas</h4></div>';return;}
-  var circ=2*Math.PI*32;var typeLabel={deposit:'Depósito',withdraw:'Retiro',use:'Gasto'};var typeColor={deposit:'text-success',withdraw:'text-danger',use:'text-warning'};var typeBadge={deposit:'fp-badge-green',withdraw:'fp-badge-red',use:'fp-badge-gold'};var typeIcon={deposit:'bi-arrow-up-circle-fill',withdraw:'bi-arrow-down-circle-fill',use:'bi-cart-fill'};
+  var circ=2*Math.PI*32;var typeLabel={deposit:'Depósito',withdraw:'Retiro',use:'Gasto'};var typeColor={deposit:'text-success',withdraw:'text-danger',use:'text-warning'};var typeBadge={deposit:'fp-badge-green',withdraw:'fp-badge-red',use:'fp-badge-gold',reincorporate:'fp-badge-blue'};var typeIcon={deposit:'bi-arrow-up-circle-fill',withdraw:'bi-arrow-down-circle-fill',use:'bi-cart-fill',reincorporate:'bi-arrow-return-left'};
   container.innerHTML=accs.map(function(a,i){
     var pct=a.goal>0?Math.min(100,Math.round(a.currentBalance/a.goal*100)):0;var off=circ-(pct/100)*circ;var movs=(a.transactions||[]).slice().reverse();var totD=0,totW=0;movs.forEach(function(m){if(m.type==='deposit')totD+=m.amount;else totW+=m.amount;});
     return '<div class="sav-acc-card"><div class="sav-acc-header" onclick="toggleAcc(\'hAcc'+i+'\')">'
