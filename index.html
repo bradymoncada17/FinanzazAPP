@@ -309,26 +309,29 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 /* ═══════════════════════════════════════════
    ANIMACIONES AVANZADAS — FinanzApp Pro
 ═══════════════════════════════════════════ */
+/* KEYFRAMES */
+@keyframes rainbow-flow{0%{background-position:0% center}100%{background-position:200% center}}
 @keyframes typing-cursor{0%,100%{opacity:1}50%{opacity:0}}
 @keyframes text-reveal{0%{width:0;opacity:0}5%{opacity:1}100%{width:100%;opacity:1}}
 @keyframes orbit-cw{0%{transform:rotate(0deg) translateX(var(--orbit-r,44px)) rotate(0deg)}100%{transform:rotate(360deg) translateX(var(--orbit-r,44px)) rotate(-360deg)}}
-@keyframes orbit-ccw{0%{transform:rotate(0deg) translateX(var(--orbit-r,44px)) rotate(0deg)}100%{transform:rotate(-360deg) translateX(var(--orbit-r,44px)) rotate(360deg)}}
+@keyframes orbit-ccw{0%{transform:rotate(0deg) translateX(var(--orbit-r,36px)) rotate(0deg)}100%{transform:rotate(-360deg) translateX(var(--orbit-r,36px)) rotate(360deg)}}
 @keyframes ring-cw{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes ring-ccw{from{transform:rotate(360deg)}to{transform:rotate(0deg)}}
-@keyframes ring-pulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:.9;transform:scale(1.03)}}
+@keyframes ring-pulse{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.85;transform:scale(1.03)}}
 @keyframes float-y{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes shimmer-grad{0%{background-position:200% center}100%{background-position:-200% center}}
 @keyframes pop-in{0%{transform:scale(.75);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
 @keyframes slide-up{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes slide-left{from{transform:translateX(-14px);opacity:0}to{transform:translateX(0);opacity:1}}
-@keyframes slide-right{from{transform:translateX(14px);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes glow-pulse{0%,100%{box-shadow:0 0 0 0 rgba(26,86,219,.4)}70%{box-shadow:0 0 0 7px rgba(26,86,219,0)}}
-@keyframes border-flow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 @keyframes shimmer-bar{0%{left:-60%}100%{left:120%}}
-@keyframes counter-pop{0%{transform:scale(.85) translateY(5px);opacity:0}65%{transform:scale(1.07)}100%{transform:scale(1);opacity:1}}
 @keyframes wave-dot{0%,80%,100%{transform:scale(0);opacity:.4}40%{transform:scale(1);opacity:1}}
-@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
 @keyframes card-enter{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes num-pop{0%{transform:scale(.92) translateY(4px);opacity:.6}60%{transform:scale(1.07)}100%{transform:scale(1);opacity:1}}
+
+/* ── CHIPS — pop al actualizar ── */
+.chip-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;display:inline-block;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.chip-val.num-updated{animation:num-pop .35s cubic-bezier(.34,1.56,.64,1) both}
 
 /* ── ANILLOS ORBITALES ── */
 .orbit-container{position:relative;display:inline-flex;align-items:center;justify-content:center;width:108px;height:108px;flex-shrink:0}
@@ -337,22 +340,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .orbit-ring-3{position:absolute;width:54%;height:54%;border-radius:50%;border:1.5px solid rgba(8,145,178,.15);border-left-color:var(--fp-teal);animation:ring-cw 1.8s linear infinite}
 .orbit-dot{position:absolute;width:7px;height:7px;border-radius:50%;top:50%;left:50%;margin:-3.5px}
 .orbit-dot-1{background:var(--fp-primary);box-shadow:0 0 5px var(--fp-primary);--orbit-r:44px;animation:orbit-cw 3.2s linear infinite}
-.orbit-dot-2{background:var(--fp-violet);box-shadow:0 0 5px var(--fp-violet);--orbit-r:36px;animation:orbit-ccw 2.4s linear infinite;transform-origin:center}
+.orbit-dot-2{background:var(--fp-violet);box-shadow:0 0 5px var(--fp-violet);--orbit-r:36px;animation:orbit-ccw 2.4s linear infinite}
 .orbit-dot-3{background:var(--fp-teal);box-shadow:0 0 5px var(--fp-teal);--orbit-r:26px;animation:orbit-cw 1.8s linear infinite}
 .orbit-center{position:relative;z-index:1;background:var(--fp-primary-lt);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--fp-primary);border:1px solid rgba(26,86,219,.2)}
-.orbit-sm .orbit-container{width:80px;height:80px}
-.orbit-sm .orbit-dot-1{--orbit-r:31px}
-.orbit-sm .orbit-dot-2{--orbit-r:25px}
-.orbit-sm .orbit-dot-3{--orbit-r:19px}
-.orbit-sm .orbit-center{width:28px;height:28px;font-size:12px}
 
-/* ── ANILLOS DECO EN CARDS ── */
-.card-ring-deco{position:absolute;right:-24px;top:-24px;width:90px;height:90px;border-radius:50%;border:1px solid rgba(26,86,219,.07);pointer-events:none;animation:ring-pulse 4s ease-in-out infinite}
+/* ── ANILLOS DECO CARDS ── */
+.card-ring-deco{position:absolute;right:-22px;top:-22px;width:85px;height:85px;border-radius:50%;border:1px solid rgba(26,86,219,.07);pointer-events:none;animation:ring-pulse 4.2s ease-in-out infinite;overflow:visible}
 .card-ring-deco::before{content:'';position:absolute;inset:14px;border-radius:50%;border:1px solid rgba(26,86,219,.05);animation:ring-cw 9s linear infinite}
 .card-ring-deco::after{content:'';position:absolute;inset:26px;border-radius:50%;border:1px solid rgba(26,86,219,.04);animation:ring-ccw 6s linear infinite}
 
 /* ── TYPEWRITER ── */
-.typewriter{display:inline-block;overflow:hidden;white-space:nowrap;border-right:2px solid var(--fp-primary);animation:text-reveal 1.1s steps(28,end) both,typing-cursor .75s step-end infinite .9s;max-width:100%}
 .typewriter-nc{display:inline-block;overflow:hidden;white-space:nowrap;animation:text-reveal .9s steps(22,end) .1s both;max-width:100%}
 
 /* ── SHIMMER TITLE ── */
@@ -362,44 +359,30 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   animation:shimmer-grad 4s linear infinite;
 }
 
-/* ── NAVBAR BORDE INFERIOR ── */
-.fp-navbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--fp-primary),var(--fp-violet),var(--fp-teal),transparent);background-size:200% auto;animation:shimmer-grad 3s linear infinite;opacity:.5}
-
-/* ── SIDEBAR BORDE SUPERIOR ── */
-.fp-sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;z-index:1;background:linear-gradient(90deg,var(--fp-primary),var(--fp-violet),var(--fp-teal),var(--fp-primary));background-size:200% auto;animation:shimmer-grad 3.5s linear infinite}
-
-/* ── SIDEBAR LINK ── */
-.sidebar-link{transition:all .2s cubic-bezier(.4,0,.2,1)}
-.sidebar-link:hover .link-icon{transform:scale(1.12) rotate(-7deg);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
-.sidebar-link.active .link-icon{animation:float-y 2s ease-in-out infinite}
-.fp-badge-count{animation:glow-pulse 2.2s ease-in-out infinite}
-
-/* ── KPI CARDS ── */
+/* ── KPI CARDS ENTRADAS ESCALONADAS ── */
 .kpi-card{position:relative;overflow:hidden}
+[id^="view-"]:not(.d-none) .kpi-card,[id^="view-"]:not(.d-none) .fp-card:not(.kpi-sm){animation:card-enter .38s cubic-bezier(.4,0,.2,1) both}
+[id^="view-"]:not(.d-none) .row.g-2>.col-6:nth-child(1) .fp-card,[id^="view-"]:not(.d-none) .kpi-card:nth-child(1){animation-delay:.03s}
+[id^="view-"]:not(.d-none) .row.g-2>.col-6:nth-child(2) .fp-card,[id^="view-"]:not(.d-none) .kpi-card:nth-child(2){animation-delay:.07s}
+[id^="view-"]:not(.d-none) .row.g-2>.col-6:nth-child(3) .fp-card,[id^="view-"]:not(.d-none) .kpi-card:nth-child(3){animation-delay:.11s}
+[id^="view-"]:not(.d-none) .row.g-2>.col-6:nth-child(4) .fp-card,[id^="view-"]:not(.d-none) .kpi-card:nth-child(4){animation-delay:.15s}
+[id^="view-"]:not(.d-none) .row.g-3>div:nth-child(1) .fp-card{animation-delay:.04s}
+[id^="view-"]:not(.d-none) .row.g-3>div:nth-child(2) .fp-card{animation-delay:.09s}
+[id^="view-"]:not(.d-none) .row.g-3>div:nth-child(3) .fp-card{animation-delay:.14s}
+[id^="view-"]:not(.d-none) .row.g-3>div:nth-child(n+4) .fp-card{animation-delay:.19s}
+
+/* ── KPI HOVER ── */
 .kpi-card:hover .kpi-icon-wrap,.kpi-card:hover .kpi-sm-icon{animation:float-y .7s ease-in-out infinite}
 .kpi-card:hover .kpi-value,.kpi-card:hover .kpi-sm-val{transform:scale(1.04);transition:transform .2s}
-.kpi-value,.kpi-sm-val{transition:transform .2s}
-.kpi-value.animated{animation:counter-pop .45s cubic-bezier(.34,1.56,.64,1) both}
+.kpi-value,.kpi-sm-val{transition:transform .2s;display:inline-block}
 
-/* ── PROGRESS BAR SHIMMER ── */
-.fp-progress-bar{position:relative;overflow:hidden}
-.fp-progress-bar::after{content:'';position:absolute;top:0;left:-60%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);animation:shimmer-bar 2.4s ease-in-out infinite}
-
-/* ── ENTRADAS ESCALONADAS DE VISTAS ── */
-[id^="view-"]:not(.d-none) .kpi-card,[id^="view-"]:not(.d-none) .fp-card:not(.kpi-sm){animation:card-enter .38s cubic-bezier(.4,0,.2,1) both}
-[id^="view-"]:not(.d-none) .row.g-3 > div:nth-child(1) .fp-card,[id^="view-"]:not(.d-none) .kpi-card:nth-child(1){animation-delay:.03s}
-[id^="view-"]:not(.d-none) .row.g-3 > div:nth-child(2) .fp-card,[id^="view-"]:not(.d-none) .kpi-card:nth-child(2){animation-delay:.07s}
-[id^="view-"]:not(.d-none) .row.g-3 > div:nth-child(3) .fp-card,[id^="view-"]:not(.d-none) .kpi-card:nth-child(3){animation-delay:.11s}
-[id^="view-"]:not(.d-none) .row.g-3 > div:nth-child(4) .fp-card,[id^="view-"]:not(.d-none) .kpi-card:nth-child(4){animation-delay:.15s}
-[id^="view-"]:not(.d-none) .row.g-3 > div:nth-child(n+5) .fp-card{animation-delay:.19s}
-
-/* ── TABLA ENTRADAS ── */
+/* ── TABLA ── */
 .fp-table tbody tr{animation:slide-left .28s ease both}
 .fp-table tbody tr:nth-child(1){animation-delay:.02s}.fp-table tbody tr:nth-child(2){animation-delay:.05s}
 .fp-table tbody tr:nth-child(3){animation-delay:.08s}.fp-table tbody tr:nth-child(4){animation-delay:.11s}
 .fp-table tbody tr:nth-child(n+5){animation-delay:.14s}
 
-/* ── MODAL ── */
+/* ── MODAL / TOAST ── */
 .modal.show .modal-dialog{animation:pop-in .3s cubic-bezier(.34,1.56,.64,1) both}
 .fp-toast{animation:pop-in .32s cubic-bezier(.34,1.56,.64,1) both}
 
@@ -407,14 +390,24 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .fp-fab{animation:float-y 3.2s ease-in-out infinite}
 .fp-fab:hover{animation:none;transform:scale(1.14) rotate(90deg);box-shadow:0 12px 28px rgba(26,86,219,.5)}
 
-/* ── HOVER CARDS DEBT/SAVING ── */
+/* ── SIDEBAR LINKS ── */
+.sidebar-link{transition:all .2s cubic-bezier(.4,0,.2,1)}
+.sidebar-link:hover .link-icon{transform:scale(1.12) rotate(-7deg);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.sidebar-link.active .link-icon{animation:float-y 2s ease-in-out infinite}
+.fp-badge-count{animation:glow-pulse 2.2s ease-in-out infinite}
+
+/* ── PROGRESS SHIMMER ── */
+.fp-progress-bar{position:relative;overflow:hidden}
+.fp-progress-bar::after{content:'';position:absolute;top:0;left:-60%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);animation:shimmer-bar 2.4s ease-in-out infinite}
+
+/* ── CARDS HOVER ── */
 .debt-card-compact:hover,.saving-card:hover{transform:translateY(-4px);box-shadow:var(--sh-lg),0 0 0 1px rgba(26,86,219,.1)}
 .debt-card-compact,.saving-card,.fp-card{transition:transform .3s cubic-bezier(.4,0,.2,1),box-shadow .3s ease,border-color .3s ease}
 
 /* ── EMPTY STATE ── */
-.empty-state-large > i,.empty-state-large > .orbit-container{animation:float-y 2.8s ease-in-out infinite}
+.empty-state-large>.orbit-container{animation:float-y 2.8s ease-in-out infinite}
 
-/* ── DOTS LOADING ── */
+/* ── DOTS ── */
 .fp-loading{display:inline-flex;align-items:center;gap:4px}
 .fp-loading span{width:6px;height:6px;border-radius:50%;background:var(--fp-primary);display:inline-block;animation:wave-dot 1.4s ease-in-out infinite}
 .fp-loading span:nth-child(2){animation-delay:.18s}.fp-loading span:nth-child(3){animation-delay:.36s}
@@ -423,19 +416,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .circ-bar{filter:drop-shadow(0 0 2px rgba(180,83,9,.35))}
 .circ-wrap:hover .circ-bar{filter:drop-shadow(0 0 5px rgba(180,83,9,.65))}
 
-/* ── SOURCE OPT ── */
+/* ── SOURCE OPT / TOGGLE ── */
 .source-opt{animation:slide-left .22s ease both}
-
-/* ── TOGGLE BTN ACTIVE ── */
 .fp-toggle-btn.active{animation:pop-in .2s cubic-bezier(.34,1.56,.64,1) both}
 
-/* ── BORDE ANIMADO ESPECIAL ── */
-.fp-card-anim-border{
-  background:linear-gradient(var(--fp-surface),var(--fp-surface)) padding-box,
-    linear-gradient(90deg,var(--fp-primary),var(--fp-violet),var(--fp-teal),var(--fp-primary)) border-box;
-  background-size:auto,300% auto;border:1px solid transparent!important;
-  animation:border-flow 4s linear infinite;
-}
+/* ── SALDO BAR MOBILE ── */
+.saldo-item-val{transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
 </style>
 </head>
 <body>
@@ -536,7 +522,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
           <div class="orbit-container d-none d-md-flex" style="width:80px;height:80px">
             <div class="orbit-ring-1"></div><div class="orbit-ring-2"></div><div class="orbit-ring-3"></div>
             <div class="orbit-dot orbit-dot-1"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
-            <div class="orbit-center" style="background:rgba(26,86,219,.1);color:var(--fp-primary)"><i class="bi bi-bar-chart-fill"></i></div>
+            <div class="orbit-center"><i class="bi bi-bar-chart-fill"></i></div>
           </div>
           <div>
             <div class="page-eyebrow"><i class="bi bi-bar-chart-fill"></i> Panorama General</div>
@@ -595,8 +581,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         </div>
       </div>
       <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-up-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Ingresos <span id="txYearLabel" style="color:var(--fp-text3);font-weight:500"></span></p><h3 class="kpi-sm-val text-success" id="txTotalInc">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Egresos <span style="color:var(--fp-text3);font-weight:500" id="txYearLabel2"></span></p><h3 class="kpi-sm-val text-danger" id="txTotalExp">$0</h3></div></div></div></div>
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-up-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Ingresos <span id="txYearLabel" style="color:var(--fp-text3);font-weight:400"></span></p><h3 class="kpi-sm-val text-success" id="txTotalInc">$0</h3></div></div></div></div>
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Egresos <span id="txYearLabel2" style="color:var(--fp-text3);font-weight:400"></span></p><h3 class="kpi-sm-val text-danger" id="txTotalExp">$0</h3></div></div></div></div>
         <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-gold"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-piggy-bank-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Ahorros</p><h3 class="kpi-sm-val" style="color:var(--fp-gold)" id="txTotalSav">$0</h3></div></div></div></div>
         <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-blue"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-wallet-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Libre</p><h3 class="kpi-sm-val" id="txSaldoLibre">$0</h3></div></div></div></div>
       </div>
@@ -633,7 +619,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-center" style="background:var(--fp-danger-lt);color:var(--fp-danger)"><i class="bi bi-file-earmark-text-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-file-earmark-text-fill"></i> Gestión</div><h1 class="page-title">Control de <span style="color:var(--fp-danger)">Deudas</span></h1></div>
-        </div>
+        </div><h1 class="page-title"> <span style="color:var(--fp-danger)"></span></h1></div>
         <button class="btn fp-btn-primary fp-btn-sm" onclick="openDebtModal()"><i class="bi bi-plus-lg"></i> Nueva Deuda</button>
       </div>
       <div class="row g-2 mb-3">
@@ -650,12 +636,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
       <div class="fp-page-header">
         <div class="d-flex align-items-center gap-3">
           <div class="orbit-container d-none d-md-flex" style="width:80px;height:80px">
-            <div class="orbit-ring-1"></div><div class="orbit-ring-2"></div><div class="orbit-ring-3" style="border-left-color:var(--fp-primary)"></div>
-            <div class="orbit-dot orbit-dot-1"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
-            <div class="orbit-center"><i class="bi bi-credit-card-2-front-fill"></i></div>
+            <div class="orbit-ring-1" style="border-top-color:var(--fp-primary)"></div><div class="orbit-ring-2" style="border-bottom-color:var(--fp-primary)"></div><div class="orbit-ring-3"></div>
+            <div class="orbit-dot orbit-dot-1" style="background:var(--fp-primary);box-shadow:0 0 5px var(--fp-primary)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
+            <div class="orbit-center" style="background:var(--fp-primary-lt);color:var(--fp-primary)"><i class="bi bi-credit-card-2-front-fill"></i></div>
           </div>
-          <div><div class="page-eyebrow"><i class="bi bi-credit-card-2-front-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-primary)">Tarjetas</span></h1><p class="page-sub">Administra tus tarjetas y cupo disponible</p></div>
-        </div>
+          <div><div class="page-eyebrow"><i class="bi bi-credit-card-2-front-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-primary)">Tarjetas</span></h1></div>
+        </div><h1 class="page-title">Mis <span style="color:var(--fp-primary)">Tarjetas</span></h1><p class="page-sub">Administra tus tarjetas y cupo disponible</p></div>
         <button class="btn fp-btn-primary fp-btn-sm" onclick="openTarjetaModal()"><i class="bi bi-plus-lg"></i> Nueva Tarjeta</button>
       </div>
       <div class="row g-2 mb-3">
@@ -676,8 +662,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-dot orbit-dot-1" style="background:var(--fp-teal);box-shadow:0 0 5px var(--fp-teal)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
             <div class="orbit-center" style="background:var(--fp-teal-lt);color:var(--fp-teal)"><i class="bi bi-cash-coin"></i></div>
           </div>
-          <div><div class="page-eyebrow"><i class="bi bi-cash-coin"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-teal)">Préstamos</span></h1><p class="page-sub">Dinero que has prestado a terceros</p></div>
-        </div>
+          <div><div class="page-eyebrow"><i class="bi bi-cash-coin"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-teal)">Préstamos</span></h1></div>
+        </div><h1 class="page-title">Mis <span style="color:var(--fp-teal)">Préstamos</span></h1><p class="page-sub">Dinero que has prestado a terceros</p></div>
         <div class="d-flex gap-2">
           <button class="btn fp-btn-ghost fp-btn-sm" onclick="navigateTo('clientes')"><i class="bi bi-people-fill me-1"></i>Clientes</button>
           <button class="btn fp-btn-primary fp-btn-sm" onclick="openPrestamoModal()"><i class="bi bi-plus-lg"></i> Nuevo Préstamo</button>
@@ -701,8 +687,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-dot orbit-dot-1" style="background:var(--fp-violet);box-shadow:0 0 5px var(--fp-violet)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
             <div class="orbit-center" style="background:var(--fp-violet-lt);color:var(--fp-violet)"><i class="bi bi-people-fill"></i></div>
           </div>
-          <div><div class="page-eyebrow"><i class="bi bi-people-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-violet)">Clientes</span></h1><p class="page-sub">Personas a quienes has prestado dinero</p></div>
-        </div>
+          <div><div class="page-eyebrow"><i class="bi bi-people-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-violet)">Clientes</span></h1></div>
+        </div><h1 class="page-title">Mis <span style="color:var(--fp-violet)">Clientes</span></h1><p class="page-sub">Personas a quienes has prestado dinero</p></div>
         <button class="btn fp-btn-primary fp-btn-sm" onclick="openClienteModal()"><i class="bi bi-plus-lg"></i> Nuevo Cliente</button>
       </div>
       <div id="clientesList" class="row g-3"></div>
@@ -718,7 +704,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-center" style="background:var(--fp-gold-lt);color:var(--fp-gold)"><i class="bi bi-piggy-bank-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-piggy-bank-fill"></i> Metas</div><h1 class="page-title">Mis <span style="color:var(--fp-gold)">Ahorros</span></h1></div>
-        </div>
+        </div><h1 class="page-title">Mis <span style="color:var(--fp-gold)">Ahorros</span></h1></div>
         <button class="btn fp-btn-primary fp-btn-sm" onclick="openSavingModal()"><i class="bi bi-plus-lg"></i> Nueva Cuenta</button>
       </div>
       <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
@@ -734,7 +720,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
       <div class="fp-page-header">
         <div class="d-flex align-items-center gap-3">
           <div class="orbit-container d-none d-md-flex" style="width:80px;height:80px">
-            <div class="orbit-ring-1" style="border-top-color:var(--fp-violet)"></div><div class="orbit-ring-2"></div><div class="orbit-ring-3" style="border-left-color:var(--fp-violet)"></div>
+            <div class="orbit-ring-1" style="border-top-color:var(--fp-violet)"></div><div class="orbit-ring-2" style="border-bottom-color:var(--fp-violet)"></div><div class="orbit-ring-3"></div>
             <div class="orbit-dot orbit-dot-1" style="background:var(--fp-violet);box-shadow:0 0 5px var(--fp-violet)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
             <div class="orbit-center" style="background:var(--fp-violet-lt);color:var(--fp-violet)"><i class="bi bi-clock-history"></i></div>
           </div>
@@ -772,15 +758,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 
     <!-- CATEGORÍAS -->
     <div id="view-categorias" class="d-none">
-      <div class="fp-page-header">
-        <div class="d-flex align-items-center gap-3">
+      <div class="fp-page-header"><div class="d-flex align-items-center gap-3">
           <div class="orbit-container d-none d-md-flex" style="width:80px;height:80px">
             <div class="orbit-ring-1" style="border-top-color:var(--fp-teal)"></div><div class="orbit-ring-2" style="border-bottom-color:var(--fp-teal)"></div><div class="orbit-ring-3"></div>
             <div class="orbit-dot orbit-dot-1" style="background:var(--fp-teal);box-shadow:0 0 5px var(--fp-teal)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
             <div class="orbit-center" style="background:var(--fp-teal-lt);color:var(--fp-teal)"><i class="bi bi-tags-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-tags-fill"></i> Personalización</div><h1 class="page-title">Mis <span class="title-accent">Categorías</span></h1></div>
-        </div></div>
+        </div><h1 class="page-title">Mis <span class="title-accent">Categorías</span></h1></div></div>
       <div class="row g-3">
         <div class="col-md-6"><div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-arrow-up-circle-fill text-success"></i> Ingresos</div><span class="fp-badge fp-badge-green" id="cntCatInc">0</span></div><div class="fp-card-body"><div class="d-flex gap-2 mb-3"><input class="fp-input" id="newCatIncName" placeholder="Nueva categoría..."/><button class="btn fp-btn-success fp-btn-sm" onclick="addCat('income')"><i class="bi bi-plus-lg"></i></button></div><div id="listCatInc"></div></div></div></div>
         <div class="col-md-6"><div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-arrow-down-circle-fill text-danger"></i> Egresos</div><span class="fp-badge fp-badge-red" id="cntCatExp">0</span></div><div class="fp-card-body"><div class="d-flex gap-2 mb-3"><input class="fp-input" id="newCatExpName" placeholder="Nueva categoría..."/><button class="btn fp-btn-danger fp-btn-sm" onclick="addCat('expense')"><i class="bi bi-plus-lg"></i></button></div><div id="listCatExp"></div></div></div></div>
@@ -789,16 +774,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 
     <!-- CONFIGURACIÓN -->
     <div id="view-config" class="d-none">
-      <div class="fp-page-header">
-        <div class="d-flex align-items-center gap-3">
+      <div class="fp-page-header"><div class="d-flex align-items-center gap-3">
           <div class="orbit-container d-none d-md-flex" style="width:80px;height:80px">
-            <div class="orbit-ring-1"></div><div class="orbit-ring-2"></div><div class="orbit-ring-3"></div>
-            <div class="orbit-dot orbit-dot-1"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
-            <div class="orbit-center"><i class="bi bi-gear-fill"></i></div>
+            <div class="orbit-ring-1" style="border-top-color:var(--fp-primary)"></div><div class="orbit-ring-2" style="border-bottom-color:var(--fp-primary)"></div><div class="orbit-ring-3"></div>
+            <div class="orbit-dot orbit-dot-1" style="background:var(--fp-primary);box-shadow:0 0 5px var(--fp-primary)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
+            <div class="orbit-center" style="background:var(--fp-primary-lt);color:var(--fp-primary)"><i class="bi bi-gear-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-gear-fill"></i> Ajustes</div><h1 class="page-title">Configuración <span class="title-accent">General</span></h1></div>
-        </div>
-      </div>
+        </div><h1 class="page-title">Configuración <span class="title-accent">General</span></h1></div></div>
       <div class="row g-4">
         <div class="col-lg-7"><div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-github"></i> GitHub Gist Sync</div><span class="fp-badge fp-badge-blue" id="gistStatusBadge">Sin configurar</span></div>
           <div class="fp-card-body">
@@ -1480,11 +1463,39 @@ function esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/
 // ══════════════════════════════════════════════════════
 //  CHIPS / SALDO BAR
 // ══════════════════════════════════════════════════════
+// ── animNum: anima un número de su valor actual al nuevo ──────────────────
+function animNum(id,target,useColor,dur){
+  var el=document.getElementById(id);if(!el)return;
+  dur=dur||650;
+  var start=parseFloat(el.dataset.rawVal||'0')||0;
+  el.dataset.rawVal=String(target);
+  // pop visual
+  el.style.transform='scale(1.06)';
+  el.style.transition='transform .18s cubic-bezier(.34,1.56,.64,1)';
+  setTimeout(function(){el.style.transform='scale(1)';},180);
+  var t0=performance.now();
+  function step(ts){
+    var p=Math.min((ts-t0)/dur,1);
+    var e=1-Math.pow(1-p,3); // ease-out-cubic
+    var cur=start+(target-start)*e;
+    el.textContent=fmt(cur);
+    if(useColor)el.style.color=target>=0?'#6ee7b7':'#fca5a5';
+    if(p<1)requestAnimationFrame(step);
+    else{el.textContent=fmt(target);if(useColor)el.style.color=target>=0?'#6ee7b7':'#fca5a5';}
+  }
+  requestAnimationFrame(step);
+}
+
 function updateChips(){
   var s=calcSaldos();
-  function set(id,val,useColor){var el=document.getElementById(id);if(el){el.textContent=fmt(val);if(useColor)el.style.color=val>=0?'#6ee7b7':'#fca5a5';}}
-  set('chipLibre',s.saldoLibre,true);set('chipInc',s.totalInc);set('chipExp',s.totalExp);set('chipSav',s.totalSav);set('chipDeu',s.totalDebt);
-  set('mChipLibre',s.saldoLibre,true);set('mChipSav',s.totalSav);set('mChipDeu',s.totalDebt);
+  animNum('chipLibre',s.saldoLibre,true,700);
+  animNum('chipInc',s.totalInc,false,700);
+  animNum('chipExp',s.totalExp,false,700);
+  animNum('chipSav',s.totalSav,false,700);
+  animNum('chipDeu',s.totalDebt,false,700);
+  animNum('mChipLibre',s.saldoLibre,true,700);
+  animNum('mChipSav',s.totalSav,false,700);
+  animNum('mChipDeu',s.totalDebt,false,700);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1599,7 +1610,7 @@ function renderDashboard(){
   var bd=document.getElementById('badgeTx');if(bd)bd.textContent=lsGet(KEYS.TX).length;
   var bdeb=document.getElementById('badgeDebts');if(bdeb)bdeb.textContent=lsGet(KEYS.DEBTS).filter(function(d){return d.remainingBalance>0;}).length;
 }
-function animVal(id,target){var el=document.getElementById(id);if(!el)return;el.classList.remove('animated');void el.offsetWidth;el.classList.add('animated');var dur=700,start=performance.now();function step(ts){var p=Math.min((ts-start)/dur,1);var e=1-Math.pow(1-p,3);el.textContent=fmt(target*e);if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+function animVal(id,target){animNum(id,target,false,700);}
 
 function renderDonutChart(monthTxs){
   var txs=monthTxs||[];var expenses=txs.filter(function(t){return t.type==='expense';});
@@ -1619,7 +1630,7 @@ function renderLineChart(){
   if(window._dashLine){window._dashLine.destroy();window._dashLine=null;}
   var txs=lsGet(KEYS.TX),now=new Date(),data=[];
   for(var i=5;i>=0;i--){var d=new Date(now.getFullYear(),now.getMonth()-i,1);var m=txs.filter(function(t){var td=new Date(t.date);return td.getFullYear()===d.getFullYear()&&td.getMonth()===d.getMonth();});data.push({label:d.toLocaleString('es-CO',{month:'short',year:'2-digit'}),income:m.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0),expense:m.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0)});}
-  window._dashLine=new Chart(ctx,{type:'line',data:{labels:data.map(function(d){return d.label;}),datasets:[{label:'Ingresos',data:data.map(function(d){return d.income;}),borderColor:'#057a55',backgroundColor:'rgba(5,122,85,.07)',pointBorderColor:'#fff',pointBorderWidth:2,tension:.4,fill:true,borderWidth:2,pointBackgroundColor:'#059669',pointRadius:3,pointHoverRadius:6},{label:'Egresos',data:data.map(function(d){return d.expense;}),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.06)',tension:.4,fill:true,borderWidth:2,pointBackgroundColor:'#dc2626',pointRadius:3,pointHoverRadius:6}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:700},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:12,font:{family:"'Plus Jakarta Sans',sans-serif",size:11}}},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fmt(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:function(v){return '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'k');},font:{size:10}}}}}});
+  window._dashLine=new Chart(ctx,{type:'line',data:{labels:data.map(function(d){return d.label;}),datasets:[{label:'Ingresos',data:data.map(function(d){return d.income;}),borderColor:'#059669',backgroundColor:'rgba(5,150,105,.07)',tension:.4,fill:true,borderWidth:2,pointBackgroundColor:'#059669',pointRadius:3,pointHoverRadius:6},{label:'Egresos',data:data.map(function(d){return d.expense;}),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.06)',tension:.4,fill:true,borderWidth:2,pointBackgroundColor:'#dc2626',pointRadius:3,pointHoverRadius:6}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:700},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:12,font:{family:"'Plus Jakarta Sans',sans-serif",size:11}}},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fmt(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{callback:function(v){return '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'k');},font:{size:10}}}}}});
 }
 function renderDashDebts(){
   var el=document.getElementById('dashDebtsList');var debts=lsGet(KEYS.DEBTS).filter(function(d){return d.remainingBalance>0;}).slice(0,3);if(!el)return;
@@ -1637,18 +1648,17 @@ function renderDashSavings(){
 // ══════════════════════════════════════════════════════
 function renderTransactions(){
   var s=calcSaldos();
-  // Ingresos y egresos del año actual
   var curYear=new Date().getFullYear();
   var txsAll=lsGet(KEYS.TX);
   var incYear=txsAll.filter(function(t){return t.type==='income'&&t.origin!=='tarjeta_pago'&&t.origin!=='saving_reincorp'&&new Date(t.date).getFullYear()===curYear;}).reduce(function(a,t){return a+t.amount;},0);
   var expYear=txsAll.filter(function(t){return t.type==='expense'&&t.origin!=='saving_deposit'&&t.origin!=='saving_reincorp_egreso'&&t.sourceType!=='tarjeta'&&new Date(t.date).getFullYear()===curYear;}).reduce(function(a,t){return a+t.amount;},0);
-  var yearLabel=''+curYear;
-  var ti=document.getElementById('txTotalInc');if(ti)ti.textContent=fmt(incYear);
-  var yl=document.getElementById('txYearLabel');if(yl)yl.textContent=yearLabel;
-  var yl2=document.getElementById('txYearLabel2');if(yl2)yl2.textContent=yearLabel;
-  var te=document.getElementById('txTotalExp');if(te)te.textContent=fmt(expYear);
-  var tsa=document.getElementById('txTotalSav');if(tsa)tsa.textContent=fmt(s.totalSav);
-  var tsl=document.getElementById('txSaldoLibre');if(tsl){tsl.textContent=fmt(s.saldoLibre);tsl.style.color=s.saldoLibre>=0?'var(--fp-success)':'var(--fp-danger)';}
+  var yl=document.getElementById('txYearLabel');if(yl)yl.textContent=curYear;
+  var yl2=document.getElementById('txYearLabel2');if(yl2)yl2.textContent=curYear;
+  animNum('txTotalInc',incYear,false,700);
+  animNum('txTotalExp',expYear,false,700);
+  animNum('txTotalSav',s.totalSav,false,700);
+  animNum('txSaldoLibre',s.saldoLibre,true,700);
+  var tsl=document.getElementById('txSaldoLibre');if(tsl)tsl.style.color=s.saldoLibre>=0?'var(--fp-success)':'var(--fp-danger)';
   var catSaldos=calcSaldosPorCat();
   var csEl=document.getElementById('catSaldosList');
   if(csEl){if(!catSaldos.length){csEl.innerHTML='<div class="empty-state">Sin ingresos</div>';}else csEl.innerHTML=catSaldos.map(function(item){var color=CAT_COLORS[item.cat]||'#94a3b8';return '<div class="cat-saldo-item"><div style="font-weight:600;font-size:12.5px;display:flex;align-items:center;gap:7px"><span style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;display:inline-block"></span>'+esc(item.cat)+'</div><div class="text-end"><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:12.5px;color:'+(item.libre>=0?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(item.libre)+'</div><div style="font-size:10px;color:var(--fp-text3)">'+fmt(item.totalInc)+'</div></div></div>';}).join('');}
@@ -1666,7 +1676,7 @@ function renderTransactions(){
   if(!slice.length){tbody.innerHTML='<tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>Sin transacciones</td></tr>';return;}
   tbody.innerHTML=slice.map(function(t){
     var inc=t.type==='income';
-    var ob=t.origin==='debt_payment'?'<span class="fp-badge fp-badge-red" style="font-size:9.5px"><i class="bi bi-file-earmark-text-fill me-1"></i>Abono</span>':t.origin==='debt_income'?'<span class="fp-badge fp-badge-green" style="font-size:9.5px"><i class="bi bi-cash-coin me-1"></i>Préstamo</span>':t.origin==='saving_move'?'<span class="fp-badge fp-badge-gold" style="font-size:9.5px"><i class="bi bi-piggy-bank-fill me-1"></i>Ahorro</span>':'<span class="fp-badge fp-badge-gray" style="font-size:9.5px">Manual</span>';
+    var ob=(t.origin==='debt_payment'||t.origin==='debt_payment_aporte'||t.origin==='debt_payment_seguro')?'<span class="fp-badge fp-badge-red" style="font-size:9.5px"><i class="bi bi-file-earmark-text-fill me-1"></i>'+(t.origin==='debt_payment_aporte'?'Aporte':t.origin==='debt_payment_seguro'?'Seguro':'Abono')+'</span>':t.origin==='debt_income'?'<span class="fp-badge fp-badge-green" style="font-size:9.5px"><i class="bi bi-cash-coin me-1"></i>Préstamo</span>':t.origin==='saving_move'?'<span class="fp-badge fp-badge-gold" style="font-size:9.5px"><i class="bi bi-piggy-bank-fill me-1"></i>Ahorro</span>':'<span class="fp-badge fp-badge-gray" style="font-size:9.5px">Manual</span>';
     return '<tr><td><span class="fp-badge '+(inc?'fp-badge-green':'fp-badge-red')+'"><i class="bi bi-arrow-'+(inc?'up':'down')+'-circle me-1"></i>'+(inc?'Ingreso':'Egreso')+'</span></td>'
       +'<td style="max-width:140px;word-break:break-word"><strong style="font-size:12px">'+esc(t.description)+'</strong>'+(t.concepto?'<div style="font-size:10px;color:var(--fp-text3);margin-top:1px"><i class="bi bi-tag-fill me-1"></i>'+esc(t.concepto)+'</div>':'')+'</td>'
       +'<td><span class="fp-badge fp-badge-gray" style="font-size:9.5px">'+esc(t.category)+'</span>'+(t.sourceCat?'<div style="font-size:9px;color:var(--fp-primary);margin-top:1px"><i class="bi bi-arrow-return-right me-1"></i>'+esc(t.sourceCat)+'</div>':'')+'</td>'
@@ -1680,7 +1690,7 @@ function renderTransactions(){
 function renderTxDistChart(s){
   var ctx=document.getElementById('chartTxDist');if(!ctx)return;
   if(window._txDistChart){window._txDistChart.destroy();window._txDistChart=null;}
-  window._txDistChart=new Chart(ctx,{type:'bar',data:{labels:['Saldo Libre','Ahorros','Deudas'],datasets:[{data:[Math.max(0,s.saldoLibre),s.totalSav,s.totalDebt],backgroundColor:['rgba(5,122,85,.8)','rgba(180,83,9,.8)','rgba(200,30,30,.8)'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+fmt(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:function(v){return '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'k');},font:{size:10}}}}}});
+  window._txDistChart=new Chart(ctx,{type:'bar',data:{labels:['Saldo Libre','Ahorros','Deudas'],datasets:[{data:[Math.max(0,s.saldoLibre),s.totalSav,s.totalDebt],backgroundColor:['rgba(5,122,85,.8)','rgba(180,83,9,.8)','rgba(200,30,30,.8)'],borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+fmt(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{callback:function(v){return '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'k');},font:{size:10}}}}}});
 }
 
 function txPage(dir){var pages=Math.ceil(State.txFiltered.length/State.txPageSize);State.txPage=Math.max(1,Math.min(pages,State.txPage+dir));renderTransactions();}
@@ -1923,11 +1933,11 @@ function renderDebts(){
   var totRem=debts.reduce(function(s,d){return s+d.remainingBalance;},0);
   var totInt=debts.reduce(function(s,d){return s+d.remainingBalance*(d.interestRate/100);},0);
   var totCuota=debts.reduce(function(s,d){return s+(d.cuota||0)+getCurrentAporte(d)+getCurrentSeguro(d);},0);
-  animVal('debtTotalAmt',totRem);animVal('debtTotalInt',totInt);animVal('debtTotalCuota',totCuota);
+  animNum('debtTotalAmt',totRem,false,750);animNum('debtTotalInt',totInt,false,750);animNum('debtTotalCuota',totCuota,false,750);
   document.getElementById('debtCount').textContent=debts.length;
   var bd=document.getElementById('badgeDebts');if(bd)bd.textContent=debts.length;
   var grid=document.getElementById('debtsList');if(!grid)return;
-  if(!debts.length){grid.innerHTML='<div class="col-12"><div class="empty-state-large"><div class="orbit-container mx-auto mb-3"><div class="orbit-ring-1" style="border-top-color:var(--fp-success)"></div><div class="orbit-ring-2" style="border-bottom-color:var(--fp-success)"></div><div class="orbit-ring-3"></div><div class="orbit-dot orbit-dot-1" style="background:var(--fp-success);box-shadow:0 0 5px var(--fp-success)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div><div class="orbit-center" style="background:var(--fp-success-lt);color:var(--fp-success)"><i class="bi bi-emoji-smile"></i></div></div><h4 class="mt-2">¡Sin deudas activas!</h4><button class="btn fp-btn-primary mt-2" onclick="openDebtModal()"><i class="bi bi-plus-lg"></i> Agregar</button></div></div>';return;}
+  if(!debts.length){grid.innerHTML='<div class="col-12"><div class="empty-state-large"><i class="bi bi-emoji-smile fs-1" style="color:var(--fp-success)"></i><h4 class="mt-3">¡Sin deudas activas!</h4><button class="btn fp-btn-primary mt-2" onclick="openDebtModal()"><i class="bi bi-plus-lg"></i> Agregar</button></div></div>';return;}
   grid.innerHTML=debts.map(function(d){
     var pct=Math.round(((d.totalAmount-d.remainingBalance)/d.totalAmount)*100);
     var aporte=getCurrentAporte(d);var seguro=getCurrentSeguro(d);var cuotaTotal=(d.cuota||0)+aporte+seguro;
@@ -2211,14 +2221,42 @@ function savePayment(){
   d.payments=d.payments||[];d.payments.push({id:editId||genId(),date:date||today(),amount:amt,interest:pInt,capital:pCap,aporte:aporteVal,seguro:seguroVal,source:sourceName});
   d.remainingBalance=newBal;allDebts[idx]=d;lsSet(KEYS.DEBTS,allDebts);
  var txAll=lsGet(KEYS.TX);
-  var payTx={id:genId(),type:'expense',description:'Pago deuda: '+d.creditor+(sourceLabel!=='Dinero libre'?' ('+sourceLabel+')':''),amount:amt,date:date||today(),category:'Abono Deuda',origin:'debt_payment',debtId:id};
+  // Egreso principal: cuota (capital + intereses)
+  var payTx={id:genId(),type:'expense',description:'Pago cuota: '+d.creditor+(sourceLabel!=='Dinero libre'?' ('+sourceLabel+')':''),amount:amt,date:date||today(),category:'Abono Deuda',origin:'debt_payment',debtId:id};
   if(srcVal.indexOf('cat_')===0){payTx.sourceCat=srcVal.replace('cat_','');payTx.sourceType='category';}
   else if(srcVal.indexOf('sav_')===0){payTx.sourceType='saving';}
   else{payTx.sourceType='libre';}
-  txAll.push(payTx);lsSet(KEYS.TX,txAll);
+  txAll.push(payTx);
+  // Egreso aporte social — sale del mismo saldo que la cuota
+  if(aporteVal>0){
+    var aporteTx={id:genId(),type:'expense',
+      description:'Aporte social: '+d.creditor,
+      amount:aporteVal,date:date||today(),
+      category:'Abono Deuda',origin:'debt_payment_aporte',debtId:id};
+    if(srcVal.indexOf('cat_')===0){aporteTx.sourceCat=srcVal.replace('cat_','');aporteTx.sourceType='category';}
+    else if(srcVal.indexOf('sav_')===0){aporteTx.sourceType='saving';}
+    else{aporteTx.sourceType='libre';}
+    txAll.push(aporteTx);
+  }
+  // Egreso seguro — sale del mismo saldo que la cuota
+  if(seguroVal>0){
+    var seguroTx={id:genId(),type:'expense',
+      description:'Seguro: '+d.creditor,
+      amount:seguroVal,date:date||today(),
+      category:'Abono Deuda',origin:'debt_payment_seguro',debtId:id};
+    if(srcVal.indexOf('cat_')===0){seguroTx.sourceCat=srcVal.replace('cat_','');seguroTx.sourceType='category';}
+    else if(srcVal.indexOf('sav_')===0){seguroTx.sourceType='saving';}
+    else{seguroTx.sourceType='libre';}
+    txAll.push(seguroTx);
+  }
+  lsSet(KEYS.TX,txAll);
   bootstrap.Modal.getInstance(document.getElementById('modalPayment')).hide();
   renderDebts();updateChips();if(State.currentView==='dashboard')renderDashboard();if(State.currentView==='transactions')renderTransactions();
-  showToast('Pago registrado ✓ Cap: '+fmt(pCap)+' | Int: '+fmt(pInt),'success');
+  var toastMsg='Pago registrado ✓ Cuota: '+fmt(amt);
+  if(aporteVal>0)toastMsg+=' + Aporte: '+fmt(aporteVal);
+  if(seguroVal>0)toastMsg+=' + Seguro: '+fmt(seguroVal);
+  if(aporteVal>0||seguroVal>0)toastMsg+=' = Total: '+fmt(amt+aporteVal+seguroVal);
+  showToast(toastMsg,'success');
 }
 
 // APORTES Y SEGURO
@@ -2259,7 +2297,7 @@ function saveSeguroAjuste(){
 //  AHORROS
 // ══════════════════════════════════════════════════════
 function renderSavings(){
-  var accs=lsGet(KEYS.SAV);var tot=accs.reduce(function(s,a){return s+a.currentBalance;},0);var tel=document.getElementById('savingsTotal');if(tel)tel.textContent=fmt(tot);
+  var accs=lsGet(KEYS.SAV);var tot=accs.reduce(function(s,a){return s+a.currentBalance;},0);animNum('savingsTotal',tot,false,700);
   var grid=document.getElementById('savingsGrid');if(!grid)return;
   if(!accs.length){grid.innerHTML='<div class="col-12"><div class="empty-state-large"><i class="bi bi-piggy-bank" style="font-size:3rem;color:var(--fp-gold)"></i><h4 class="mt-3">Sin cuentas</h4><button class="btn fp-btn-primary mt-2" onclick="openSavingModal()"><i class="bi bi-plus-lg"></i> Crear</button></div></div>';return;}
   var circ=2*Math.PI*32;
@@ -2435,7 +2473,8 @@ function switchHistTab(tab,btn){['debts','savings'].forEach(function(t){var el=d
 
 function renderHistDebts(){
   var debts=lsGet(KEYS.DEBTS);var capTotal=debts.reduce(function(s,d){return s+d.totalAmount;},0);var remTotal=debts.reduce(function(s,d){return s+d.remainingBalance;},0);var paidTotal=capTotal-remTotal;
-  var ec=document.getElementById('hDebtCapTotal');if(ec)ec.textContent=fmt(capTotal);var ep=document.getElementById('hDebtPaidTotal');if(ep)ep.textContent=fmt(paidTotal);var er=document.getElementById('hDebtRemTotal');if(er){er.textContent=fmt(remTotal);er.style.color=remTotal>0?'var(--fp-danger)':'var(--fp-success)';}
+  animNum('hDebtCapTotal',capTotal,false,700);animNum('hDebtPaidTotal',paidTotal,false,700);animNum('hDebtRemTotal',remTotal,true,700);
+  var er=document.getElementById('hDebtRemTotal');if(er)er.style.color=remTotal>0?'var(--fp-danger)':'var(--fp-success)';
   var cnt=document.getElementById('hDebtCreatedCount');if(cnt)cnt.textContent=debts.length;
   var tbody=document.getElementById('hDebtCreatedBody');
   if(tbody){if(!debts.length){tbody.innerHTML='<tr><td colspan="9" class="text-center py-4 text-muted">Sin deudas</td></tr>';}
@@ -2448,7 +2487,7 @@ function renderHistDebts(){
 }
 function renderHistSavings(){
   var accs=lsGet(KEYS.SAV);var totBal=accs.reduce(function(s,a){return s+a.currentBalance;},0);var totDep=0,totWith=0;accs.forEach(function(a){(a.transactions||[]).forEach(function(m){if(m.type==='deposit')totDep+=m.amount;else totWith+=m.amount;});});
-  var eto=document.getElementById('hSavTotal');if(eto)eto.textContent=fmt(totBal);var ede=document.getElementById('hSavDeposited');if(ede)ede.textContent=fmt(totDep);var ewi=document.getElementById('hSavWithdrawn');if(ewi)ewi.textContent=fmt(totWith);
+  animNum('hSavTotal',totBal,false,700);animNum('hSavDeposited',totDep,false,700);animNum('hSavWithdrawn',totWith,false,700);
   var container=document.getElementById('hSavAccordion');if(!container)return;
   if(!accs.length){container.innerHTML='<div class="empty-state-large"><i class="bi bi-piggy-bank" style="font-size:3rem;color:var(--fp-gold)"></i><h4 class="mt-3">Sin cuentas</h4></div>';return;}
   var circ=2*Math.PI*32;var typeLabel={deposit:'Depósito',withdraw:'Retiro',use:'Gasto'};var typeColor={deposit:'text-success',withdraw:'text-danger',use:'text-warning'};var typeBadge={deposit:'fp-badge-green',withdraw:'fp-badge-red',use:'fp-badge-gold',reincorporate:'fp-badge-blue'};var typeIcon={deposit:'bi-arrow-up-circle-fill',withdraw:'bi-arrow-down-circle-fill',use:'bi-cart-fill',reincorporate:'bi-arrow-return-left'};
@@ -2496,9 +2535,9 @@ function renderTarjetas(){
   var totCupo=tcs.reduce(function(s,t){return s+(t.cupoAprobado||0);},0);
   var totUsado=tcs.reduce(function(s,t){return s+calcTcUsado(t);},0);
   var totDisp=tcs.reduce(function(s,t){return s+calcTcCupoDisponible(t);},0);
-  var elCupo=document.getElementById('tcTotalCupo');if(elCupo)elCupo.textContent=fmt(totCupo);
-  var elUsado=document.getElementById('tcTotalUsado');if(elUsado)elUsado.textContent=fmt(totUsado);
-  var elDisp=document.getElementById('tcTotalDisp');if(elDisp)elDisp.textContent=fmt(totDisp);
+  animNum('tcTotalCupo',totCupo,false,700);
+  animNum('tcTotalUsado',totUsado,false,700);
+  animNum('tcTotalDisp',totDisp,false,700);
   var elCnt=document.getElementById('tcCount');if(elCnt)elCnt.textContent=tcs.length;
   var badge=document.getElementById('badgeTarjetas');if(badge)badge.textContent=tcs.length;
   var grid=document.getElementById('tarjetasList');if(!grid)return;
@@ -2953,9 +2992,9 @@ function renderPrestamos(){
   var totalCobrado=totalPrestado-totalSaldo;
   var enMora=pts.filter(function(p){return p.saldo>0&&(p.planPagos||[]).some(function(c){return c.fecha<hoy&&!c.pagada;});}).length;
   var badge=document.getElementById('badgePrestamos');if(badge)badge.textContent=pts.filter(function(p){return p.saldo>0;}).length;
-  var elTP=document.getElementById('ptTotalPrestado');if(elTP)elTP.textContent=fmt(totalPrestado);
-  var elTC=document.getElementById('ptTotalCobrado');if(elTC)elTC.textContent=fmt(totalCobrado);
-  var elTPend=document.getElementById('ptTotalPendiente');if(elTPend)elTPend.textContent=fmt(totalSaldo);
+  animNum('ptTotalPrestado',totalPrestado,false,700);
+  animNum('ptTotalCobrado',totalCobrado,false,700);
+  animNum('ptTotalPendiente',totalSaldo,false,700);
   var elMora=document.getElementById('ptEnMora');if(elMora)elMora.textContent=enMora;
   var grid=document.getElementById('prestamosList');if(!grid)return;
   if(!pts.length){
