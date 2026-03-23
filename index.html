@@ -379,6 +379,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
       <ul class="sidebar-menu">
         <li><a class="sidebar-link" id="nav-debts" onclick="navigateTo('debts');return false" href="#"><div class="link-icon icon-red"><i class="bi bi-file-earmark-text-fill"></i></div><span>Deudas</span><span class="fp-badge-count" id="badgeDebts">0</span></a></li>
         <li><a class="sidebar-link" id="nav-tarjetas" onclick="navigateTo('tarjetas');return false" href="#"><div class="link-icon" style="background:rgba(26,86,219,.15)!important;color:#60a5fa"><i class="bi bi-credit-card-2-front-fill"></i></div><span>Tarjetas</span><span class="fp-badge-count" id="badgeTarjetas">0</span></a></li>
+        <li><a class="sidebar-link" id="nav-prestamos" onclick="navigateTo('prestamos');return false" href="#"><div class="link-icon" style="background:rgba(8,145,178,.15)!important;color:#22d3ee"><i class="bi bi-cash-coin"></i></div><span>Préstamos</span><span class="fp-badge-count" id="badgePrestamos">0</span></a></li>
+        <li><a class="sidebar-link" id="nav-clientes" onclick="navigateTo('clientes');return false" href="#"><div class="link-icon" style="background:rgba(124,58,237,.15)!important;color:#a78bfa"><i class="bi bi-people-fill"></i></div><span>Clientes</span><span class="fp-badge-count" id="badgeClientes">0</span></a></li>
         <li><a class="sidebar-link" id="nav-savings" onclick="navigateTo('savings');return false" href="#"><div class="link-icon icon-gold"><i class="bi bi-piggy-bank-fill"></i></div><span>Ahorros</span></a></li>
         <li><a class="sidebar-link" id="nav-historial" onclick="navigateTo('historial');return false" href="#"><div class="link-icon icon-violet"><i class="bi bi-clock-history"></i></div><span>Historial</span></a></li>
       </ul>
@@ -504,6 +506,33 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-calendar-check"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Activas</p><h3 class="kpi-sm-val" id="tcCount">0</h3></div></div></div></div>
       </div>
       <div id="tarjetasList" class="row g-3"></div>
+    </div>
+
+    <!-- PRÉSTAMOS -->
+    <div id="view-prestamos" class="d-none">
+      <div class="fp-page-header">
+        <div><div class="page-eyebrow"><i class="bi bi-cash-coin"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-teal)">Préstamos</span></h1><p class="page-sub">Dinero que has prestado a terceros</p></div>
+        <div class="d-flex gap-2">
+          <button class="btn fp-btn-ghost fp-btn-sm" onclick="navigateTo('clientes')"><i class="bi bi-people-fill me-1"></i>Clientes</button>
+          <button class="btn fp-btn-primary fp-btn-sm" onclick="openPrestamoModal()"><i class="bi bi-plus-lg"></i> Nuevo Préstamo</button>
+        </div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm" style="border-top:2px solid var(--fp-teal)"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon" style="background:var(--fp-teal-lt);color:var(--fp-teal)"><i class="bi bi-cash-coin"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Prestado</p><h3 class="kpi-sm-val" id="ptTotalPrestado">$0</h3></div></div></div></div>
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Cobrado</p><h3 class="kpi-sm-val" id="ptTotalCobrado">$0</h3></div></div></div></div>
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-hourglass-split"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Por Cobrar</p><h3 class="kpi-sm-val" id="ptTotalPendiente">$0</h3></div></div></div></div>
+        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-exclamation-triangle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">En Mora</p><h3 class="kpi-sm-val" id="ptEnMora">0</h3></div></div></div></div>
+      </div>
+      <div id="prestamosList" class="row g-3"></div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div id="view-clientes" class="d-none">
+      <div class="fp-page-header">
+        <div><div class="page-eyebrow"><i class="bi bi-people-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-violet)">Clientes</span></h1><p class="page-sub">Personas a quienes has prestado dinero</p></div>
+        <button class="btn fp-btn-primary fp-btn-sm" onclick="openClienteModal()"><i class="bi bi-plus-lg"></i> Nuevo Cliente</button>
+      </div>
+      <div id="clientesList" class="row g-3"></div>
     </div>
 
     <!-- AHORROS -->
@@ -957,6 +986,112 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   </div></div>
 </div>
 
+
+<!-- MODAL CLIENTE -->
+<div class="modal fade fp-modal" id="modalCliente" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="modalClienteTitle"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Cliente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cliEditId"/>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="fp-label">Nombre completo *</label><input class="fp-input" type="text" id="cliNombre" placeholder="Ej: Juan Pérez"/></div>
+        <div class="col-md-6"><label class="fp-label">Teléfono</label><input class="fp-input" type="text" id="cliTelefono" placeholder="Ej: 300 123 4567"/></div>
+        <div class="col-md-6"><label class="fp-label">Cédula / Documento</label><input class="fp-input" type="text" id="cliDocumento" placeholder="Ej: 12345678"/></div>
+        <div class="col-md-6"><label class="fp-label">Dirección</label><input class="fp-input" type="text" id="cliDireccion" placeholder="Ej: Calle 10 #5-20"/></div>
+        <div class="col-12"><label class="fp-label">Notas (opcional)</label><input class="fp-input" type="text" id="cliNotas" placeholder="Ej: Referido por Juan..."/></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-primary" onclick="saveCliente()"><i class="bi bi-check-lg"></i> Guardar</button></div>
+  </div></div>
+</div>
+
+<!-- MODAL NUEVO PRÉSTAMO -->
+<div class="modal fade fp-modal" id="modalPrestamo" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="modalPrestamoTitle"><i class="bi bi-cash-coin me-2"></i>Nuevo Préstamo</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ptEditId"/>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="fp-label">Cliente *</label>
+          <select class="fp-select" id="ptClienteId"><option value="">-- Seleccionar cliente --</option></select>
+          <div style="margin-top:6px"><button class="btn fp-btn-ghost fp-btn-sm" onclick="openClienteModal()"><i class="bi bi-person-plus-fill me-1"></i>Crear nuevo cliente</button></div>
+        </div>
+        <div class="col-md-6"><label class="fp-label">Monto a prestar ($) *</label><input class="fp-input fp-input-mono" type="number" id="ptMonto" placeholder="0" min="0.01" step="0.01" oninput="calcPlanPagos()"/></div>
+        <div class="col-md-4"><label class="fp-label">Tasa interés mensual (%)</label><input class="fp-input fp-input-mono" type="number" id="ptTasa" placeholder="Ej: 5" min="0" step="0.01" value="0" oninput="calcPlanPagos()"/></div>
+        <div class="col-md-4"><label class="fp-label">Número de cuotas</label><input class="fp-input fp-input-mono" type="number" id="ptCuotas" placeholder="Ej: 12" min="1" step="1" value="1" oninput="calcPlanPagos()"/></div>
+        <div class="col-md-4"><label class="fp-label">Frecuencia de pago</label>
+          <select class="fp-select" id="ptFrecuencia" onchange="calcPlanPagos()">
+            <option value="mensual">Mensual</option>
+            <option value="quincenal">Quincenal</option>
+            <option value="semanal">Semanal</option>
+          </select>
+        </div>
+        <div class="col-md-6"><label class="fp-label">Fecha del préstamo</label><input class="fp-input" type="date" id="ptFecha"/></div>
+        <div class="col-md-6"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="ptDesc" placeholder="Ej: Préstamo para negocio..."/></div>
+      </div>
+      <div id="ptPreview" style="margin-top:14px;display:none">
+        <div style="background:var(--fp-teal-lt);border:1px solid rgba(8,145,178,.2);border-radius:10px;padding:13px 15px">
+          <div style="font-size:12px;font-weight:700;color:var(--fp-teal);margin-bottom:8px"><i class="bi bi-calculator-fill me-1"></i>Resumen del préstamo</div>
+          <div class="row g-2">
+            <div class="col-4"><div style="font-size:10px;color:var(--fp-text3)">Cuota</div><div class="amount-mono" style="font-size:14px;font-weight:800;color:var(--fp-teal)" id="ptPrevCuota">$0</div></div>
+            <div class="col-4"><div style="font-size:10px;color:var(--fp-text3)">Total a pagar</div><div class="amount-mono" style="font-size:14px;font-weight:800;color:var(--fp-text)" id="ptPrevTotal">$0</div></div>
+            <div class="col-4"><div style="font-size:10px;color:var(--fp-text3)">Total intereses</div><div class="amount-mono" style="font-size:14px;font-weight:800;color:var(--fp-danger)" id="ptPrevIntereses">$0</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <label class="fp-label"><i class="bi bi-wallet2 me-1"></i> ¿De dónde sale el dinero a prestar?</label>
+        <div id="ptSrcList" style="max-height:180px;overflow-y:auto;margin-top:6px"></div>
+        <input type="hidden" id="ptSrcSelected" value="libre"/>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-primary" onclick="savePrestamo()" style="background:linear-gradient(135deg,var(--fp-teal),#0ea5e9)"><i class="bi bi-check-lg"></i> Registrar Préstamo</button></div>
+  </div></div>
+</div>
+
+<!-- MODAL ABONO CLIENTE -->
+<div class="modal fade fp-modal" id="modalAbonoCliente" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="bi bi-arrow-down-circle-fill me-2 text-success"></i>Registrar Pago de Cliente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="abonoPrestamoId"/>
+      <div id="abonoPrestamoInfo" class="mb-3" style="background:var(--fp-teal-lt);border:1px solid rgba(8,145,178,.2);border-radius:9px;padding:11px 13px;font-size:13px"></div>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="fp-label">Monto del pago ($) *</label><input class="fp-input fp-input-mono" type="number" id="abonoMonto" placeholder="0" min="0.01" step="0.01" oninput="calcAbonoPreview()"/></div>
+        <div class="col-md-6"><label class="fp-label">Fecha</label><input class="fp-input" type="date" id="abonoFecha"/></div>
+        <div class="col-12"><label class="fp-label">Nota (opcional)</label><input class="fp-input" type="text" id="abonoNota" placeholder="Ej: Pago cuota 3..."/></div>
+      </div>
+      <div id="abonoPreview" style="display:none;margin-top:12px;background:var(--fp-success-lt);border:1px solid rgba(5,122,85,.15);border-radius:9px;padding:11px 13px">
+        <div class="row g-2" style="font-size:12px">
+          <div class="col-4"><div style="color:var(--fp-text3)">→ Interés</div><div class="amount-mono text-danger" id="abonoPrevInt">$0</div></div>
+          <div class="col-4"><div style="color:var(--fp-text3)">→ Capital</div><div class="amount-mono text-success" id="abonoPrevCap">$0</div></div>
+          <div class="col-4"><div style="color:var(--fp-text3)">Nuevo saldo</div><div class="amount-mono fw-bold" id="abonoPrevSaldo">$0</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-success" onclick="saveAbonoCliente()"><i class="bi bi-check-lg"></i> Registrar Pago</button></div>
+  </div></div>
+</div>
+
+<!-- MODAL AMPLIAR PRÉSTAMO -->
+<div class="modal fade fp-modal" id="modalAddPrestamo" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="bi bi-plus-circle-fill me-2 text-warning"></i>Ampliar Préstamo</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="addPtId"/>
+      <div id="addPtInfo" class="mb-3" style="background:var(--fp-gold-lt);border:1px solid rgba(180,83,9,.15);border-radius:9px;padding:11px 13px;font-size:13px"></div>
+      <div class="row g-3">
+        <div class="col-12"><label class="fp-label">Monto adicional ($) *</label><input class="fp-input fp-input-mono" type="number" id="addPtMonto" placeholder="0" min="0.01" step="0.01"/></div>
+        <div class="col-12"><label class="fp-label">Fecha</label><input class="fp-input" type="date" id="addPtFecha"/></div>
+        <div class="col-12"><label class="fp-label">Nota</label><input class="fp-input" type="text" id="addPtNota" placeholder="Ej: Segunda entrega..."/></div>
+      </div>
+      <div style="margin-top:12px"><label class="fp-label"><i class="bi bi-wallet2 me-1"></i>¿De dónde sale?</label><div id="addPtSrcList" style="max-height:160px;overflow-y:auto;margin-top:6px"></div><input type="hidden" id="addPtSrc" value="libre"/></div>
+    </div>
+    <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-gold" onclick="saveAddPrestamo()"><i class="bi bi-check-lg"></i> Añadir</button></div>
+  </div></div>
+</div>
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastStack" style="z-index:9999"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -987,8 +1122,17 @@ function isCurrent(){var n=new Date();return FilterMonth.year===n.getFullYear()&
 // ══════════════════════════════════════════════════════
 function calcSaldos(){
   var txs=lsGet(KEYS.TX);
-  var totalInc=txs.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);
-  var totalExp=txs.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
+  // Ingresos: excluir los que son recuperación de cupo de tarjeta o cobros internos
+  var totalInc=txs.filter(function(t){
+    return t.type==='income'&&t.origin!=='tarjeta_pago';
+  }).reduce(function(s,t){return s+t.amount;},0);
+  // Egresos: excluir retiros/gastos de ahorro (saving_move/saving_deposit) porque
+  // ese dinero ya salió del saldo libre cuando se depositó originalmente
+  var totalExp=txs.filter(function(t){
+    return t.type==='expense'
+      &&t.origin!=='saving_move'
+      &&t.origin!=='saving_deposit';
+  }).reduce(function(s,t){return s+t.amount;},0);
   var totalSav=lsGet(KEYS.SAV).reduce(function(s,a){return s+a.currentBalance;},0);
   var totalDebt=lsGet(KEYS.DEBTS).reduce(function(s,d){return s+d.remainingBalance;},0);
   return{totalInc:totalInc,totalExp:totalExp,totalSav:totalSav,totalDebt:totalDebt,saldoLibre:totalInc-totalExp};
@@ -1185,13 +1329,15 @@ document.addEventListener('DOMContentLoaded',function(){
 //  NAVEGACIÓN
 // ══════════════════════════════════════════════════════
 function navigateTo(view){
-  ['dashboard','transactions','debts','tarjetas','savings','historial','categorias','config'].forEach(function(v){var el=document.getElementById('view-'+v);if(el)el.classList.toggle('d-none',v!==view);});
+  ['dashboard','transactions','debts','tarjetas','prestamos','clientes','savings','historial','categorias','config'].forEach(function(v){var el=document.getElementById('view-'+v);if(el)el.classList.toggle('d-none',v!==view);});
   document.querySelectorAll('.sidebar-link').forEach(function(l){l.classList.toggle('active',l.id==='nav-'+view);});
   State.currentView=view;closeSidebar();
   if(view==='dashboard')renderDashboard();
   if(view==='transactions')renderTransactions();
   if(view==='debts')renderDebts();
   if(view==='tarjetas')renderTarjetas();
+  if(view==='prestamos')renderPrestamos();
+  if(view==='clientes')renderClientes();
   if(view==='savings')renderSavings();
   if(view==='historial')initHistorial();
   if(view==='categorias'){renderCats();rebuildCatSelects();}
@@ -2267,6 +2413,531 @@ function verMovsTarjeta(id){
   var ex=document.getElementById('tcMovsOverlay');if(ex)ex.remove();
   document.body.insertAdjacentHTML('beforeend',html);
 }
+
+
+// ══════════════════════════════════════════════════════
+//  PRÉSTAMOS Y CLIENTES
+// ══════════════════════════════════════════════════════
+var KEYS_CLI='fp_clientes';
+var KEYS_PT='fp_prestamos';
+function getClientes(){try{return JSON.parse(localStorage.getItem(KEYS_CLI))||[];}catch(e){return[];}}
+function setClientes(arr){localStorage.setItem(KEYS_CLI,JSON.stringify(arr));}
+function getPrestamos(){try{return JSON.parse(localStorage.getItem(KEYS_PT))||[];}catch(e){return[];}}
+function setPrestamos(arr){localStorage.setItem(KEYS_PT,JSON.stringify(arr));}
+
+// ── CLIENTES ──────────────────────────────────────────
+function openClienteModal(editId){
+  document.getElementById('cliEditId').value=editId||'';
+  document.getElementById('cliNombre').value='';document.getElementById('cliTelefono').value='';
+  document.getElementById('cliDocumento').value='';document.getElementById('cliDireccion').value='';
+  document.getElementById('cliNotas').value='';
+  if(editId){
+    var cli=getClientes().find(function(c){return c.id===editId;});
+    if(cli){
+      document.getElementById('modalClienteTitle').innerHTML='<i class="bi bi-pencil-fill me-2"></i>Editar Cliente';
+      document.getElementById('cliNombre').value=cli.nombre||'';
+      document.getElementById('cliTelefono').value=cli.telefono||'';
+      document.getElementById('cliDocumento').value=cli.documento||'';
+      document.getElementById('cliDireccion').value=cli.direccion||'';
+      document.getElementById('cliNotas').value=cli.notas||'';
+    }
+  } else {
+    document.getElementById('modalClienteTitle').innerHTML='<i class="bi bi-person-plus-fill me-2"></i>Nuevo Cliente';
+  }
+  new bootstrap.Modal(document.getElementById('modalCliente')).show();
+}
+
+function saveCliente(){
+  var editId=document.getElementById('cliEditId').value;
+  var nombre=document.getElementById('cliNombre').value.trim();
+  if(!nombre){showToast('El nombre es obligatorio','danger');return;}
+  var all=getClientes();
+  var cli={id:editId||genId(),nombre:nombre,telefono:document.getElementById('cliTelefono').value.trim(),documento:document.getElementById('cliDocumento').value.trim(),direccion:document.getElementById('cliDireccion').value.trim(),notas:document.getElementById('cliNotas').value.trim()};
+  if(editId){var idx=all.findIndex(function(c){return c.id===editId;});if(idx>=0)all[idx]=cli;else all.push(cli);}
+  else all.push(cli);
+  setClientes(all);
+  bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
+  renderClientes();rebuildClienteSelect();
+  showToast((editId?'Cliente actualizado':'Cliente registrado')+' ✓','success');
+}
+
+function deleteCliente(id){
+  var pts=getPrestamos().filter(function(p){return p.clienteId===id;});
+  if(pts.length){showToast('Este cliente tiene préstamos. Elimínalos primero.','danger');return;}
+  if(!confirm('¿Eliminar cliente?'))return;
+  setClientes(getClientes().filter(function(c){return c.id!==id;}));
+  renderClientes();showToast('Cliente eliminado','warning');
+}
+
+function clienteEnMora(clienteId){
+  var pts=getPrestamos().filter(function(p){return p.clienteId===clienteId&&p.saldo>0;});
+  var hoy=today();
+  return pts.some(function(p){
+    return (p.planPagos||[]).some(function(c){return c.fecha<hoy&&!c.pagada;});
+  });
+}
+
+function renderClientes(){
+  var clis=getClientes();
+  var badge=document.getElementById('badgeClientes');if(badge)badge.textContent=clis.length;
+  var grid=document.getElementById('clientesList');if(!grid)return;
+  if(!clis.length){
+    grid.innerHTML='<div class="col-12"><div class="empty-state-large"><i class="bi bi-people" style="font-size:3rem;color:var(--fp-violet)"></i><h4 class="mt-3">Sin clientes registrados</h4><button class="btn fp-btn-primary mt-2" onclick="openClienteModal()"><i class="bi bi-plus-lg"></i> Agregar Cliente</button></div></div>';
+    return;
+  }
+  var pts=getPrestamos();
+  grid.innerHTML=clis.map(function(cli){
+    var ptsCli=pts.filter(function(p){return p.clienteId===cli.id;});
+    var totalPrestado=ptsCli.reduce(function(s,p){return s+p.monto;},0);
+    var totalSaldo=ptsCli.reduce(function(s,p){return s+(p.saldo||0);},0);
+    var mora=clienteEnMora(cli.id);
+    var cid=esc(cli.id);
+    return '<div class="col-lg-4 col-md-6">'
+      +'<div class="fp-card" style="overflow:hidden">'
+        +'<div style="height:3px;background:linear-gradient(90deg,'+(mora?'var(--fp-danger)':'var(--fp-success)')+','+(mora?'#f97316':'#10b981')+')"></div>'
+        +'<div class="fp-card-body">'
+          +'<div class="d-flex justify-content-between align-items-start mb-2">'
+            +'<div>'
+              +'<div style="font-size:15px;font-weight:800;color:var(--fp-text)">'+esc(cli.nombre)+'</div>'
+              +(cli.telefono?'<div style="font-size:11.5px;color:var(--fp-text3)"><i class="bi bi-telephone-fill me-1"></i>'+esc(cli.telefono)+'</div>':'')
+              +(cli.documento?'<div style="font-size:11px;color:var(--fp-text3)"><i class="bi bi-card-text me-1"></i>'+esc(cli.documento)+'</div>':'')
+            +'</div>'
+            +'<div class="d-flex flex-column align-items-end gap-1">'
+              +'<span style="width:12px;height:12px;border-radius:50%;background:'+(mora?'var(--fp-danger)':'var(--fp-success)')+';display:block;box-shadow:0 0 7px '+(mora?'rgba(220,38,38,.6)':'rgba(5,122,85,.6)')+'"></span>'
+              +'<span style="font-size:9px;font-weight:700;color:'+(mora?'var(--fp-danger)':'var(--fp-success)')+'">'+(mora?'EN MORA':'Al día')+'</span>'
+            +'</div>'
+          +'</div>'
+          +(cli.direccion?'<div style="font-size:11.5px;color:var(--fp-text2);margin-bottom:8px"><i class="bi bi-geo-alt-fill me-1" style="color:var(--fp-violet)"></i>'+esc(cli.direccion)+'</div>':'')
+          +'<div class="row g-2 mb-3">'
+            +'<div class="col-4"><div style="background:var(--fp-teal-lt);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--fp-teal);font-weight:700">Préstamos</div><div style="font-size:16px;font-weight:800;color:var(--fp-teal)">'+ptsCli.length+'</div></div></div>'
+            +'<div class="col-4"><div style="background:var(--fp-primary-lt);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--fp-primary);font-weight:700">Prestado</div><div style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:800;color:var(--fp-primary)">'+fmt(totalPrestado)+'</div></div></div>'
+            +'<div class="col-4"><div style="background:'+(totalSaldo>0?'var(--fp-danger-lt)':'var(--fp-success-lt)')+';border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:'+(totalSaldo>0?'var(--fp-danger)':'var(--fp-success)')+';font-weight:700">Saldo</div><div style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:800;color:'+(totalSaldo>0?'var(--fp-danger)':'var(--fp-success)')+'">'+fmt(totalSaldo)+'</div></div></div>'
+          +'</div>'
+          +'<div class="d-flex gap-2 flex-wrap">'
+            +'<button class="btn fp-btn-primary fp-btn-sm flex-fill" onclick="verClienteDetalle(\''+cid+'\')" style="background:linear-gradient(135deg,var(--fp-violet),#8b5cf6)"><i class="bi bi-eye-fill me-1"></i>Ver detalle</button>'
+            +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openClienteModal(\''+cid+'\')" title="Editar"><i class="bi bi-pencil" style="color:var(--fp-primary)"></i></button>'
+            +'<button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deleteCliente(\''+cid+'\')" title="Eliminar"><i class="bi bi-trash3"></i></button>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+function rebuildClienteSelect(){
+  var sel=document.getElementById('ptClienteId');if(!sel)return;
+  var clis=getClientes();
+  sel.innerHTML='<option value="">-- Seleccionar cliente --</option>'+clis.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.nombre)+'</option>';}).join('');
+}
+
+// ── PRÉSTAMOS ─────────────────────────────────────────
+function calcCuotaPrestamo(monto,tasa,cuotas){
+  if(!cuotas||cuotas<=0)return 0;
+  if(!tasa||tasa<=0)return monto/cuotas;
+  var r=tasa/100;
+  return monto*(r*Math.pow(1+r,cuotas))/(Math.pow(1+r,cuotas)-1);
+}
+
+function generarPlanPagos(monto,tasa,cuotas,frecuencia,fechaInicio){
+  var plan=[];var saldo=monto;
+  var cuotaFija=calcCuotaPrestamo(monto,tasa,cuotas);
+  var r=tasa/100;
+  var fecha=new Date(fechaInicio+'T12:00:00');
+  for(var i=0;i<cuotas;i++){
+    var interes=saldo*r;var capital=cuotaFija-interes;
+    if(i===cuotas-1){capital=saldo;cuotaFija=capital+interes;}
+    saldo=Math.max(0,saldo-capital);
+    if(frecuencia==='quincenal'){fecha=new Date(fecha.getTime());fecha.setDate(fecha.getDate()+15);}
+    else if(frecuencia==='semanal'){fecha=new Date(fecha.getTime());fecha.setDate(fecha.getDate()+7);}
+    else{fecha=new Date(fecha.getTime());fecha.setMonth(fecha.getMonth()+1);}
+    plan.push({num:i+1,fecha:fecha.toISOString().split('T')[0],cuota:Math.round(cuotaFija),interes:Math.round(interes),capital:Math.round(capital),saldo:Math.round(saldo),pagada:false,montoPagado:0});
+  }
+  return plan;
+}
+
+function calcPlanPagos(){
+  var monto=parseFloat(document.getElementById('ptMonto').value)||0;
+  var tasa=parseFloat(document.getElementById('ptTasa').value)||0;
+  var cuotas=parseInt(document.getElementById('ptCuotas').value)||1;
+  var prev=document.getElementById('ptPreview');
+  if(!monto||!cuotas){if(prev)prev.style.display='none';return;}
+  var cuota=calcCuotaPrestamo(monto,tasa,cuotas);
+  var totalPagar=cuota*cuotas;var totalInt=totalPagar-monto;
+  if(prev)prev.style.display='block';
+  var pc=document.getElementById('ptPrevCuota');if(pc)pc.textContent=fmt(cuota);
+  var pt=document.getElementById('ptPrevTotal');if(pt)pt.textContent=fmt(totalPagar);
+  var pi=document.getElementById('ptPrevIntereses');if(pi)pi.textContent=fmt(totalInt);
+}
+
+function buildPtSrcList(containerId,hiddenId){
+  var s=calcSaldos();var catSaldos=calcSaldosPorCat();var savs=lsGet(KEYS.SAV);
+  var list=document.getElementById(containerId);if(!list)return;
+  var hiddenEl=document.getElementById(hiddenId);if(hiddenEl)hiddenEl.value='libre';
+  var html='<div class="source-opt selected" onclick="selectPtSrc(\'libre\',this,\''+hiddenId+'\')"><div class="source-opt-name"><i class="bi bi-wallet-fill" style="color:var(--fp-success)"></i> Dinero libre</div><span class="source-opt-bal" style="color:var(--fp-success)">'+fmt(s.saldoLibre)+'</span></div>';
+  if(catSaldos.length){html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--fp-text3);padding:5px 0 2px">Por categoría</div>';catSaldos.forEach(function(item){var color=CAT_COLORS[item.cat]||'#94a3b8';html+='<div class="source-opt" onclick="selectPtSrc(\'cat_'+esc(item.cat)+'\',this,\''+hiddenId+'\')"><div class="source-opt-name"><span style="width:8px;height:8px;border-radius:50%;background:'+color+';display:inline-block"></span> '+esc(item.cat)+'</div><span class="source-opt-bal" style="color:'+(item.libre>=0?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(item.libre)+'</span></div>';});}
+  if(savs.length){html+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--fp-text3);padding:5px 0 2px">Desde ahorros</div>';savs.forEach(function(sv){html+='<div class="source-opt" onclick="selectPtSrc(\'sav_'+sv.id+'\',this,\''+hiddenId+'\')"><div class="source-opt-name"><i class="bi bi-piggy-bank-fill" style="color:var(--fp-gold)"></i> '+esc(sv.name)+'</div><span class="source-opt-bal" style="color:var(--fp-gold)">'+fmt(sv.currentBalance)+'</span></div>';});}
+  list.innerHTML=html;
+}
+
+function selectPtSrc(val,el,hiddenId){
+  var h=document.getElementById(hiddenId);if(h)h.value=val;
+  var container=el.parentElement;
+  container.querySelectorAll('.source-opt').forEach(function(o){o.classList.remove('selected');});
+  el.classList.add('selected');
+}
+
+function openPrestamoModal(editId){
+  document.getElementById('ptEditId').value=editId||'';
+  document.getElementById('ptMonto').value='';document.getElementById('ptTasa').value='0';
+  document.getElementById('ptCuotas').value='1';document.getElementById('ptFrecuencia').value='mensual';
+  document.getElementById('ptDesc').value='';document.getElementById('ptFecha').value=today();
+  document.getElementById('ptPreview').style.display='none';
+  rebuildClienteSelect();
+  if(editId){
+    var pt=getPrestamos().find(function(p){return p.id===editId;});
+    if(pt){
+      document.getElementById('modalPrestamoTitle').innerHTML='<i class="bi bi-pencil-fill me-2"></i>Editar Préstamo';
+      document.getElementById('ptClienteId').value=pt.clienteId||'';
+      document.getElementById('ptMonto').value=pt.monto||0;
+      document.getElementById('ptTasa').value=pt.tasa||0;
+      document.getElementById('ptCuotas').value=pt.cuotas||1;
+      document.getElementById('ptFrecuencia').value=pt.frecuencia||'mensual';
+      document.getElementById('ptDesc').value=pt.descripcion||'';
+      document.getElementById('ptFecha').value=pt.fecha||today();
+      calcPlanPagos();
+    }
+  } else {
+    document.getElementById('modalPrestamoTitle').innerHTML='<i class="bi bi-cash-coin me-2"></i>Nuevo Préstamo';
+  }
+  buildPtSrcList('ptSrcList','ptSrcSelected');
+  new bootstrap.Modal(document.getElementById('modalPrestamo')).show();
+}
+
+function savePrestamo(){
+  var editId=document.getElementById('ptEditId').value;
+  var clienteId=document.getElementById('ptClienteId').value;
+  var monto=parseFloat(document.getElementById('ptMonto').value)||0;
+  var tasa=parseFloat(document.getElementById('ptTasa').value)||0;
+  var cuotas=parseInt(document.getElementById('ptCuotas').value)||1;
+  var frecuencia=document.getElementById('ptFrecuencia').value;
+  var fecha=document.getElementById('ptFecha').value||today();
+  var desc=document.getElementById('ptDesc').value.trim();
+  var srcVal=document.getElementById('ptSrcSelected').value||'libre';
+  if(!clienteId){showToast('Selecciona un cliente','danger');return;}
+  if(!monto||monto<=0){showToast('El monto debe ser positivo','danger');return;}
+  var cli=getClientes().find(function(c){return c.id===clienteId;});
+  var planPagos=generarPlanPagos(monto,tasa,cuotas,frecuencia,fecha);
+  var cuotaFija=calcCuotaPrestamo(monto,tasa,cuotas);
+  var all=getPrestamos();
+  if(editId){
+    var idx=all.findIndex(function(p){return p.id===editId;});
+    if(idx>=0){all[idx].monto=monto;all[idx].tasa=tasa;all[idx].cuotas=cuotas;all[idx].frecuencia=frecuencia;all[idx].descripcion=desc;all[idx].cuotaFija=Math.round(cuotaFija);}
+    setPrestamos(all);showToast('Préstamo actualizado ✓','success');
+  } else {
+    if(srcVal.indexOf('sav_')===0){
+      var sid=srcVal.replace('sav_','');var allSav=lsGet(KEYS.SAV);var sidx=allSav.findIndex(function(s){return s.id===sid;});
+      if(sidx>=0){if(monto>allSav[sidx].currentBalance){showToast('Saldo insuficiente en ese ahorro','danger');return;}allSav[sidx].currentBalance-=monto;allSav[sidx].transactions=allSav[sidx].transactions||[];allSav[sidx].transactions.push({id:genId(),type:'use',amount:monto,description:'Préstamo a '+(cli?cli.nombre:'cliente'),date:fecha});lsSet(KEYS.SAV,allSav);}
+    }
+    var sourceCat=srcVal.indexOf('cat_')===0?srcVal.replace('cat_',''):null;
+    var newPt={id:genId(),clienteId:clienteId,monto:monto,saldo:monto,tasa:tasa,cuotas:cuotas,frecuencia:frecuencia,cuotaFija:Math.round(cuotaFija),fecha:fecha,descripcion:desc,planPagos:planPagos,abonos:[]};
+    all.push(newPt);setPrestamos(all);
+    var txAll=lsGet(KEYS.TX);
+    txAll.push({id:genId(),type:'expense',description:'Préstamo a '+(cli?cli.nombre:'cliente')+(desc?' — '+desc:''),amount:monto,date:fecha,category:'Otro',origin:'prestamo_salida',prestamoId:newPt.id,sourceCat:sourceCat,sourceType:srcVal.indexOf('sav_')===0?'saving':srcVal.indexOf('cat_')===0?'category':'libre'});
+    lsSet(KEYS.TX,txAll);
+    showToast('Préstamo registrado ✓ Egreso de '+fmt(monto)+' en transacciones','success');
+  }
+  bootstrap.Modal.getInstance(document.getElementById('modalPrestamo')).hide();
+  renderPrestamos();if(State.currentView==='transactions')renderTransactions();updateChips();
+}
+
+function renderPrestamos(){
+  var pts=getPrestamos();var clis=getClientes();var hoy=today();
+  var totalPrestado=pts.reduce(function(s,p){return s+p.monto;},0);
+  var totalSaldo=pts.reduce(function(s,p){return s+(p.saldo||0);},0);
+  var totalCobrado=totalPrestado-totalSaldo;
+  var enMora=pts.filter(function(p){return p.saldo>0&&(p.planPagos||[]).some(function(c){return c.fecha<hoy&&!c.pagada;});}).length;
+  var badge=document.getElementById('badgePrestamos');if(badge)badge.textContent=pts.filter(function(p){return p.saldo>0;}).length;
+  var elTP=document.getElementById('ptTotalPrestado');if(elTP)elTP.textContent=fmt(totalPrestado);
+  var elTC=document.getElementById('ptTotalCobrado');if(elTC)elTC.textContent=fmt(totalCobrado);
+  var elTPend=document.getElementById('ptTotalPendiente');if(elTPend)elTPend.textContent=fmt(totalSaldo);
+  var elMora=document.getElementById('ptEnMora');if(elMora)elMora.textContent=enMora;
+  var grid=document.getElementById('prestamosList');if(!grid)return;
+  if(!pts.length){
+    grid.innerHTML='<div class="col-12"><div class="empty-state-large"><i class="bi bi-cash-coin" style="font-size:3rem;color:var(--fp-teal)"></i><h4 class="mt-3">Sin préstamos registrados</h4><button class="btn fp-btn-primary mt-2" onclick="openPrestamoModal()"><i class="bi bi-plus-lg"></i> Nuevo Préstamo</button></div></div>';
+    return;
+  }
+  grid.innerHTML=pts.map(function(pt){
+    var cli=clis.find(function(c){return c.id===pt.clienteId;})||{nombre:'Cliente eliminado'};
+    var pct=pt.monto>0?Math.min(100,Math.round(((pt.monto-(pt.saldo||0))/pt.monto)*100)):100;
+    var mora=(pt.planPagos||[]).some(function(c){return c.fecha<hoy&&!c.pagada;})&&pt.saldo>0;
+    var pagada=pt.saldo<=0;
+    var proxima=(pt.planPagos||[]).find(function(c){return !c.pagada;});
+    var pid=esc(pt.id);
+    return '<div class="col-lg-6 col-md-12">'
+      +'<div class="fp-card" style="overflow:hidden">'
+        +'<div style="height:3px;background:linear-gradient(90deg,'+(mora?'var(--fp-danger)':pagada?'var(--fp-success)':'var(--fp-teal)')+','+(mora?'#f97316':pagada?'#10b981':'#0ea5e9')+')"></div>'
+        +'<div class="fp-card-body">'
+          +'<div class="d-flex justify-content-between align-items-start mb-2">'
+            +'<div>'
+              +'<div style="font-size:13px;font-weight:800;color:var(--fp-text)">'+esc(cli.nombre)+'</div>'
+              +(pt.descripcion?'<div style="font-size:11px;color:var(--fp-text3)">'+esc(pt.descripcion)+'</div>':'')
+            +'</div>'
+            +'<div class="d-flex align-items-center gap-1">'
+              +'<span style="font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:50px;background:'+(mora?'var(--fp-danger-lt)':pagada?'var(--fp-success-lt)':'var(--fp-teal-lt)')+';color:'+(mora?'var(--fp-danger)':pagada?'var(--fp-success)':'var(--fp-teal)')+';">'+(mora?'⚠ MORA':pagada?'✓ Pagado':'Al día')+'</span>'
+              +'<button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deletePrestamo(\''+pid+'\')" title="Eliminar"><i class="bi bi-trash3"></i></button>'
+            +'</div>'
+          +'</div>'
+          +'<div class="row g-2 mb-2">'
+            +'<div class="col-4"><div style="font-size:9px;color:var(--fp-text3)">Capital</div><div class="amount-mono" style="font-size:13px;font-weight:800;color:var(--fp-teal)">'+fmt(pt.monto)+'</div></div>'
+            +'<div class="col-4"><div style="font-size:9px;color:var(--fp-text3)">Saldo</div><div class="amount-mono" style="font-size:13px;font-weight:800;color:'+(pagada?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(pt.saldo||0)+'</div></div>'
+            +'<div class="col-4"><div style="font-size:9px;color:var(--fp-text3)">Cuota</div><div class="amount-mono" style="font-size:13px;font-weight:800;color:var(--fp-text)">'+fmt(pt.cuotaFija)+'</div></div>'
+          +'</div>'
+          +'<div style="font-size:10.5px;color:var(--fp-text2);margin-bottom:6px"><i class="bi bi-calendar3 me-1" style="color:var(--fp-violet)"></i>'+pt.cuotas+' cuotas '+pt.frecuencia+'s · '+pt.tasa+'%/mes'+(proxima&&!pagada?' · <span style="color:'+(mora?'var(--fp-danger)':'var(--fp-teal)')+'">Próxima: '+fmtDate(proxima.fecha)+'</span>':'')+'</div>'
+          +'<div class="fp-progress mb-2" style="height:5px"><div class="fp-progress-bar '+(mora?'bar-danger':'bar-success')+'" style="width:'+pct+'%;animation:none"></div></div>'
+          +'<div class="d-flex gap-2 flex-wrap">'
+            +(pagada?'<span class="fp-badge fp-badge-green" style="font-size:11px;padding:6px 12px"><i class="bi bi-check-circle-fill me-1"></i>Saldado</span>'
+              :'<button class="btn fp-btn-sm flex-fill" style="background:linear-gradient(135deg,var(--fp-teal),#0ea5e9);color:#fff;border:none;border-radius:8px;font-size:12px;padding:5px 8px" onclick="openAbonoModal(\''+pid+'\')"><i class="bi bi-cash me-1"></i>Registrar pago</button>')
+            +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="verDetallePrestamo(\''+pid+'\')" ><i class="bi bi-eye-fill me-1"></i>Detalle</button>'
+            +'<button class="btn fp-btn-ghost fp-btn-sm" style="color:var(--fp-gold)" onclick="openAddPrestamo(\''+pid+'\')" title="Añadir más"><i class="bi bi-plus-circle-fill"></i></button>'
+            +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="imprimirPlanPagos(\''+pid+'\')" title="Imprimir plan"><i class="bi bi-printer-fill" style="color:var(--fp-violet)"></i></button>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+function deletePrestamo(id){
+  if(!confirm('¿Eliminar este préstamo?'))return;
+  setPrestamos(getPrestamos().filter(function(p){return p.id!==id;}));
+  renderPrestamos();showToast('Préstamo eliminado','warning');
+}
+
+// ── ABONOS ────────────────────────────────────────────
+function openAbonoModal(prestamoId){
+  var pt=getPrestamos().find(function(p){return p.id===prestamoId;});if(!pt)return;
+  var cli=getClientes().find(function(c){return c.id===pt.clienteId;})||{nombre:'Desconocido'};
+  document.getElementById('abonoPrestamoId').value=prestamoId;
+  document.getElementById('abonoMonto').value='';
+  document.getElementById('abonoFecha').value=today();
+  document.getElementById('abonoNota').value='';
+  document.getElementById('abonoPreview').style.display='none';
+  document.getElementById('abonoPrestamoInfo').innerHTML='<strong>'+esc(cli.nombre)+'</strong> · Saldo: <strong style="font-family:JetBrains Mono,monospace;color:var(--fp-teal)">'+fmt(pt.saldo||0)+'</strong> · Cuota: <strong style="font-family:JetBrains Mono,monospace">'+fmt(pt.cuotaFija)+'</strong> · Tasa: <strong>'+pt.tasa+'%</strong>';
+  new bootstrap.Modal(document.getElementById('modalAbonoCliente')).show();
+}
+
+function calcAbonoPreview(){
+  var id=document.getElementById('abonoPrestamoId').value;
+  var monto=parseFloat(document.getElementById('abonoMonto').value)||0;
+  if(!monto){document.getElementById('abonoPreview').style.display='none';return;}
+  var pt=getPrestamos().find(function(p){return p.id===id;});if(!pt)return;
+  var interes=(pt.saldo||0)*(pt.tasa/100);
+  var pInt=Math.min(monto,interes);var pCap=Math.max(0,monto-pInt);
+  var nuevoSaldo=Math.max(0,(pt.saldo||0)-pCap);
+  document.getElementById('abonoPreview').style.display='block';
+  document.getElementById('abonoPrevInt').textContent=fmt(pInt);
+  document.getElementById('abonoPrevCap').textContent=fmt(pCap);
+  document.getElementById('abonoPrevSaldo').textContent=fmt(nuevoSaldo);
+}
+
+function saveAbonoCliente(){
+  var id=document.getElementById('abonoPrestamoId').value;
+  var monto=parseFloat(document.getElementById('abonoMonto').value)||0;
+  var fecha=document.getElementById('abonoFecha').value||today();
+  var nota=document.getElementById('abonoNota').value.trim();
+  if(!monto||monto<=0){showToast('Ingresa un monto válido','danger');return;}
+  var all=getPrestamos();
+  var idx=all.findIndex(function(p){return p.id===id;});if(idx<0)return;
+  var pt=all[idx];
+  var cli=getClientes().find(function(c){return c.id===pt.clienteId;})||{nombre:'Cliente'};
+  var interes=(pt.saldo||0)*(pt.tasa/100);
+  var pInt=Math.min(monto,interes);var pCap=Math.max(0,monto-pInt);
+  pt.saldo=Math.max(0,(pt.saldo||0)-pCap);
+  pt.abonos=pt.abonos||[];
+  var abonoId=genId();
+  pt.abonos.push({id:abonoId,fecha:fecha,monto:monto,interes:Math.round(pInt),capital:Math.round(pCap),nota:nota});
+  // Marcar cuotas del plan como pagadas
+  var montoRest=monto;
+  (pt.planPagos||[]).forEach(function(cuota){
+    if(!cuota.pagada&&montoRest>0){
+      if(montoRest>=cuota.cuota){cuota.pagada=true;cuota.montoPagado=cuota.cuota;montoRest-=cuota.cuota;}
+      else{cuota.montoPagado=(cuota.montoPagado||0)+montoRest;montoRest=0;}
+    }
+  });
+  all[idx]=pt;setPrestamos(all);
+  var txAll=lsGet(KEYS.TX);
+  txAll.push({id:genId(),type:'income',description:'Pago préstamo: '+esc(cli.nombre)+(nota?' — '+nota:''),amount:monto,date:fecha,category:'Otro',origin:'prestamo_cobro',prestamoId:id});
+  lsSet(KEYS.TX,txAll);
+  bootstrap.Modal.getInstance(document.getElementById('modalAbonoCliente')).hide();
+  renderPrestamos();if(State.currentView==='transactions')renderTransactions();updateChips();
+  showToast('Pago de '+fmt(monto)+' registrado ✓ Cap: '+fmt(pCap)+' | Int: '+fmt(pInt),'success');
+}
+
+// ── AMPLIAR PRÉSTAMO ──────────────────────────────────
+function openAddPrestamo(id){
+  var pt=getPrestamos().find(function(p){return p.id===id;});if(!pt)return;
+  var cli=getClientes().find(function(c){return c.id===pt.clienteId;})||{nombre:'Cliente'};
+  document.getElementById('addPtId').value=id;
+  document.getElementById('addPtMonto').value='';document.getElementById('addPtFecha').value=today();document.getElementById('addPtNota').value='';
+  document.getElementById('addPtInfo').innerHTML='<strong>'+esc(cli.nombre)+'</strong> · Saldo actual: <strong style="font-family:JetBrains Mono,monospace;color:var(--fp-teal)">'+fmt(pt.saldo||0)+'</strong>';
+  buildPtSrcList('addPtSrcList','addPtSrc');
+  new bootstrap.Modal(document.getElementById('modalAddPrestamo')).show();
+}
+
+function saveAddPrestamo(){
+  var id=document.getElementById('addPtId').value;
+  var monto=parseFloat(document.getElementById('addPtMonto').value)||0;
+  var fecha=document.getElementById('addPtFecha').value||today();
+  var nota=document.getElementById('addPtNota').value.trim();
+  var srcVal=document.getElementById('addPtSrc').value||'libre';
+  if(!monto||monto<=0){showToast('Ingresa un monto válido','danger');return;}
+  var all=getPrestamos();var idx=all.findIndex(function(p){return p.id===id;});if(idx<0)return;
+  var pt=all[idx];
+  var cli=getClientes().find(function(c){return c.id===pt.clienteId;})||{nombre:'Cliente'};
+  if(srcVal.indexOf('sav_')===0){
+    var sid=srcVal.replace('sav_','');var allSav=lsGet(KEYS.SAV);var sidx=allSav.findIndex(function(s){return s.id===sid;});
+    if(sidx>=0){if(monto>allSav[sidx].currentBalance){showToast('Saldo insuficiente','danger');return;}allSav[sidx].currentBalance-=monto;allSav[sidx].transactions=allSav[sidx].transactions||[];allSav[sidx].transactions.push({id:genId(),type:'use',amount:monto,description:'Ampliación préstamo '+cli.nombre,date:fecha});lsSet(KEYS.SAV,allSav);}
+  }
+  pt.monto+=monto;pt.saldo=(pt.saldo||0)+monto;
+  var nuevasCuotas=generarPlanPagos(monto,pt.tasa,Math.max(1,Math.ceil(monto/pt.cuotaFija)),pt.frecuencia,fecha);
+  pt.planPagos=pt.planPagos||[];var offset=pt.planPagos.length;
+  nuevasCuotas.forEach(function(c,i){c.num=offset+i+1;pt.planPagos.push(c);});
+  all[idx]=pt;setPrestamos(all);
+  var sourceCat=srcVal.indexOf('cat_')===0?srcVal.replace('cat_',''):null;
+  var txAll=lsGet(KEYS.TX);
+  txAll.push({id:genId(),type:'expense',description:'Ampliación préstamo: '+cli.nombre+(nota?' — '+nota:''),amount:monto,date:fecha,category:'Otro',origin:'prestamo_salida',prestamoId:id,sourceCat:sourceCat,sourceType:srcVal.indexOf('sav_')===0?'saving':srcVal.indexOf('cat_')===0?'category':'libre'});
+  lsSet(KEYS.TX,txAll);
+  bootstrap.Modal.getInstance(document.getElementById('modalAddPrestamo')).hide();
+  renderPrestamos();updateChips();showToast('Préstamo ampliado en '+fmt(monto)+' ✓','success');
+}
+
+// ── DETALLE PRÉSTAMO ──────────────────────────────────
+function verDetallePrestamo(id){
+  var pt=getPrestamos().find(function(p){return p.id===id;});if(!pt)return;
+  var cli=getClientes().find(function(c){return c.id===pt.clienteId;})||{nombre:'Desconocido'};
+  var hoy=today();
+  var planRows=(pt.planPagos||[]).map(function(c){
+    var mora=!c.pagada&&c.fecha<hoy;
+    return '<tr style="'+(mora?'background:rgba(220,38,38,.04)':'')+(c.pagada?'background:rgba(5,122,85,.04)':'')+'"><td style="font-size:11px;text-align:center">'+c.num+'</td><td style="font-size:11px;'+(mora?'color:var(--fp-danger);font-weight:700':'')+'">'+fmtDate(c.fecha)+'</td><td class="amount-mono" style="font-size:11px">'+fmt(c.cuota)+'</td><td class="amount-mono text-danger" style="font-size:11px">'+fmt(c.interes)+'</td><td class="amount-mono text-success" style="font-size:11px">'+fmt(c.capital)+'</td><td class="amount-mono" style="font-size:11px">'+fmt(c.saldo)+'</td><td style="text-align:center">'+(c.pagada?'<i class="bi bi-check-circle-fill text-success"></i>':mora?'<i class="bi bi-exclamation-circle-fill text-danger"></i>':'<i class="bi bi-circle text-muted"></i>')+'</td></tr>';
+  }).join('');
+  var abonosRows=(pt.abonos||[]).slice().reverse().map(function(a){return '<tr><td style="font-size:11px">'+fmtDate(a.fecha)+'</td><td class="amount-mono text-success" style="font-size:12px;font-weight:700">'+fmt(a.monto)+'</td><td class="amount-mono text-danger" style="font-size:11px">'+fmt(a.interes)+'</td><td class="amount-mono text-success" style="font-size:11px">'+fmt(a.capital)+'</td><td style="font-size:11px;color:var(--fp-text2)">'+esc(a.nota||'—')+'</td><td class="text-end"><button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deleteAbono(\''+esc(pt.id)+'\',\''+esc(a.id)+'\')"><i class="bi bi-trash3"></i></button></td></tr>';}).join('');
+  var html='<div class="debt-detail-overlay" id="ptDetalleOverlay" onclick="if(event.target===this)document.getElementById(\'ptDetalleOverlay\').remove()">'
+    +'<div class="debt-detail-box" style="max-width:750px">'
+      +'<div class="debt-detail-header">'
+        +'<div class="d-flex justify-content-between align-items-start">'
+          +'<div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(6,182,212,.8);margin-bottom:4px"><i class="bi bi-cash-coin me-1"></i>Préstamo</div><h3 style="font-size:20px;font-weight:800;color:#fff;margin:0">'+esc(cli.nombre)+'</h3>'+(pt.descripcion?'<div style="font-size:12px;color:rgba(255,255,255,.5)">'+esc(pt.descripcion)+'</div>':'')+'</div>'
+          +'<button onclick="document.getElementById(\'ptDetalleOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:34px;height:34px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px"><i class="bi bi-x-lg"></i></button>'
+        +'</div>'
+        +'<div class="row g-2 mt-2">'
+          +'<div class="col-4 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Capital</div><div style="font-family:JetBrains Mono,monospace;font-size:12px;font-weight:800;color:#93c5fd">'+fmt(pt.monto)+'</div></div></div>'
+          +'<div class="col-4 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Saldo</div><div style="font-family:JetBrains Mono,monospace;font-size:12px;font-weight:800;color:#fca5a5">'+fmt(pt.saldo||0)+'</div></div></div>'
+          +'<div class="col-4 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Cuota</div><div style="font-family:JetBrains Mono,monospace;font-size:12px;font-weight:800;color:#6ee7b7">'+fmt(pt.cuotaFija)+'</div></div></div>'
+          +'<div class="col-4 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Tasa</div><div style="font-family:JetBrains Mono,monospace;font-size:12px;font-weight:800;color:#fff">'+pt.tasa+'%</div></div></div>'
+          +'<div class="col-4 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Frec.</div><div style="font-size:11px;font-weight:700;color:#fff;text-transform:capitalize">'+pt.frecuencia+'</div></div></div>'
+          +'<div class="col-4 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Cuotas</div><div style="font-family:JetBrains Mono,monospace;font-size:12px;font-weight:800;color:#fff">'+pt.cuotas+'</div></div></div>'
+        +'</div>'
+      +'</div>'
+      +'<div class="debt-detail-body">'
+        +'<ul class="nav nav-tabs mb-3" style="border-bottom:1px solid var(--fp-border)">'
+          +'<li class="nav-item"><a class="nav-link active" href="#" onclick="switchPtTab(\'plan\',this);return false" style="font-size:12.5px;font-weight:600"><i class="bi bi-calendar3 me-1"></i>Plan de Pagos</a></li>'
+          +'<li class="nav-item"><a class="nav-link" href="#" onclick="switchPtTab(\'abonos\',this);return false" style="font-size:12.5px;font-weight:600"><i class="bi bi-list-check me-1"></i>Pagos Recibidos</a></li>'
+        +'</ul>'
+        +'<div id="ptTabPlan"><div class="table-responsive"><table class="fp-table"><thead><tr><th>#</th><th>Fecha</th><th>Cuota</th><th>Interés</th><th>Capital</th><th>Saldo</th><th>Estado</th></tr></thead><tbody>'+planRows+'</tbody></table></div></div>'
+        +'<div id="ptTabAbonos" style="display:none"><div class="table-responsive"><table class="fp-table"><thead><tr><th>Fecha</th><th>Monto</th><th>Interés</th><th>Capital</th><th>Nota</th><th></th></tr></thead><tbody>'+(abonosRows||'<tr><td colspan="6" class="text-center py-3 text-muted">Sin pagos</td></tr>')+'</tbody></table></div></div>'
+        +'<div class="d-flex gap-2 mt-3 flex-wrap">'
+          +(pt.saldo>0?'<button class="btn fp-btn-primary fp-btn-sm" onclick="document.getElementById(\'ptDetalleOverlay\').remove();openAbonoModal(\''+esc(pt.id)+'\')" ><i class="bi bi-cash me-1"></i>Registrar pago</button>':'')
+          +'<button class="btn fp-btn-ghost fp-btn-sm" style="color:var(--fp-violet)" onclick="imprimirPlanPagos(\''+esc(pt.id)+'\')"><i class="bi bi-printer-fill me-1"></i>Imprimir plan</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  var ex=document.getElementById('ptDetalleOverlay');if(ex)ex.remove();
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function switchPtTab(tab,el){
+  document.getElementById('ptTabPlan').style.display=tab==='plan'?'block':'none';
+  document.getElementById('ptTabAbonos').style.display=tab==='abonos'?'block':'none';
+  document.querySelectorAll('#ptDetalleOverlay .nav-link').forEach(function(a){a.classList.remove('active');});
+  if(el)el.classList.add('active');
+}
+
+function deleteAbono(ptId,abonoId){
+  if(!confirm('¿Eliminar este pago?'))return;
+  var all=getPrestamos();var idx=all.findIndex(function(p){return p.id===ptId;});if(idx<0)return;
+  var pt=all[idx];
+  var abono=(pt.abonos||[]).find(function(a){return a.id===abonoId;});
+  if(abono){pt.saldo=Math.min(pt.monto,(pt.saldo||0)+abono.capital);}
+  pt.abonos=(pt.abonos||[]).filter(function(a){return a.id!==abonoId;});
+  var montoRest=abono?abono.monto:0;
+  var plan=(pt.planPagos||[]).slice().reverse();
+  plan.forEach(function(c){if(c.pagada&&montoRest>0){c.pagada=false;c.montoPagado=0;montoRest-=c.cuota;}});
+  pt.planPagos=plan.reverse();
+  all[idx]=pt;setPrestamos(all);
+  var el=document.getElementById('ptDetalleOverlay');if(el)el.remove();
+  renderPrestamos();showToast('Pago eliminado','warning');
+}
+
+// ── DETALLE CLIENTE ───────────────────────────────────
+function verClienteDetalle(clienteId){
+  var cli=getClientes().find(function(c){return c.id===clienteId;});if(!cli)return;
+  var pts=getPrestamos().filter(function(p){return p.clienteId===clienteId;});
+  var mora=clienteEnMora(clienteId);
+  var totalSaldo=pts.reduce(function(s,p){return s+(p.saldo||0);},0);
+  var ptHtml=pts.length?pts.map(function(pt){
+    var hoy=today();var pagada=pt.saldo<=0;var ptMora=(pt.planPagos||[]).some(function(c){return c.fecha<hoy&&!c.pagada;})&&!pagada;var pid=esc(pt.id);
+    return '<div style="background:var(--fp-surface2);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--fp-border)">'
+      +'<div class="d-flex justify-content-between align-items-start mb-2"><div><div style="font-size:13px;font-weight:700">'+esc(pt.descripcion||'Préstamo '+fmtDate(pt.fecha))+'</div><div style="font-size:10.5px;color:var(--fp-text3)">'+fmtDate(pt.fecha)+' · '+pt.cuotas+' cuotas '+pt.frecuencia+'s</div></div><span style="font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:50px;background:'+(ptMora?'var(--fp-danger-lt)':pagada?'var(--fp-success-lt)':'var(--fp-teal-lt)')+';color:'+(ptMora?'var(--fp-danger)':pagada?'var(--fp-success)':'var(--fp-teal)')+';">'+(ptMora?'MORA':pagada?'Pagado':'Al día')+'</span></div>'
+      +'<div class="row g-2"><div class="col-4"><div style="font-size:9px;color:var(--fp-text3)">Capital</div><div class="amount-mono" style="font-size:12px;font-weight:700;color:var(--fp-teal)">'+fmt(pt.monto)+'</div></div><div class="col-4"><div style="font-size:9px;color:var(--fp-text3)">Saldo</div><div class="amount-mono" style="font-size:12px;font-weight:700;color:'+(pagada?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(pt.saldo||0)+'</div></div><div class="col-4"><div style="font-size:9px;color:var(--fp-text3)">Cuota</div><div class="amount-mono" style="font-size:12px;font-weight:700">'+fmt(pt.cuotaFija)+'</div></div></div>'
+      +'<div class="d-flex gap-2 mt-2">'+(pagada?'':'<button class="btn fp-btn-sm" style="font-size:11px;background:var(--fp-teal);color:#fff;border:none;border-radius:7px;padding:4px 10px" onclick="document.getElementById(\'cliDetalleOverlay\').remove();openAbonoModal(\''+pid+'\')"><i class="bi bi-cash me-1"></i>Pago</button>')+'<button class="btn fp-btn-ghost fp-btn-sm" style="font-size:11px" onclick="document.getElementById(\'cliDetalleOverlay\').remove();verDetallePrestamo(\''+pid+'\')"><i class="bi bi-eye-fill me-1"></i>Ver</button></div>'
+    +'</div>';
+  }).join(''):'<div class="empty-state py-3">Sin préstamos</div>';
+  var html='<div class="debt-detail-overlay" id="cliDetalleOverlay" onclick="if(event.target===this)document.getElementById(\'cliDetalleOverlay\').remove()">'
+    +'<div class="debt-detail-box" style="max-width:600px">'
+      +'<div class="debt-detail-header">'
+        +'<div class="d-flex justify-content-between align-items-start">'
+          +'<div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(167,139,250,.8);margin-bottom:4px"><i class="bi bi-person-fill me-1"></i>Cliente</div><h3 style="font-size:20px;font-weight:800;color:#fff;margin:0">'+esc(cli.nombre)+'</h3>'+(cli.telefono?'<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px"><i class="bi bi-telephone-fill me-1"></i>'+esc(cli.telefono)+'</div>':'')+(cli.documento?'<div style="font-size:12px;color:rgba(255,255,255,.5)"><i class="bi bi-card-text me-1"></i>'+esc(cli.documento)+'</div>':'')+'</div>'
+          +'<div class="d-flex flex-column align-items-end gap-2">'
+            +'<button onclick="document.getElementById(\'cliDetalleOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:34px;height:34px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px"><i class="bi bi-x-lg"></i></button>'
+            +'<span style="font-size:9.5px;font-weight:700;padding:4px 10px;border-radius:50px;background:'+(mora?'rgba(220,38,38,.2)':'rgba(5,122,85,.2)')+';color:'+(mora?'#fca5a5':'#6ee7b7')+'">'+(mora?'⚠ EN MORA':'✓ Al día')+'</span>'
+          +'</div>'
+        +'</div>'
+        +'<div class="row g-2 mt-2">'
+          +'<div class="col-4"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Préstamos</div><div style="font-family:JetBrains Mono,monospace;font-size:14px;font-weight:800;color:#c4b5fd">'+pts.length+'</div></div></div>'
+          +'<div class="col-4"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Total prestado</div><div style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:800;color:#93c5fd">'+fmt(pts.reduce(function(s,p){return s+p.monto;},0))+'</div></div></div>'
+          +'<div class="col-4"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Saldo total</div><div style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:800;color:'+(totalSaldo>0?'#fca5a5':'#6ee7b7')+'">'+fmt(totalSaldo)+'</div></div></div>'
+        +'</div>'
+      +'</div>'
+      +'<div class="debt-detail-body">'+ptHtml+'<div class="d-flex gap-2 mt-3"><button class="btn fp-btn-primary fp-btn-sm" onclick="document.getElementById(\'cliDetalleOverlay\').remove();setTimeout(function(){openPrestamoModal()},200)"><i class="bi bi-plus-lg me-1"></i>Nuevo préstamo</button></div></div>'
+    +'</div>'
+  +'</div>';
+  var ex=document.getElementById('cliDetalleOverlay');if(ex)ex.remove();
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+// ── IMPRIMIR PLAN DE PAGOS ────────────────────────────
+function imprimirPlanPagos(id){
+  var pt=getPrestamos().find(function(p){return p.id===id;});if(!pt)return;
+  var cli=getClientes().find(function(c){return c.id===pt.clienteId;})||{nombre:'Desconocido'};
+  var hoy=today();
+  var rows=(pt.planPagos||[]).map(function(c){
+    return '<tr><td style="border:1px solid #ddd;padding:7px 10px;text-align:center">'+c.num+'</td><td style="border:1px solid #ddd;padding:7px 10px">'+fmtDate(c.fecha)+'</td><td style="border:1px solid #ddd;padding:7px 10px;text-align:right;font-family:monospace">'+fmt(c.cuota)+'</td><td style="border:1px solid #ddd;padding:7px 10px;text-align:right;font-family:monospace;color:#c81e1e">'+fmt(c.interes)+'</td><td style="border:1px solid #ddd;padding:7px 10px;text-align:right;font-family:monospace;color:#057a55">'+fmt(c.capital)+'</td><td style="border:1px solid #ddd;padding:7px 10px;text-align:right;font-family:monospace">'+fmt(c.saldo)+'</td><td style="border:1px solid #ddd;padding:7px 10px;text-align:center">'+(c.pagada?'✓ Pagado':'')+'</td></tr>';
+  }).join('');
+  var totalIntereses=(pt.planPagos||[]).reduce(function(s,c){return s+c.interes;},0);
+  var totalPagar=pt.monto+totalIntereses;
+  var win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Plan de Pagos — '+esc(cli.nombre)+'</title><style>body{font-family:Arial,sans-serif;max-width:750px;margin:30px auto;color:#1e293b;font-size:13px}h1{font-size:20px;font-weight:800;margin-bottom:4px}h2{font-size:14px;font-weight:600;color:#475569;margin-bottom:16px}.info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px;background:#f8fafc;border-radius:8px;padding:14px}.info-item label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:700;display:block;margin-bottom:2px}.info-item .val{font-size:15px;font-weight:800;color:#0f172a;font-family:monospace}table{width:100%;border-collapse:collapse}th{background:#0f172a;color:#fff;padding:8px 10px;font-size:11px;text-align:left}.total-row{background:#f1f5f9;font-weight:700}.footer{margin-top:30px;border-top:1px solid #e2e8f0;padding-top:20px;font-size:11px;color:#94a3b8}.sign-box{display:inline-block;min-width:220px;text-align:center;margin-top:40px}.sign-line{border-top:1px solid #475569;padding-top:6px;font-size:12px;color:#0f172a;font-weight:600}@media print{.no-print{display:none}}</style></head><body>');
+  win.document.write('<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px"><div><h1>Plan de Pagos</h1><h2>'+esc(cli.nombre)+'</h2></div><div style="text-align:right;font-size:11px;color:#94a3b8">Generado: '+fmtDate(hoy)+'</div></div>');
+  win.document.write('<div class="info-grid"><div class="info-item"><label>Capital prestado</label><div class="val">'+fmt(pt.monto)+'</div></div><div class="info-item"><label>Tasa mensual</label><div class="val">'+pt.tasa+'%</div></div><div class="info-item"><label>Cuota '+pt.frecuencia+'</label><div class="val">'+fmt(pt.cuotaFija)+'</div></div><div class="info-item"><label>Nro cuotas</label><div class="val">'+pt.cuotas+'</div></div><div class="info-item"><label>Total intereses</label><div class="val" style="color:#c81e1e">'+fmt(totalIntereses)+'</div></div><div class="info-item"><label>Total a pagar</label><div class="val" style="color:#057a55">'+fmt(totalPagar)+'</div></div></div>');
+  if(cli.telefono)win.document.write('<p style="font-size:12px;margin:4px 0"><strong>Teléfono:</strong> '+esc(cli.telefono)+'</p>');
+  if(cli.documento)win.document.write('<p style="font-size:12px;margin:4px 0 16px"><strong>Documento:</strong> '+esc(cli.documento)+'</p>');
+  win.document.write('<table><thead><tr><th style="text-align:center">#</th><th>Fecha</th><th style="text-align:right">Cuota</th><th style="text-align:right">Interés</th><th style="text-align:right">Capital</th><th style="text-align:right">Saldo</th><th style="text-align:center">Estado</th></tr></thead><tbody>'+rows+'<tr class="total-row"><td colspan="2" style="border:1px solid #ddd;padding:7px 10px">TOTAL</td><td style="border:1px solid #ddd;padding:7px 10px;text-align:right;font-family:monospace">'+fmt(totalPagar)+'</td><td style="border:1px solid #ddd;padding:7px 10px;text-align:right;font-family:monospace;color:#c81e1e">'+fmt(totalIntereses)+'</td><td style="border:1px solid #ddd;padding:7px 10px;text-align:right;font-family:monospace;color:#057a55">'+fmt(pt.monto)+'</td><td colspan="2" style="border:1px solid #ddd"></td></tr></tbody></table>');
+  win.document.write('<div class="footer"><div style="display:flex;justify-content:space-around;margin-top:10px"><div class="sign-box"><div class="sign-line">'+esc(cli.nombre)+'<br><span style="font-weight:400;font-size:11px;color:#94a3b8">Firma del deudor</span></div></div><div class="sign-box"><div class="sign-line">Prestamista<br><span style="font-weight:400;font-size:11px;color:#94a3b8">Firma</span></div></div></div></div>');
+  win.document.write('<div style="text-align:center;margin-top:24px" class="no-print"><button onclick="window.print()" style="padding:10px 28px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:700">🖨 Imprimir / Guardar PDF</button></div>');
+  win.document.write('</body></html>');
+  win.document.close();
+}
+
 
 // ══════════════════════════════════════════════════════
 //  GIST SYNC
