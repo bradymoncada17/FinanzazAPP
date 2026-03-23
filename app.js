@@ -150,6 +150,7 @@ function navigateTo(view) {
     case 'transactions': renderTransactions(); break;
     case 'debts':        renderDebts(); break;
     case 'savings':      renderSavings(); break;
+    case 'about':        renderAbout(); break;
   }
 
   // Re-observar nuevas cards
@@ -1022,6 +1023,11 @@ function renderSavMoveHistory(account) {
         </span>
         <span class="amount-mono ${typeColor[m.type]}">${m.type==='deposit' ? '+' : '-'}${fmt(m.amount)}</span>
       </div>`).join('')}`;
+}
+
+function renderAbout() {
+  // Vista mayormente estática, pero se puede actualizar info dinámica aquí si es necesario
+  console.log("Cargando Acerca de... v1.2.4");
 }
 
 // ══════════════════════════════════════════════════════════
