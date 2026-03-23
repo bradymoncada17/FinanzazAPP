@@ -387,7 +387,7 @@ const FinanceService = (() => {
         id: genId(),
         type,
         amount,
-        description: description?.trim() || (type === 'deposit' ? 'Depósito' : type === 'withdraw' ? 'Retiro' : 'Gasto'),
+        description: description?.trim() || (type === 'deposit' ? 'Depósito a ahorro' : type === 'withdraw' ? 'Retiro de ahorro' : 'Gasto de ahorro'),
         date: date || today()
       };
 
@@ -397,6 +397,18 @@ const FinanceService = (() => {
         : all[idx].currentBalance - amount;
 
       ls.set(KEYS.SAVINGS, all);
+
+      // NUEVA LÓGICA: Solo los RETIROS crean transacciones de egreso
+      if (type === 'withdraw') {
+        Transactions.add({
+          type: 'expense',
+          description: `Retiro de ahorro: ${all[idx].name}`,
+          amount: amount,
+          date: date || today(),
+          category: 'Otro'
+        });
+      }
+
       return { account: all[idx], movement };
     },
 

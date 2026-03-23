@@ -167,28 +167,35 @@ function renderDashboard() {
   const { income, expense } = FinanceService.Transactions.currentMonthTotals();
   const totalSavings = FinanceService.Savings.totalSavings();
   const debtTotals   = FinanceService.Debts.totals();
-  const saldo        = income - expense;
+  const saldoLibre   = income - expense - totalSavings; // Saldo libre = Ingresos - Egresos - Ahorros
 
-  // KPIs
-  animateValue('kpiSaldo',    saldo);
+  // KPIs con animación mejorada
+  animateValue('kpiSaldo',    saldoLibre);
   animateValue('kpiIngresos', income);
   animateValue('kpiEgresos',  expense);
   animateValue('kpiAhorros',  totalSavings);
 
   // Balance navbar
   const navEl = document.getElementById('navBalanceVal');
-  if (navEl) navEl.textContent = fmt(saldo);
+  if (navEl) {
+    navEl.textContent = fmt(saldoLibre);
+    // Animación de pulso en el cambio
+    navEl.parentElement.style.animation = 'none';
+    setTimeout(() => {
+      navEl.parentElement.style.animation = 'pulse 0.5s ease';
+    }, 10);
+  }
   const chip = document.getElementById('navBalance');
   if (chip) {
-    chip.style.color = saldo >= 0 ? 'var(--fp-success)' : 'var(--fp-danger)';
+    chip.style.color = saldoLibre >= 0 ? 'var(--fp-success)' : 'var(--fp-danger)';
   }
 
-  // Trends
+  // Trends mejorados
   const saldoTrend = document.getElementById('kpiSaldoTrend');
   if (saldoTrend) {
-    saldoTrend.innerHTML = saldo >= 0
-      ? `<i class="bi bi-arrow-up-circle text-success"></i> Saldo positivo`
-      : `<i class="bi bi-arrow-down-circle text-danger"></i> Saldo negativo`;
+    saldoTrend.innerHTML = saldoLibre >= 0
+      ? `<i class="bi bi-arrow-up-circle text-success"></i> Saldo libre positivo`
+      : `<i class="bi bi-arrow-down-circle text-danger"></i> Saldo libre negativo`;
   }
 
   // Gráfico donut categorías
@@ -210,20 +217,46 @@ function renderDashboard() {
 
 function refreshDashboard() { renderDashboard(); showToast('Dashboard actualizado', 'success'); }
 
-/** Anima el valor de un KPI */
+/** Anima el valor de un KPI con efectos modernos */
 function animateValue(elId, target) {
   const el = document.getElementById(elId);
   if (!el) return;
-  const start    = 0;
-  const duration = 800;
+
+  // Obtener valor anterior o empezar desde 0
+  const prevText = el.textContent.replace(/[^0-9-]/g, '');
+  const start    = prevText ? parseFloat(prevText) : 0;
+  const duration = 1200;
   const startTs  = performance.now();
+
+  // Agregar clase de animación
+  el.parentElement?.classList.add('kpi-animating');
 
   const update = (ts) => {
     const elapsed = ts - startTs;
     const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-    el.textContent = fmt(start + (target - start) * eased);
-    if (progress < 1) requestAnimationFrame(update);
+
+    // Easing más suave: ease-out-expo
+    const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+
+    const current = start + (target - start) * eased;
+    el.textContent = fmt(current);
+
+    // Efecto de escala durante la animación
+    const scale = 1 + Math.sin(progress * Math.PI) * 0.05;
+    el.style.transform = `scale(${scale})`;
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      el.style.transform = 'scale(1)';
+      el.parentElement?.classList.remove('kpi-animating');
+
+      // Pequeño bounce al final
+      el.style.animation = 'none';
+      setTimeout(() => {
+        el.style.animation = 'bounceEnd 0.4s ease';
+      }, 10);
+    }
   };
 
   requestAnimationFrame(update);
@@ -1050,7 +1083,7 @@ function showToast(message, type = 'success') {
         <strong class="me-auto" style="font-size:13px;color:${colors[type]}">
           ${type === 'success' ? 'Éxito' : type === 'danger' ? 'Error' : type === 'warning' ? 'Aviso' : 'Info'}
         </strong>
-        <button type="button" class="btn-close btn-close-sm" onclick="document.getElementById('${id}')?.remove()"></button>
+        <button type="button" class="btn-close btn-close-sm" onclick="removeToast('${id}')"></button>
       </div>
       <div class="toast-body">${escHtml(message)}</div>
     </div>`;
@@ -1058,7 +1091,14 @@ function showToast(message, type = 'success') {
   const stack = document.getElementById('toastStack');
   if (stack) stack.insertAdjacentHTML('beforeend', html);
 
-  setTimeout(() => document.getElementById(id)?.remove(), 4000);
+  setTimeout(() => removeToast(id), 4500);
+}
+
+function removeToast(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('removing');
+  setTimeout(() => el.remove(), 300);
 }
 
 // ── UTILIDADES ─────────────────────────────────────────────
