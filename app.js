@@ -1110,3 +1110,51 @@ function escHtml(str) {
     .replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;');
 }
+
+// ── PWA INSTALLATION ──────────────────────────────────────
+let deferredPrompt;
+const installBtn = document.getElementById('pwaInstallBtn');
+const installWrapper = document.getElementById('installBtnWrapper');
+const installMenuDivider = document.getElementById('installMenuItem');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevenir que Chrome 67 y anteriores muestren el prompt automáticamente
+  e.preventDefault();
+  // Guardar el evento para que se pueda disparar más tarde
+  deferredPrompt = e;
+  // Mostrar el botón de instalación
+  if (installBtn && installWrapper) {
+    installWrapper.style.display = 'block';
+    if (installMenuDivider) installMenuDivider.style.display = 'block';
+  }
+});
+
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    // Mostrar el prompt de instalación
+    deferredPrompt.prompt();
+    // Esperar a que el usuario responda al prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    // Ya no necesitamos el prompt guardado
+    deferredPrompt = null;
+    // Ocultar el botón
+    installWrapper.style.display = 'none';
+    if (installMenuDivider) installMenuDivider.style.display = 'none';
+  });
+}
+
+window.addEventListener('appinstalled', (evt) => {
+  console.log('FinanzApp fue instalada correctamente');
+  showToast('¡Aplicación instalada en tu PC! ✓', 'success');
+});
+
+// Registrar Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('Service Worker registrado', reg))
+      .catch(err => console.log('Error registrando SW', err));
+  });
+}

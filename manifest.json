@@ -1,0 +1,21 @@
+{
+  "name": "FinanzApp Pro",
+  "short_name": "FinanzApp",
+  "description": "Gestión financiera personal avanzada",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#1a56db",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='48' fill='%231a56db'/><path d='M50 50h92v92H50z' fill='white' opacity='0.2'/><path d='M65 95h62M65 115h42' stroke='white' stroke-width='12' stroke-linecap='round'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%231a56db'/><path d='M120 120h272v272H120z' fill='white' opacity='0.2'/><path d='M160 240h192M160 300h128' stroke='white' stroke-width='32' stroke-linecap='round'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

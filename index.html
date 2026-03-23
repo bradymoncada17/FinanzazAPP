@@ -4,6 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>FinanzApp Pro</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231a56db'/><path d='M10 10h12v12H10z' fill='white' opacity='0.2'/><path d='M12 14h8M12 18h5' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%231a56db'/><path d='M50 50h80v80H50z' fill='white' opacity='0.2'/><path d='M65 85h50M65 105h35' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>"/>
+<meta name="apple-mobile-web-app-title" content="FinanzApp"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<link rel="manifest" href="manifest.json"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -40,8 +46,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .fp-dropdown .dropdown-item:hover{background:rgba(255,255,255,.08);color:#fff}
 .fp-dropdown .dropdown-divider{border-color:rgba(255,255,255,.08)}
 /* SALDO CHIPS */
-.saldo-chips{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow:hidden}
-.saldo-chip{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:600;white-space:nowrap}
+.saldo-chips{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.saldo-chips::-webkit-scrollbar{display:none}
+.saldo-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:50px;font-size:12px;font-weight:600;white-space:nowrap;transition:transform .2s}
+.saldo-chip:hover{transform:translateY(-1px)}
 .chip-libre{background:rgba(5,122,85,.25);color:#6ee7b7;border:1px solid rgba(5,122,85,.3)}
 .chip-inc{background:rgba(59,130,246,.2);color:#93c5fd;border:1px solid rgba(59,130,246,.25)}
 .chip-exp{background:rgba(220,38,38,.2);color:#fca5a5;border:1px solid rgba(220,38,38,.25)}
@@ -77,33 +85,33 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .stat-mini{display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,.3);padding:3px 10px}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1039;backdrop-filter:blur(2px)}
 /* MAIN */
-.fp-main{margin-left:var(--sidebar-w);flex:1;padding:24px 28px;min-height:calc(100vh - var(--navbar-h))}
+.fp-main{margin-left:var(--sidebar-w);flex:1;padding:32px 36px;min-height:calc(100vh - var(--navbar-h))}
 @keyframes vf{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.page-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--fp-primary);margin-bottom:5px;display:flex;align-items:center;gap:5px}
-.page-title{font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--fp-text);margin:0;line-height:1.1}
+.page-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--fp-primary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.page-title{font-size:28px;font-weight:800;letter-spacing:-.5px;color:var(--fp-text);margin:0;line-height:1.2}
 .title-accent{color:var(--fp-primary)}
-.page-sub{font-size:13px;color:var(--fp-text2);margin-top:4px}
-.fp-page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.page-sub{font-size:14px;color:var(--fp-text2);margin-top:6px}
+.fp-page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:16px}
 /* KPI */
-.kpi-card{background:var(--fp-surface);border-radius:var(--rl);padding:18px;border:1px solid var(--fp-border);box-shadow:var(--sh);display:flex;align-items:center;gap:14px;transition:all .25s;position:relative;overflow:hidden}
-.kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi-card{background:var(--fp-surface);border-radius:var(--rl);padding:22px;border:1px solid var(--fp-border);box-shadow:var(--sh);display:flex;align-items:center;gap:18px;transition:all .3s ease;position:relative;overflow:hidden}
+.kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .kpi-blue::after{background:linear-gradient(90deg,#3b82f6,#6366f1)}
 .kpi-green::after{background:linear-gradient(90deg,#059669,#10b981)}
 .kpi-red::after{background:linear-gradient(90deg,#dc2626,#f97316)}
 .kpi-gold::after{background:linear-gradient(90deg,#b45309,#d97706)}
 .kpi-violet::after{background:linear-gradient(90deg,#7c3aed,#8b5cf6)}
-.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--sh-lg)}
-.kpi-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.kpi-card:hover{transform:translateY(-4px);box-shadow:var(--sh-lg)}
+.kpi-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .kpi-blue  .kpi-icon-wrap{background:var(--fp-primary-lt);color:var(--fp-primary)}
 .kpi-green .kpi-icon-wrap{background:var(--fp-success-lt);color:var(--fp-success)}
 .kpi-red   .kpi-icon-wrap{background:var(--fp-danger-lt);color:var(--fp-danger)}
 .kpi-gold  .kpi-icon-wrap{background:var(--fp-gold-lt);color:var(--fp-gold)}
 .kpi-violet .kpi-icon-wrap{background:var(--fp-violet-lt);color:var(--fp-violet)}
-.kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--fp-text2);font-weight:600;margin-bottom:2px}
-.kpi-value{font-size:19px;font-weight:800;letter-spacing:-.5px;font-family:'JetBrains Mono',monospace;color:var(--fp-text);margin:0;line-height:1.1}
-.kpi-trend{font-size:11px;color:var(--fp-text3);margin:2px 0 0;display:flex;align-items:center;gap:3px}
-.kpi-sm{padding:14px 16px}
-.kpi-sm-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);font-weight:600;margin-bottom:4px}
+.kpi-value{font-size:24px;font-weight:800;letter-spacing:-.8px;font-family:'JetBrains Mono',monospace;color:var(--fp-text);margin:0;line-height:1.2}
+.kpi-trend{font-size:12px;color:var(--fp-text3);margin:4px 0 0;display:flex;align-items:center;gap:4px}
+.kpi-sm{padding:20px 22px}
+.kpi-sm-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .kpi-sm.kpi-red    .kpi-sm-icon{background:var(--fp-danger-lt);color:var(--fp-danger)}
 .kpi-sm.kpi-orange .kpi-sm-icon{background:var(--fp-orange-lt);color:var(--fp-orange)}
 .kpi-sm.kpi-green  .kpi-sm-icon{background:var(--fp-success-lt);color:var(--fp-success)}
@@ -334,7 +342,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .chip-val.num-updated{animation:num-pop .35s cubic-bezier(.34,1.56,.64,1) both}
 
 /* ── ANILLOS ORBITALES ── */
-.orbit-container{position:relative;display:inline-flex;align-items:center;justify-content:center;width:108px;height:108px;flex-shrink:0}
+.orbit-container{position:relative;display:inline-flex;align-items:center;justify-content:center;width:90px;height:90px;flex-shrink:0}
 .orbit-ring-1{position:absolute;width:100%;height:100%;border-radius:50%;border:1.5px solid rgba(26,86,219,.18);border-top-color:var(--fp-primary);animation:ring-cw 3.2s linear infinite}
 .orbit-ring-2{position:absolute;width:76%;height:76%;border-radius:50%;border:1.5px solid rgba(124,58,237,.15);border-bottom-color:var(--fp-violet);animation:ring-ccw 2.4s linear infinite}
 .orbit-ring-3{position:absolute;width:54%;height:54%;border-radius:50%;border:1.5px solid rgba(8,145,178,.15);border-left-color:var(--fp-teal);animation:ring-cw 1.8s linear infinite}
@@ -457,6 +465,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
           <li><a class="dropdown-item" href="#" onclick="document.getElementById('importFile').click();return false"><i class="bi bi-upload me-2"></i>Importar JSON</a></li>
           <li><hr class="dropdown-divider"/></li>
           <li><a class="dropdown-item" href="#" onclick="navigateTo('config');return false"><i class="bi bi-gear me-2"></i>Configuración</a></li>
+          <li id="installMenuItem" style="display:none"><hr class="dropdown-divider"/></li>
+          <li id="installBtnWrapper" style="display:none"><a class="dropdown-item text-primary fw-bold" href="#" id="pwaInstallBtn"><i class="bi bi-pc-display me-2"></i>Instalar en PC</a></li>
           <li><hr class="dropdown-divider"/></li>
           <li><a class="dropdown-item text-danger" href="#" onclick="clearAllData();return false"><i class="bi bi-trash3 me-2"></i>Borrar datos</a></li>
         </ul>
@@ -540,10 +550,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         </div>
       </div>
       <div class="row g-3 mb-3">
-        <div class="col-6 col-xl-3"><div class="kpi-card kpi-green"><div class="kpi-icon-wrap"><i class="bi bi-arrow-up-circle-fill"></i></div><div><p class="kpi-label">Ingresos</p><h2 class="kpi-value" id="kpiIngresos">$0</h2><p class="kpi-trend"><span id="kpiIncTrend">Este mes</span></p></div></div></div>
-        <div class="col-6 col-xl-3"><div class="kpi-card kpi-red"><div class="kpi-icon-wrap"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label">Egresos</p><h2 class="kpi-value" id="kpiEgresos">$0</h2><p class="kpi-trend"><span id="kpiExpTrend">Este mes</span></p></div></div></div>
-        <div class="col-6 col-xl-3"><div class="kpi-card kpi-gold"><div class="kpi-icon-wrap"><i class="bi bi-piggy-bank-fill"></i></div><div><p class="kpi-label">Ahorros</p><h2 class="kpi-value" id="kpiAhorros">$0</h2><p class="kpi-trend">Acumulado</p></div></div></div>
-        <div class="col-6 col-xl-3"><div class="kpi-card kpi-blue"><div class="kpi-icon-wrap"><i class="bi bi-cash-stack"></i></div><div><p class="kpi-label">Saldo Libre</p><h2 class="kpi-value" id="kpiSaldoLibre">$0</h2><p class="kpi-trend" id="kpiSaldoTrend"></p></div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3"><div class="kpi-card kpi-green"><div class="kpi-icon-wrap"><i class="bi bi-arrow-up-circle-fill"></i></div><div><p class="kpi-label">Ingresos</p><h2 class="kpi-value" id="kpiIngresos">$0</h2><p class="kpi-trend"><span id="kpiIncTrend">Este mes</span></p></div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3"><div class="kpi-card kpi-red"><div class="kpi-icon-wrap"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label">Egresos</p><h2 class="kpi-value" id="kpiEgresos">$0</h2><p class="kpi-trend"><span id="kpiExpTrend">Este mes</span></p></div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3"><div class="kpi-card kpi-gold"><div class="kpi-icon-wrap"><i class="bi bi-piggy-bank-fill"></i></div><div><p class="kpi-label">Ahorros</p><h2 class="kpi-value" id="kpiAhorros">$0</h2><p class="kpi-trend">Acumulado</p></div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3"><div class="kpi-card kpi-blue"><div class="kpi-icon-wrap"><i class="bi bi-cash-stack"></i></div><div><p class="kpi-label">Saldo Libre</p><h2 class="kpi-value" id="kpiSaldoLibre">$0</h2><p class="kpi-trend" id="kpiSaldoTrend"></p></div></div></div>
       </div>
       <div class="row g-3 mb-3">
         <div class="col-lg-6"><div class="fp-card h-100">
@@ -564,6 +574,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
       </div>
     </div>
 
+  
+
     <!-- TRANSACCIONES -->
     <div id="view-transactions" class="d-none">
       <div class="fp-page-header">
@@ -581,10 +593,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         </div>
       </div>
       <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-up-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Ingresos <span id="txYearLabel" style="color:var(--fp-text3);font-weight:400"></span></p><h3 class="kpi-sm-val text-success" id="txTotalInc">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Egresos <span id="txYearLabel2" style="color:var(--fp-text3);font-weight:400"></span></p><h3 class="kpi-sm-val text-danger" id="txTotalExp">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-gold"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-piggy-bank-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Ahorros</p><h3 class="kpi-sm-val" style="color:var(--fp-gold)" id="txTotalSav">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-blue"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-wallet-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Libre</p><h3 class="kpi-sm-val" id="txSaldoLibre">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-up-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Ingresos <span id="txYearLabel" style="color:var(--fp-text3);font-weight:400"></span></p><h3 class="kpi-sm-val text-success" id="txTotalInc">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Egresos <span id="txYearLabel2" style="color:var(--fp-text3);font-weight:400"></span></p><h3 class="kpi-sm-val text-danger" id="txTotalExp">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-gold"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-piggy-bank-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Ahorros</p><h3 class="kpi-sm-val" style="color:var(--fp-gold)" id="txTotalSav">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-blue"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-wallet-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Libre</p><h3 class="kpi-sm-val" id="txSaldoLibre">$0</h3></div></div></div></div>
       </div>
       <div class="row g-3 mb-3">
         <div class="col-lg-5"><div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-layers-fill text-success"></i> Saldo por fuente</div></div><div class="fp-card-body" id="catSaldosList"><div class="empty-state">Sin ingresos</div></div></div></div>
@@ -619,14 +631,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-center" style="background:var(--fp-danger-lt);color:var(--fp-danger)"><i class="bi bi-file-earmark-text-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-file-earmark-text-fill"></i> Gestión</div><h1 class="page-title">Control de <span style="color:var(--fp-danger)">Deudas</span></h1></div>
-        </div><h1 class="page-title"> <span style="color:var(--fp-danger)"></span></h1></div>
+        </div>
         <button class="btn fp-btn-primary fp-btn-sm" onclick="openDebtModal()"><i class="bi bi-plus-lg"></i> Nueva Deuda</button>
       </div>
       <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-bank2"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Adeudado</p><h3 class="kpi-sm-val" id="debtTotalAmt">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-percent"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Interés/mes</p><h3 class="kpi-sm-val" id="debtTotalInt">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-blue"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-cash-stack"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Cuotas/mes</p><h3 class="kpi-sm-val" id="debtTotalCuota">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-check2-all"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Activas</p><h3 class="kpi-sm-val" id="debtCount">0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-bank2"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Adeudado</p><h3 class="kpi-sm-val" id="debtTotalAmt">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-percent"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Interés/mes</p><h3 class="kpi-sm-val" id="debtTotalInt">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-blue"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-cash-stack"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Cuotas/mes</p><h3 class="kpi-sm-val" id="debtTotalCuota">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-check2-all"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Activas</p><h3 class="kpi-sm-val" id="debtCount">0</h3></div></div></div></div>
       </div>
       <div id="debtsList" class="row g-3"></div>
     </div>
@@ -640,15 +652,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-dot orbit-dot-1" style="background:var(--fp-primary);box-shadow:0 0 5px var(--fp-primary)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
             <div class="orbit-center" style="background:var(--fp-primary-lt);color:var(--fp-primary)"><i class="bi bi-credit-card-2-front-fill"></i></div>
           </div>
-          <div><div class="page-eyebrow"><i class="bi bi-credit-card-2-front-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-primary)">Tarjetas</span></h1></div>
-        </div><h1 class="page-title">Mis <span style="color:var(--fp-primary)">Tarjetas</span></h1><p class="page-sub">Administra tus tarjetas y cupo disponible</p></div>
+          <div><div class="page-eyebrow"><i class="bi bi-credit-card-2-front-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-primary)">Tarjetas</span></h1><p class="page-sub">Administra tus tarjetas y cupo disponible</p></div>
+        </div>
         <button class="btn fp-btn-primary fp-btn-sm" onclick="openTarjetaModal()"><i class="bi bi-plus-lg"></i> Nueva Tarjeta</button>
       </div>
       <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-blue"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-credit-card-2-front-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Cupo Total</p><h3 class="kpi-sm-val" id="tcTotalCupo">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-bar-chart-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Usado</p><h3 class="kpi-sm-val" id="tcTotalUsado">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-wallet-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Disponible</p><h3 class="kpi-sm-val" id="tcTotalDisp">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-calendar-check"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Activas</p><h3 class="kpi-sm-val" id="tcCount">0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-blue"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-credit-card-2-front-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Cupo Total</p><h3 class="kpi-sm-val" id="tcTotalCupo">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-bar-chart-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Usado</p><h3 class="kpi-sm-val" id="tcTotalUsado">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-wallet-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Disponible</p><h3 class="kpi-sm-val" id="tcTotalDisp">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-calendar-check"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Activas</p><h3 class="kpi-sm-val" id="tcCount">0</h3></div></div></div></div>
       </div>
       <div id="tarjetasList" class="row g-3"></div>
     </div>
@@ -662,18 +674,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-dot orbit-dot-1" style="background:var(--fp-teal);box-shadow:0 0 5px var(--fp-teal)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
             <div class="orbit-center" style="background:var(--fp-teal-lt);color:var(--fp-teal)"><i class="bi bi-cash-coin"></i></div>
           </div>
-          <div><div class="page-eyebrow"><i class="bi bi-cash-coin"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-teal)">Préstamos</span></h1></div>
-        </div><h1 class="page-title">Mis <span style="color:var(--fp-teal)">Préstamos</span></h1><p class="page-sub">Dinero que has prestado a terceros</p></div>
+          <div><div class="page-eyebrow"><i class="bi bi-cash-coin"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-teal)">Préstamos</span></h1><p class="page-sub">Dinero que has prestado a terceros</p></div>
+        </div>
         <div class="d-flex gap-2">
           <button class="btn fp-btn-ghost fp-btn-sm" onclick="navigateTo('clientes')"><i class="bi bi-people-fill me-1"></i>Clientes</button>
           <button class="btn fp-btn-primary fp-btn-sm" onclick="openPrestamoModal()"><i class="bi bi-plus-lg"></i> Nuevo Préstamo</button>
         </div>
       </div>
       <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm" style="border-top:2px solid var(--fp-teal)"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon" style="background:var(--fp-teal-lt);color:var(--fp-teal)"><i class="bi bi-cash-coin"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Prestado</p><h3 class="kpi-sm-val" id="ptTotalPrestado">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Cobrado</p><h3 class="kpi-sm-val" id="ptTotalCobrado">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-hourglass-split"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Por Cobrar</p><h3 class="kpi-sm-val" id="ptTotalPendiente">$0</h3></div></div></div></div>
-        <div class="col-6 col-md-3"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-exclamation-triangle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">En Mora</p><h3 class="kpi-sm-val" id="ptEnMora">0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm" style="border-top:2px solid var(--fp-teal)"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon" style="background:var(--fp-teal-lt);color:var(--fp-teal)"><i class="bi bi-cash-coin"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Prestado</p><h3 class="kpi-sm-val" id="ptTotalPrestado">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-green"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-arrow-down-circle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Total Cobrado</p><h3 class="kpi-sm-val" id="ptTotalCobrado">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-red"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-hourglass-split"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">Por Cobrar</p><h3 class="kpi-sm-val" id="ptTotalPendiente">$0</h3></div></div></div></div>
+        <div class="col-12 col-sm-6 col-md-3"><div class="fp-card kpi-sm kpi-orange"><div class="d-flex align-items-center gap-2"><div class="kpi-sm-icon"><i class="bi bi-exclamation-triangle-fill"></i></div><div><p class="kpi-label mb-0" style="font-size:9px">En Mora</p><h3 class="kpi-sm-val" id="ptEnMora">0</h3></div></div></div></div>
       </div>
       <div id="prestamosList" class="row g-3"></div>
     </div>
@@ -687,8 +699,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-dot orbit-dot-1" style="background:var(--fp-violet);box-shadow:0 0 5px var(--fp-violet)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
             <div class="orbit-center" style="background:var(--fp-violet-lt);color:var(--fp-violet)"><i class="bi bi-people-fill"></i></div>
           </div>
-          <div><div class="page-eyebrow"><i class="bi bi-people-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-violet)">Clientes</span></h1></div>
-        </div><h1 class="page-title">Mis <span style="color:var(--fp-violet)">Clientes</span></h1><p class="page-sub">Personas a quienes has prestado dinero</p></div>
+          <div><div class="page-eyebrow"><i class="bi bi-people-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-violet)">Clientes</span></h1><p class="page-sub">Personas a quienes has prestado dinero</p></div>
+        </div>
         <button class="btn fp-btn-primary fp-btn-sm" onclick="openClienteModal()"><i class="bi bi-plus-lg"></i> Nuevo Cliente</button>
       </div>
       <div id="clientesList" class="row g-3"></div>
@@ -704,7 +716,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-center" style="background:var(--fp-gold-lt);color:var(--fp-gold)"><i class="bi bi-piggy-bank-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-piggy-bank-fill"></i> Metas</div><h1 class="page-title">Mis <span style="color:var(--fp-gold)">Ahorros</span></h1></div>
-        </div><h1 class="page-title">Mis <span style="color:var(--fp-gold)">Ahorros</span></h1></div>
+        </div>
         <button class="btn fp-btn-primary fp-btn-sm" onclick="openSavingModal()"><i class="bi bi-plus-lg"></i> Nueva Cuenta</button>
       </div>
       <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
@@ -765,7 +777,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-center" style="background:var(--fp-teal-lt);color:var(--fp-teal)"><i class="bi bi-tags-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-tags-fill"></i> Personalización</div><h1 class="page-title">Mis <span class="title-accent">Categorías</span></h1></div>
-        </div><h1 class="page-title">Mis <span class="title-accent">Categorías</span></h1></div></div>
+        </div>
+      </div>
       <div class="row g-3">
         <div class="col-md-6"><div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-arrow-up-circle-fill text-success"></i> Ingresos</div><span class="fp-badge fp-badge-green" id="cntCatInc">0</span></div><div class="fp-card-body"><div class="d-flex gap-2 mb-3"><input class="fp-input" id="newCatIncName" placeholder="Nueva categoría..."/><button class="btn fp-btn-success fp-btn-sm" onclick="addCat('income')"><i class="bi bi-plus-lg"></i></button></div><div id="listCatInc"></div></div></div></div>
         <div class="col-md-6"><div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-arrow-down-circle-fill text-danger"></i> Egresos</div><span class="fp-badge fp-badge-red" id="cntCatExp">0</span></div><div class="fp-card-body"><div class="d-flex gap-2 mb-3"><input class="fp-input" id="newCatExpName" placeholder="Nueva categoría..."/><button class="btn fp-btn-danger fp-btn-sm" onclick="addCat('expense')"><i class="bi bi-plus-lg"></i></button></div><div id="listCatExp"></div></div></div></div>
@@ -781,7 +794,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="orbit-center" style="background:var(--fp-primary-lt);color:var(--fp-primary)"><i class="bi bi-gear-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-gear-fill"></i> Ajustes</div><h1 class="page-title">Configuración <span class="title-accent">General</span></h1></div>
-        </div><h1 class="page-title">Configuración <span class="title-accent">General</span></h1></div></div>
+        </div>
+      </div>
       <div class="row g-4">
         <div class="col-lg-7"><div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-github"></i> GitHub Gist Sync</div><span class="fp-badge fp-badge-blue" id="gistStatusBadge">Sin configurar</span></div>
           <div class="fp-card-body">
@@ -1597,7 +1611,10 @@ function renderDashboard(){
   var mf=document.getElementById('mfLabel');if(mf)mf.textContent=getMonthLabel();
   var dl=document.getElementById('dashMonthLabel');if(dl)dl.textContent=isCurrent()?'Este mes':getMonthLabel();
   var txs=lsGet(KEYS.TX);
-  var month=txs.filter(function(t){var d=new Date(t.date);return d.getFullYear()===FilterMonth.year&&d.getMonth()===FilterMonth.month;});
+  var month=txs.filter(function(t){
+    var d=new Date(t.date + 'T12:00:00');
+    return d.getFullYear()===FilterMonth.year&&d.getMonth()===FilterMonth.month;
+  });
   var income=month.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);
   var expense=month.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
   var s=calcSaldos();
