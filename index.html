@@ -4,8 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>FinanzApp Pro</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231a56db'/><path d='M10 10h12v12H10z' fill='white' opacity='0.2'/><path d='M12 14h8M12 18h5' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>"/>
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%231a56db'/><path d='M50 50h80v80H50z' fill='white' opacity='0.2'/><path d='M65 85h50M65 105h35' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%233b82f6'/><stop offset='100%' stop-color='%236366f1'/></linearGradient></defs><rect width='32' height='32' rx='10' fill='url(%23g)'/><path d='M9 10h14v12H9z' fill='white' opacity='0.15'/><path d='M11 14h10M11 18h6' stroke='white' stroke-width='2.5' stroke-linecap='round' opacity='0.9'/><circle cx='23' cy='9' r='3.5' fill='white'/><circle cx='23' cy='9' r='1.5' fill='%233b82f6'/></svg>"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%233b82f6'/><stop offset='100%' stop-color='%236366f1'/></linearGradient></defs><rect width='180' height='180' rx='46' fill='url(%23g)'/><path d='M50 50h80v80H50z' fill='white' opacity='0.15'/><path d='M65 85h50M65 105h35' stroke='white' stroke-width='8' stroke-linecap='round' opacity='0.9'/><circle cx='135' cy='45' r='18' fill='white'/><circle cx='135' cy='45' r='8' fill='%233b82f6'/></svg>"/>
 <meta name="apple-mobile-web-app-title" content="FinanzApp"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -259,6 +259,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .sav-acc-body{border-top:1px solid var(--fp-border)}
 /* CAT ITEMS */
 .cat-item{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;margin-bottom:4px;background:var(--fp-surface2);border-radius:9px;border:1px solid var(--fp-border)}
+.cat-item-complex{background:var(--fp-surface);border:1px solid var(--fp-border);border-radius:14px;padding:12px 14px;margin-bottom:12px;box-shadow:var(--sh);transition:all .2s}
+.cat-item-complex:hover{border-color:var(--fp-primary);transform:translateY(-1px)}
+.cat-name-title{font-size:13px;font-weight:800;color:var(--fp-text)}
+.cat-concepts-container{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;padding-top:8px;border-top:1px dashed var(--fp-border)}
+.concept-badge{font-size:10px;font-weight:600;padding:4px 10px;border-radius:50px;background:var(--fp-surface2);color:var(--fp-text2);display:inline-flex;align-items:center;border:1px solid var(--fp-border);cursor:pointer;transition:all .15s}
+.concept-badge:hover{background:var(--fp-danger-lt);color:var(--fp-danger);border-color:rgba(220,38,38,.2)}
+.concept-add-inline{flex:1;min-width:110px}
+.concept-add-inline input{width:100%;border:none;background:transparent;font-size:11px;color:var(--fp-text);outline:none;padding:4px 0}
+.concept-add-inline input::placeholder{color:var(--fp-text3)}
 /* MISC */
 .empty-state{text-align:center;color:var(--fp-text2);padding:18px;font-size:12.5px}
 .empty-state-large{text-align:center;padding:44px 20px;background:var(--fp-surface);border:1px dashed var(--fp-border2);border-radius:var(--rl);color:var(--fp-text2)}
@@ -285,15 +294,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   .fp-sidebar{transform:translateX(-100%)}
   .fp-sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.3)}
   .sidebar-overlay.show{display:block}
-  .fp-main{margin-left:0;padding:14px 12px;padding-bottom:74px}
-  .page-title{font-size:18px}
+  .fp-main{margin-left:0;padding:16px 14px;padding-bottom:85px}
+  .page-title{font-size:22px}
   .fp-page-header{flex-direction:column;align-items:flex-start;margin-bottom:16px}
   .saldo-chips{display:none!important}
   .saldo-bar-mobile{display:block}
   .fp-layout{padding-top:var(--navbar-h)}
   .hist-tab{min-width:80px;font-size:11.5px;padding:7px 8px}
-  .kpi-card{padding:14px}
-  .kpi-value{font-size:16px}
+  .kpi-card{padding:16px;gap:14px}
+  .kpi-value{font-size:20px}
+  .kpi-icon-wrap{width:46px;height:46px;font-size:18px}
   .kpi-sm-val{font-size:15px}
   .fp-table{font-size:11.5px}
   .fp-table thead th{padding:8px 8px;font-size:8.5px}
@@ -301,9 +311,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   .debt-detail-box{margin:8px;border-radius:16px;max-height:95vh}
   .debt-detail-header{padding:16px 18px}
   .debt-detail-body{padding:16px 18px}
-  .fp-modal .modal-body{padding:16px}
+  .fp-modal .modal-body{padding:18px}
   .source-opt{padding:7px 9px}
-  .row.g-3>[class*=col]{padding-top:6px;padding-bottom:0}
+  .row.g-3>[class*=col]{padding-top:10px;padding-bottom:0}
+  .fp-toggle-group{gap:4px}
+  .fp-toggle-btn{font-size:11px;padding:6px 8px}
 }
 @media(max-width:480px){
   .fp-main{padding:10px 10px;padding-bottom:70px}
@@ -1463,7 +1475,54 @@ function getCats(type){var key=type==='income'?KEYS.CATS_INC:KEYS.CATS_EXP;var d
 function saveCats(type,arr){localStorage.setItem(type==='income'?KEYS.CATS_INC:KEYS.CATS_EXP,JSON.stringify(arr));}
 function addCat(type){var iid=type==='income'?'newCatIncName':'newCatExpName';var name=document.getElementById(iid).value.trim();if(!name){showToast('Escribe un nombre','danger');return;}var cats=getCats(type);if(cats.indexOf(name)>=0){showToast('Ya existe','danger');return;}cats.push(name);saveCats(type,cats);document.getElementById(iid).value='';renderCats();rebuildCatSelects();showToast('"'+name+'" creada ✓','success');}
 function deleteCat(type,name){if(!confirm('¿Eliminar "'+name+'"?'))return;saveCats(type,getCats(type).filter(function(c){return c!==name;}));renderCats();rebuildCatSelects();showToast('Eliminada','warning');}
-function renderCats(){var inc=getCats('income'),exp=getCats('expense');var ci=document.getElementById('cntCatInc');if(ci)ci.textContent=inc.length;var ce=document.getElementById('cntCatExp');if(ce)ce.textContent=exp.length;function rl(arr,type,id){var el=document.getElementById(id);if(!el)return;el.innerHTML=arr.length?arr.map(function(c){return '<div class="cat-item"><span style="font-size:12.5px;font-weight:500">'+esc(c)+'</span><button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deleteCat(\''+type+'\',\''+esc(c)+'\')"><i class="bi bi-x-lg"></i></button></div>';}).join(''):'<div class="empty-state">Sin categorías</div>';}rl(inc,'income','listCatInc');rl(exp,'expense','listCatExp');}
+function renderCats(){
+  var inc=getCats('income'),exp=getCats('expense');
+  var ci=document.getElementById('cntCatInc');if(ci)ci.textContent=inc.length;
+  var ce=document.getElementById('cntCatExp');if(ce)ce.textContent=exp.length;
+  
+  function rl(arr,type,id){
+    var el=document.getElementById(id);if(!el)return;
+    if(!arr.length){el.innerHTML='<div class="empty-state">Sin categorías</div>';return;}
+    
+    el.innerHTML=arr.map(function(c){
+      var concepts=getConceptos(c);
+      var conceptsHtml=concepts.map(function(cp){
+        return '<span class="concept-badge" onclick="removeConceptFromView(\''+esc(c)+'\',\''+esc(cp)+'\')">'+esc(cp)+' <i class="bi bi-x-circle-fill ms-1"></i></span>';
+      }).join('');
+      
+      return '<div class="cat-item-complex">'
+        +'<div class="d-flex justify-content-between align-items-center mb-2">'
+          +'<span class="cat-name-title">'+esc(c)+'</span>'
+          +'<button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deleteCat(\''+type+'\',\''+esc(c)+'\')"><i class="bi bi-trash3"></i></button>'
+        +'</div>'
+        +'<div class="cat-concepts-container">'
+          +conceptsHtml
+          +'<div class="concept-add-inline">'
+            +'<input type="text" placeholder="+ Nuevo concepto..." onkeydown="if(event.key===\'Enter\')addConceptFromView(\''+esc(c)+'\',this)"/>'
+          +'</div>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }
+  rl(inc,'income','listCatInc');
+  rl(exp,'expense','listCatExp');
+}
+
+function addConceptFromView(cat,input){
+  var val=input.value.trim();
+  if(!val)return;
+  saveConcepto(cat,val);
+  input.value='';
+  renderCats();
+  showToast('Concepto "'+val+'" añadido ✓','success');
+}
+
+function removeConceptFromView(cat,concepto){
+  if(!confirm('¿Eliminar concepto "'+concepto+'" de '+cat+'?'))return;
+  deleteConcepto(cat,concepto);
+  renderCats();
+  showToast('Concepto eliminado','warning');
+}
 function rebuildCatSelects(){var inc=getCats('income'),exp=getCats('expense');var sel=document.getElementById('txCategory');if(sel){sel.innerHTML='<optgroup label="Ingresos">'+inc.map(function(c){return '<option>'+esc(c)+'</option>';}).join('')+'</optgroup><optgroup label="Egresos">'+exp.map(function(c){return '<option>'+esc(c)+'</option>';}).join('')+'</optgroup>';}function rf(id){var s=document.getElementById(id);if(!s)return;var all=inc.slice();exp.forEach(function(c){if(all.indexOf(c)<0)all.push(c);});var cur=s.value;s.innerHTML='<option value="">Todas</option>'+all.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');if(cur)s.value=cur;}rf('filterTxCat');}
 
 // ══════════════════════════════════════════════════════
