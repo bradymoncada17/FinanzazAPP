@@ -54,16 +54,14 @@ function fmtDate(str) {
 //  INICIALIZACIÓN
 // ══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Inicializar datos (carga mock si es primera vez)
-  FinanceService.initialize();
-
-  // 2. UI base
-  setupNavDate();
-  setupSidebar();
-  setupIntersectionObserver();
-
-  // 3. Cargar vista inicial
-  navigateTo('dashboard');
+  // El login maneja la inicialización
+  if (localStorage.getItem('fp_user_mode')) {
+    FinanceService.initialize();
+    setupNavDate();
+    setupSidebar();
+    setupIntersectionObserver();
+    navigateTo('dashboard');
+  }
 
   // 4. Scroll listener para revelar cards
   window.addEventListener('scroll', revealOnScroll, { passive: true });

@@ -14,6 +14,20 @@
 const FinanceService = (() => {
 
   // ── CLAVES DE ALMACENAMIENTO ──────────────────────────────
+  const getUID = () => {
+    const mode = localStorage.getItem('fp_user_mode');
+    if (mode === 'guest') return 'local_guest'; // Siempre el mismo para invitados
+    return localStorage.getItem('fp_user_uid') || 'guest';
+  };
+  
+  const getK = (key) => {
+    const mode = localStorage.getItem('fp_user_mode');
+    // Para invitados, no usamos prefijo dinámico si queremos que sea estático
+    // Pero como pides que no se guarde nada "permanente" para ellos, 
+    // podemos usar un prefijo temporal o simplemente limpiar al entrar.
+    return `${getUID()}_${key}`;
+  };
+
   const KEYS = {
     TRANSACTIONS:   'fp_transactions',
     DEBTS:          'fp_debts',
@@ -24,15 +38,15 @@ const FinanceService = (() => {
   // ── HELPERS LOCALSTORAGE ──────────────────────────────────
   const ls = {
     get: (key) => {
-      try { return JSON.parse(localStorage.getItem(key)) || []; }
+      try { return JSON.parse(localStorage.getItem(getK(key))) || []; }
       catch { return []; }
     },
     set: (key, data) => {
-      try { localStorage.setItem(key, JSON.stringify(data)); return true; }
+      try { localStorage.setItem(getK(key), JSON.stringify(data)); return true; }
       catch { console.error('Error guardando en localStorage:', key); return false; }
     },
-    getBool: (key) => localStorage.getItem(key) === 'true',
-    setBool: (key, val) => localStorage.setItem(key, String(val))
+    getBool: (key) => localStorage.getItem(getK(key)) === 'true',
+    setBool: (key, val) => localStorage.setItem(getK(key), String(val))
   };
 
   // ── GENERADOR DE IDs ──────────────────────────────────────
@@ -151,15 +165,45 @@ const FinanceService = (() => {
   }
 
   // ══════════════════════════════════════════════════════════
-  //  INICIALIZACIÓN — Carga datos mock si es primera vez
+  //  INICIALIZACIÓN — Carga datos mock o migra si es primera vez
   // ══════════════════════════════════════════════════════════
   function initialize() {
-    if (!ls.getBool(KEYS.INITIALIZED)) {
+    const uid = getUID();
+    const mode = localStorage.getItem('fp_user_mode');
+    
+    // Si es invitado, SIEMPRE resetear a datos de demostración para que no guarde cambios
+    if (mode === 'guest') {
       ls.set(KEYS.TRANSACTIONS, MOCK_DATA.transactions);
       ls.set(KEYS.DEBTS, MOCK_DATA.debts);
       ls.set(KEYS.SAVINGS, MOCK_DATA.savings);
       ls.setBool(KEYS.INITIALIZED, true);
-      console.log('[FinanzApp] Datos de demostración cargados ✓');
+      console.log('[FinanzApp] Modo Invitado: Datos de demostración restaurados.');
+      return;
+    }
+
+    const isNewUser = !ls.getBool(KEYS.INITIALIZED);
+
+    if (isNewUser) {
+      // Intentar migrar desde el modo anterior (sin UID) si existe
+      const oldInit = localStorage.getItem('fp_initialized') === 'true';
+      if (oldInit && uid !== 'guest') {
+        const oldTx = JSON.parse(localStorage.getItem('fp_transactions')) || [];
+        const oldDebts = JSON.parse(localStorage.getItem('fp_debts')) || [];
+        const oldSav = JSON.parse(localStorage.getItem('fp_savings')) || [];
+        
+        ls.set(KEYS.TRANSACTIONS, oldTx);
+        ls.set(KEYS.DEBTS, oldDebts);
+        ls.set(KEYS.SAVINGS, oldSav);
+        ls.setBool(KEYS.INITIALIZED, true);
+        console.log('[FinanzApp] Datos migrados de local a cuenta ✓');
+      } else {
+        // Carga mock inicial
+        ls.set(KEYS.TRANSACTIONS, MOCK_DATA.transactions);
+        ls.set(KEYS.DEBTS, MOCK_DATA.debts);
+        ls.set(KEYS.SAVINGS, MOCK_DATA.savings);
+        ls.setBool(KEYS.INITIALIZED, true);
+        console.log('[FinanzApp] Datos de demostración cargados ✓');
+      }
     }
   }
 

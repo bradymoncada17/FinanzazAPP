@@ -13,6 +13,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+<!-- FIREBASE SDK (COMPAT) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
 <style>
 :root{
   --fp-primary:#1a56db;--fp-primary-dk:#1242b4;--fp-primary-lt:#e8effd;
@@ -29,6 +34,69 @@
   --sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);
   --sh-lg:0 8px 32px rgba(0,0,0,.1),0 2px 8px rgba(0,0,0,.06);
 }
+/* LOGIN SCREEN */
+#view-login {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%);
+}
+.login-box {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: lIn .6s cubic-bezier(.4,0,.2,1);
+}
+@keyframes lIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.login-logo {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #4f46e5, #2563eb);
+  border-radius: 20px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 32px;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+}
+.login-title { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -1px; margin-bottom: 8px; }
+.login-sub { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 32px; font-weight: 500; }
+.btn-social {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all .2s;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.btn-social:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
+.btn-google { background: #fff; color: #1f2937; border: none; }
+.btn-google:hover { background: #f3f4f6; color: #000; }
+.btn-apple { background: #000; color: #fff; border: none; }
+.btn-apple:hover { background: #1a1a1a; }
+
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:var(--fp-text);margin:0;overflow-x:hidden;font-size:14px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
@@ -486,10 +554,40 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 }
 </style>
 </head>
-<body>
+<body class="is-loading">
+
+<!-- PANTALLA DE LOGIN -->
+<div id="view-login">
+  <div class="login-box">
+    <div class="login-logo"><i class="bi bi-wallet2"></i></div>
+    <h1 class="login-title">FinanzApp Pro</h1>
+    <p class="login-sub">Gestiona tu dinero con inteligencia</p>
+    
+    <button class="btn-social btn-google" onclick="loginWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.8 2.73v2.27h2.9c1.7-1.57 2.7-3.88 2.7-6.63z" fill="#4285F4"/>
+        <path d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.9-2.27c-.8.54-1.83.87-3.06.87-2.35 0-4.33-1.58-5.04-3.71H.95v2.35C2.43 16.07 5.51 18 9 18z" fill="#34A853"/>
+        <path d="M3.96 10.72c-.18-.54-.28-1.12-.28-1.72s.1-1.18.28-1.72V4.93H.95C.35 6.15 0 7.53 0 9s.35 2.85.95 4.07l3.01-2.35z" fill="#FBBC05"/>
+        <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.51 0 2.43 1.93.95 4.93l3.01 2.35c.71-2.13 2.69-3.71 5.04-3.71z" fill="#EA4335"/>
+      </svg>
+      Continuar con Google
+    </button>
+    
+    <div style="margin: 20px 0; color: rgba(255,255,255,0.2); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">O</div>
+    
+    <button class="btn-social" onclick="loginGuest()">
+      <i class="bi bi-person-fill"></i>
+      Modo Invitado (Local)
+    </button>
+
+    <p style="margin-top: 32px; font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 500;">
+      Tu privacidad es nuestra prioridad. <br> Google Login es 100% gratuito.
+    </p>
+  </div>
+</div>
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg fp-navbar fixed-top">
+<nav class="navbar navbar-expand-lg fp-navbar fixed-top d-none" id="mainNav">
   <div class="container-fluid px-3">
     <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="#" onclick="navigateTo('dashboard');return false">
       <div class="brand-icon"><i class="bi bi-wallet2"></i></div>
@@ -509,6 +607,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
     </div>
     <div class="d-none d-lg-flex align-items-center gap-2 ms-auto">
       <div class="fp-date-chip"><i class="bi bi-calendar3"></i><span id="navDate">--</span></div>
+      
+      <!-- PERFIL DE USUARIO -->
+      <div id="userProfileNav" class="d-none align-items-center gap-2 px-2 py-1" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:50px;margin-left:8px">
+        <img id="userPhoto" src="" width="28" height="28" style="border-radius:50%;border:1.5px solid var(--fp-primary)" alt="U"/>
+        <span id="userName" style="font-size:12px;font-weight:600;color:rgba(255,255,255,.9);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">--</span>
+      </div>
+
       <div class="dropdown">
         <button class="btn dropdown-toggle" style="color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 11px;font-size:13px" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
         <ul class="dropdown-menu dropdown-menu-end fp-dropdown">
@@ -522,7 +627,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
           <li id="installMenuItem" style="display:none"><hr class="dropdown-divider"/></li>
           <li id="installBtnWrapper" style="display:none"><a class="dropdown-item text-primary fw-bold" href="#" id="pwaInstallBtn"><i class="bi bi-pc-display me-2"></i>Instalar en PC</a></li>
           <li><hr class="dropdown-divider"/></li>
-          <li><a class="dropdown-item text-danger" href="#" onclick="clearAllData();return false"><i class="bi bi-trash3 me-2"></i>Borrar datos</a></li>
+          <li><a class="dropdown-item text-danger fw-bold" href="#" onclick="logout();return false"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></li>
+          <li><hr class="dropdown-divider"/></li>
+          <li><a class="dropdown-item text-danger" href="#" onclick="clearAllData();return false" style="opacity:0.5;font-size:11px"><i class="bi bi-trash3 me-2"></i>Borrar datos locales</a></li>
         </ul>
       </div>
       <input type="file" id="importFile" accept=".json" class="d-none" onchange="importData(event)"/>
@@ -531,7 +638,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 </nav>
 
 <!-- BARRA SALDO MOBILE -->
-<div class="saldo-bar-mobile" id="saldoBarMobile" style="position:fixed;top:var(--navbar-h);left:0;right:0;z-index:1045">
+<div class="saldo-bar-mobile d-none" id="saldoBarMobile" style="position:fixed;top:var(--navbar-h);left:0;right:0;z-index:1045">
   <div class="saldo-grid">
     <div class="saldo-item">
       <div class="saldo-item-label">Saldo Libre</div>
@@ -548,7 +655,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   </div>
 </div>
 
-<div class="fp-layout" id="fpLayout">
+<div class="fp-layout d-none" id="fpLayout">
   <aside class="fp-sidebar" id="fpSidebar">
     <div class="sidebar-inner">
       <div class="nav-section-label">Principal</div>
@@ -919,6 +1026,24 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="col-lg-5">
           <div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-shield-check-fill text-success"></i> Estado</div></div><div class="fp-card-body"><div id="syncDetailStatus"><div class="empty-state">Sin configurar</div></div></div></div>
           <div class="fp-card mt-3"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-arrow-down-up"></i> Respaldo local</div></div><div class="fp-card-body"><div class="d-flex gap-2 flex-wrap"><button class="btn fp-btn-ghost fp-btn-sm" onclick="exportData()"><i class="bi bi-download me-1"></i>Exportar</button><button class="btn fp-btn-ghost fp-btn-sm" onclick="document.getElementById('importFile').click()"><i class="bi bi-upload me-1"></i>Importar</button></div></div></div>
+          
+          <!-- PANEL ADMINISTRADOR (WHITELIST) -->
+          <div class="fp-card mt-3 d-none" id="adminWhitelistPanel">
+            <div class="fp-card-header">
+              <div class="fp-card-title"><i class="bi bi-shield-lock-fill text-primary"></i> Gestión de Usuarios</div>
+              <span class="fp-badge fp-badge-blue">Admin</span>
+            </div>
+            <div class="fp-card-body">
+              <p class="small text-muted mb-3">Como administrador, puedes gestionar quién tiene acceso a la aplicación.</p>
+              <div class="d-flex gap-2 mb-3">
+                <input type="email" class="fp-input" id="newWhitelistEmail" placeholder="correo@gmail.com"/>
+                <button class="btn fp-btn-primary btn-sm" onclick="addToWhitelist()"><i class="bi bi-plus-lg"></i></button>
+              </div>
+              <div id="whitelistContainer" class="d-flex flex-column gap-2">
+                <!-- Lista de correos -->
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1487,15 +1612,27 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastStack" style="z-index:9999"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<script>
 // ══════════════════════════════════════════════════════
 //  STORAGE
 // ══════════════════════════════════════════════════════
 var KEYS={TX:'fp_tx',DEBTS:'fp_debts',SAV:'fp_sav',CLIENTS:'fp_clients',INIT:'fp_init',CATS_DATA:'fp_categories',GIST_TOKEN:'fp_gt',GIST_ID:'fp_gi',SYNC_DATE:'fp_sd'};
-function lsGet(k){try{return JSON.parse(localStorage.getItem(k))||[];}catch(e){return[];}}
-function lsSet(k,d){try{localStorage.setItem(k,JSON.stringify(d));}catch(e){}}
-function lsGetStr(k){return localStorage.getItem(k)||'';}
+
+function getUID() {
+  var mode = localStorage.getItem('fp_user_mode');
+  if (mode === 'guest') return 'local_guest';
+  return localStorage.getItem('fp_user_uid') || 'guest';
+}
+
+function getK(key) {
+  return getUID() + '_' + key;
+}
+
+function lsGet(k){try{return JSON.parse(localStorage.getItem(getK(k)))||[];}catch(e){return[];}}
+function lsSet(k,d){try{localStorage.setItem(getK(k),JSON.stringify(d));}catch(e){}}
+function lsGetStr(k){return localStorage.getItem(getK(k))||'';}
 function genId(){return 'fp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
 function today(){return new Date().toISOString().split('T')[0];}
 function dMinus(n){var d=new Date();d.setDate(d.getDate()-n);return d.toISOString().split('T')[0];}
@@ -1950,8 +2087,58 @@ function navigateTo(view){
   if(view==='savings')renderSavings();
   if(view==='historial')initHistorial();
   if(view==='categorias')renderCategorias();
-  if(view==='config')loadGistConfigToUI();
+  if(view==='config') {
+    loadGistConfigToUI();
+    renderAdminPanel();
+  }
   if(view==='about')renderAbout();
+}
+
+function renderAdminPanel() {
+  var panel = document.getElementById('adminWhitelistPanel');
+  if (!panel) return;
+  var role = localStorage.getItem('fp_user_role');
+  if (role === 'admin') {
+    panel.classList.remove('d-none');
+    renderWhitelist();
+  } else {
+    panel.classList.add('d-none');
+  }
+}
+
+function renderWhitelist() {
+  var container = document.getElementById('whitelistContainer');
+  if (!container) return;
+  var list = getAuthWhitelist();
+  container.innerHTML = list.map(function(email) {
+    var isAdmin = email.toLowerCase() === AUTH_ADMIN.toLowerCase();
+    return '<div class="d-flex justify-content-between align-items-center p-2" style="background:var(--fp-surface2);border-radius:8px">'
+      +'<span style="font-size:12.5px;'+(isAdmin?'font-weight:700;color:var(--fp-primary)':'')+'">'+esc(email)+(isAdmin?' <i class="bi bi-patch-check-fill"></i>':'')+'</span>'
+      +(isAdmin ? '' : '<button class="btn btn-link text-danger p-0" onclick="removeFromWhitelist(\''+email+'\')"><i class="bi bi-trash3"></i></button>')
+      +'</div>';
+  }).join('');
+}
+
+function addToWhitelist() {
+  var input = document.getElementById('newWhitelistEmail');
+  var email = input.value.trim().toLowerCase();
+  if (!email || !email.includes('@')) { showToast("Ingresa un correo válido", "danger"); return; }
+  var list = getAuthWhitelist();
+  if (list.indexOf(email) >= 0) { showToast("Este correo ya está en la lista", "warning"); return; }
+  list.push(email);
+  saveAuthWhitelist(list);
+  input.value = '';
+  renderWhitelist();
+  showToast("Usuario autorizado ✓", "success");
+}
+
+function removeFromWhitelist(email) {
+  if (!confirm("¿Eliminar a " + email + " de la lista de acceso?")) return;
+  var list = getAuthWhitelist();
+  list = list.filter(function(e) { return e.toLowerCase() !== email.toLowerCase(); });
+  saveAuthWhitelist(list);
+  renderWhitelist();
+  showToast("Usuario eliminado", "warning");
 }
 
 function renderAbout(){
@@ -3696,11 +3883,205 @@ function imprimirPlanPagos(id){
 
 
 // ══════════════════════════════════════════════════════
+//  FIREBASE & AUTH
+// ══════════════════════════════════════════════════════
+var AUTH_ADMIN = "bradymoncada17@gmail.com";
+var KEYS_GLOBAL = {
+  WHITELIST: 'fp_global_whitelist'
+};
+
+function getAuthWhitelist() {
+  var stored = localStorage.getItem(KEYS_GLOBAL.WHITELIST);
+  if (stored) {
+    try { return JSON.parse(stored); } catch(e) { return [AUTH_ADMIN]; }
+  }
+  return [AUTH_ADMIN];
+}
+
+function saveAuthWhitelist(list) {
+  localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(list));
+}
+
+var firebaseConfig = { 
+   apiKey: "AIzaSyCe-v-njKfLTu2UtIlQvYNCEHKULURJ43g", 
+   authDomain: "finanzapp-pro.firebaseapp.com", 
+   projectId: "finanzapp-pro", 
+   storageBucket: "finanzapp-pro.firebasestorage.app", 
+   messagingSenderId: "287718453988", 
+   appId: "1:287718453988:web:87d291da075d3fba6472f1" 
+}; 
+
+// Inicializar Firebase con reintentos si es necesario
+function initFirebase() {
+  if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "TU_API_KEY") {
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        console.log("Firebase inicializado correctamente.");
+      }
+      setupAuthObserver(); // Configurar el observador una vez inicializado
+    } catch (e) {
+      console.error("Error al inicializar Firebase:", e);
+    }
+  } else {
+    console.log("Esperando SDK de Firebase o configuración pendiente... Reintentando en 1s");
+    setTimeout(initFirebase, 1000);
+  }
+}
+
+// Iniciar proceso de carga
+window.addEventListener('load', initFirebase);
+
+function loginWithGoogle() {
+  if (firebaseConfig.apiKey === "TU_API_KEY") {
+    showToast("Configura Firebase en el código para usar Google Login", "warning");
+    return;
+  }
+  
+  // Verificar si el SDK está cargado
+  if (typeof firebase === 'undefined' || !firebase.auth) {
+    showToast("Error: El SDK de Firebase no se ha cargado. Revisa tu conexión a internet o los bloqueadores de anuncios.", "danger");
+    console.error("Firebase SDK not found. Check network/blocked scripts.");
+    return;
+  }
+  
+  var provider = new firebase.auth.GoogleAuthProvider();
+  showToast("Abriendo ventana de Google...", "info");
+  
+  firebase.auth().signInWithPopup(provider)
+    .then(function(result) {
+      showToast("Bienvenido " + (result.user.displayName || ""), "success");
+    })
+    .catch(function(e) {
+      console.error("Error en login:", e);
+      if (e.code === 'auth/popup-blocked') {
+        showToast("Error: Ventana emergente bloqueada. Por favor, actívala en tu navegador.", "danger");
+      } else {
+        showToast("Error en login: " + e.message, "danger");
+      }
+    });
+}
+
+function loginGuest() {
+  localStorage.setItem('fp_user_mode', 'guest');
+  localStorage.setItem('fp_user_uid', 'local_guest');
+  showToast("Entrando como invitado (Datos locales)", "info");
+  initAppSession();
+}
+
+function logout() {
+  localStorage.removeItem('fp_user_mode');
+  localStorage.removeItem('fp_user_uid');
+  try {
+    if (typeof firebase !== 'undefined' && firebase.auth && firebaseConfig.apiKey !== "TU_API_KEY") {
+      firebase.auth().signOut().then(function() {
+        location.reload();
+      }).catch(function(e) {
+        console.error("Error signing out:", e);
+        location.reload();
+      });
+    } else {
+      location.reload();
+    }
+  } catch (e) { 
+    console.error("Exception in logout:", e);
+    location.reload();
+  }
+}
+
+function initAppSession() {
+  document.getElementById('view-login').classList.add('d-none');
+  document.getElementById('mainNav').classList.remove('d-none');
+  document.getElementById('fpLayout').classList.remove('d-none');
+  if (window.innerWidth <= 768) document.getElementById('saldoBarMobile').classList.remove('d-none');
+  document.body.classList.remove('is-loading');
+  
+  // Mostrar perfil si es modo auth
+  var mode = localStorage.getItem('fp_user_mode');
+  var userProfile = document.getElementById('userProfileNav');
+  if (mode === 'auth' && typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+    var user = firebase.auth().currentUser;
+    if (userProfile) {
+      userProfile.classList.add('d-flex');
+      userProfile.classList.remove('d-none');
+      document.getElementById('userPhoto').src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'U');
+      document.getElementById('userName').textContent = (user.displayName || "").split(' ')[0];
+    }
+    showToast("¡Bienvenido de nuevo, " + (user.displayName || "Usuario") + "! 👋", "success");
+  } else {
+    if (userProfile) userProfile.classList.add('d-none');
+    if (mode === 'guest') {
+      showToast("Bienvenido, Invitado. Estás en modo de solo lectura local. 👋", "info");
+    }
+  }
+
+  // Re-inicializar datos con el prefijo del usuario
+  FinanceService.initialize();
+  updateChips();
+  navigateTo('dashboard');
+}
+
+// Observador de estado de Auth
+function setupAuthObserver() {
+  if (typeof firebase !== 'undefined' && firebase.auth && firebaseConfig.apiKey !== "TU_API_KEY") {
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+          // Verificar si el correo está en la lista blanca
+          var userEmail = (user.email || "").toLowerCase();
+          var currentWhitelist = getAuthWhitelist();
+          var isAuthorized = currentWhitelist.some(function(email) {
+            return email.toLowerCase() === userEmail;
+          });
+
+        if (isAuthorized) {
+          localStorage.setItem('fp_user_mode', 'auth');
+          localStorage.setItem('fp_user_uid', user.uid);
+          // Marcar si es admin
+          if (userEmail === AUTH_ADMIN.toLowerCase()) {
+            localStorage.setItem('fp_user_role', 'admin');
+          } else {
+            localStorage.removeItem('fp_user_role');
+          }
+          initAppSession();
+        } else {
+          // No autorizado: cerrar sesión y mostrar error
+          showToast("Acceso denegado: Tu correo (" + userEmail + ") no está autorizado.", "danger");
+          firebase.auth().signOut();
+          localStorage.removeItem('fp_user_mode');
+          localStorage.removeItem('fp_user_uid');
+          document.getElementById('view-login').classList.remove('d-none');
+          document.body.classList.remove('is-loading');
+        }
+      } else {
+        if (localStorage.getItem('fp_user_mode') !== 'guest') {
+          document.getElementById('view-login').classList.remove('d-none');
+          document.body.classList.remove('is-loading');
+        } else {
+          initAppSession();
+        }
+      }
+    });
+  } else {
+    // Si no hay Firebase o SDK, mostrar login para modo invitado
+    window.addEventListener('DOMContentLoaded', function() {
+      if (localStorage.getItem('fp_user_mode') === 'guest') {
+        initAppSession();
+      } else {
+        document.getElementById('view-login').classList.remove('d-none');
+        document.body.classList.remove('is-loading');
+      }
+    });
+  }
+}
+
+function lsGetStr(k){return localStorage.getItem(k)||'';}
+
+// ══════════════════════════════════════════════════════
 //  GIST SYNC
 // ══════════════════════════════════════════════════════
 function getGistToken(){return lsGetStr(KEYS.GIST_TOKEN);}
 function getGistId(){return lsGetStr(KEYS.GIST_ID);}
-function saveGistConfig(){var token=document.getElementById('gistToken').value.trim();var id=document.getElementById('gistId').value.trim();if(!token){showToast('Ingresa el token','danger');return;}localStorage.setItem(KEYS.GIST_TOKEN,token);localStorage.setItem(KEYS.GIST_ID,id);updateSyncMiniStatus();var badge=document.getElementById('gistStatusBadge');if(badge){badge.textContent='Configurado';badge.className='fp-badge fp-badge-green';}gistLog('✅ Config guardada.');showToast('Configuración guardada ✓','success');}
+function saveGistConfig(){var token=document.getElementById('gistToken').value.trim();var id=document.getElementById('gistId').value.trim();if(!token){showToast('Ingresa el token','danger');return;}localStorage.setItem(getK(KEYS.GIST_TOKEN),token);localStorage.setItem(getK(KEYS.GIST_ID),id);updateSyncMiniStatus();var badge=document.getElementById('gistStatusBadge');if(badge){badge.textContent='Configurado';badge.className='fp-badge fp-badge-green';}gistLog('✅ Config guardada.');showToast('Configuración guardada ✓','success');}
 function loadGistConfigToUI(){var t=document.getElementById('gistToken');var g=document.getElementById('gistId');if(t)t.value=getGistToken();if(g)g.value=getGistId();var badge=document.getElementById('gistStatusBadge');if(badge){if(getGistToken()){badge.textContent='Configurado';badge.className='fp-badge fp-badge-green';}else{badge.textContent='Sin configurar';badge.className='fp-badge fp-badge-gray';}}updateSyncDetailStatus();}
 function gistLog(msg){var el=document.getElementById('gistLog');if(el)el.innerHTML='<i class="bi bi-clock-history me-1"></i>'+msg;}
 function updateSyncMiniStatus(){var el=document.getElementById('syncStatusMini');if(!el)return;var token=getGistToken(),gid=getGistId(),syncDate=lsGetStr(KEYS.SYNC_DATE);if(!token){el.innerHTML='<i class="bi bi-circle-fill" style="color:#fbbf24;font-size:7px"></i><span>Sin configurar nube</span>';return;}if(!gid){el.innerHTML='<i class="bi bi-circle-fill" style="color:#fbbf24;font-size:7px"></i><span>Token ok · Sin Gist</span>';return;}el.innerHTML='<i class="bi bi-circle-fill" style="color:#68d391;font-size:7px"></i><span>'+(syncDate?'Sync: '+syncDate:'Nunca sincronizado')+'</span>';}
