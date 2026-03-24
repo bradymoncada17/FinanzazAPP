@@ -1885,21 +1885,59 @@ function openClienteModal(id){
   }
   new bootstrap.Modal(document.getElementById('modalCliente')).show();
 }
-function saveCliente(){
-  var id=document.getElementById('clienteEditId').value;var name=document.getElementById('clienteNombre').value.trim();
-  if(!name){showToast('El nombre es obligatorio','danger');return;}
-  var all=lsGet(KEYS.CLIENTS);
-  if(id){
-    var idx=all.findIndex(function(x){return x.id===id;});if(idx<0)return;
-    all[idx].nombre=name;all[idx].telefono=document.getElementById('clienteTel').value.trim();
-    all[idx].cedula=document.getElementById('clienteCedula').value.trim();all[idx].email=document.getElementById('clienteEmail').value.trim();
-    all[idx].notas=document.getElementById('clienteNotas').value.trim();
-    lsSet(KEYS.CLIENTS,all);showToast('Cliente actualizado ✓','success');
-  } else {
-    all.push({id:genId(),nombre:name,telefono:document.getElementById('clienteTel').value.trim(),cedula:document.getElementById('clienteCedula').value.trim(),email:document.getElementById('clienteEmail').value.trim(),notas:document.getElementById('clienteNotas').value.trim()});
-    lsSet(KEYS.CLIENTS,all);showToast('Cliente registrado ✓','success');
+async function saveCliente(){
+
+  var id = document.getElementById('clienteEditId').value;
+  var name = document.getElementById('clienteNombre').value.trim();
+
+  if(name === ""){
+    showToast('El nombre es obligatorio','danger');
+    document.getElementById('clienteNombre').focus();
+    return;
   }
-  bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();renderClientes();rebuildClienteSelect();
+
+  var all = await lsGet(KEYS.CLIENTS);
+
+  if(!Array.isArray(all)){
+    all = [];
+  }
+
+  if(id){
+
+    var idx = all.findIndex(function(x){return x.id === id;});
+    if(idx < 0) return;
+
+    all[idx].nombre = name;
+    all[idx].telefono = document.getElementById('clienteTel').value.trim();
+    all[idx].cedula = document.getElementById('clienteCedula').value.trim();
+    all[idx].email = document.getElementById('clienteEmail').value.trim();
+    all[idx].notas = document.getElementById('clienteNotas').value.trim();
+
+    await lsSet(KEYS.CLIENTS, all);
+
+    showToast('Cliente actualizado ✓','success');
+
+  } else {
+
+    all.push({
+      id: genId(),
+      nombre: name,
+      telefono: document.getElementById('clienteTel').value.trim(),
+      cedula: document.getElementById('clienteCedula').value.trim(),
+      email: document.getElementById('clienteEmail').value.trim(),
+      notas: document.getElementById('clienteNotas').value.trim()
+    });
+
+    await lsSet(KEYS.CLIENTS, all);
+
+    showToast('Cliente registrado ✓','success');
+  }
+
+  bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
+
+  renderClientes();
+  rebuildClienteSelect();
+
 }
 function deleteCliente(id){if(!confirm('¿Eliminar este cliente? Se borrará su historial.'))return;lsSet(KEYS.CLIENTS,lsGet(KEYS.CLIENTS).filter(function(x){return x.id!==id;}));renderClientes();rebuildClienteSelect();showToast('Cliente eliminado','warning');}
 function rebuildClienteSelect(){
@@ -3391,16 +3429,44 @@ function openClienteModal(editId){
 }
 
 function saveCliente(){
-  var editId=document.getElementById('cliEditId').value;
-  var nombre=document.getElementById('cliNombre').value.trim();
-  if(!nombre){showToast('El nombre es obligatorio','danger');return;}
-  var all=getClientes();
-  var cli={id:editId||genId(),nombre:nombre,telefono:document.getElementById('cliTelefono').value.trim(),documento:document.getElementById('cliDocumento').value.trim(),direccion:document.getElementById('cliDireccion').value.trim(),notas:document.getElementById('cliNotas').value.trim()};
-  if(editId){var idx=all.findIndex(function(c){return c.id===editId;});if(idx>=0)all[idx]=cli;else all.push(cli);}
-  else all.push(cli);
+
+  var editId = document.getElementById('cliEditId').value;
+
+  var inputNombre = document.getElementById('cliNombre');
+  var nombre = inputNombre ? inputNombre.value.trim() : "";
+
+  if(nombre === ""){
+    showToast('El nombre es obligatorio','danger');
+    inputNombre.focus();
+    return;
+  }
+
+  var all = getClientes();
+
+  var cli = {
+    id: editId || genId(),
+    nombre: nombre,
+    telefono: document.getElementById('cliTelefono').value.trim(),
+    documento: document.getElementById('cliDocumento').value.trim(),
+    direccion: document.getElementById('cliDireccion').value.trim(),
+    notas: document.getElementById('cliNotas').value.trim()
+  };
+
+  if(editId){
+    var idx = all.findIndex(function(c){return c.id===editId;});
+    if(idx>=0) all[idx]=cli;
+    else all.push(cli);
+  } else {
+    all.push(cli);
+  }
+
   setClientes(all);
+
   bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
-  renderClientes();rebuildClienteSelect();
+
+  renderClientes();
+  rebuildClienteSelect();
+
   showToast((editId?'Cliente actualizado':'Cliente registrado')+' ✓','success');
 }
 
@@ -3881,11 +3947,9 @@ function imprimirPlanPagos(id){
   win.document.close();
 }
 // ══════════════════════════════════════════════════════
-// FIREBASE & AUTH
+//  FIREBASE & AUTH
 // ══════════════════════════════════════════════════════
-
 var AUTH_ADMIN = "bradymoncada17@gmail.com";
-
 var KEYS_GLOBAL = {
   WHITELIST: 'fp_global_whitelist'
 };
@@ -3893,11 +3957,7 @@ var KEYS_GLOBAL = {
 function getAuthWhitelist() {
   var stored = localStorage.getItem(KEYS_GLOBAL.WHITELIST);
   if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch(e) {
-      return [AUTH_ADMIN];
-    }
+    try { return JSON.parse(stored); } catch(e) { return [AUTH_ADMIN]; }
   }
   return [AUTH_ADMIN];
 }
@@ -3906,180 +3966,114 @@ function saveAuthWhitelist(list) {
   localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(list));
 }
 
-var firebaseConfig = {
-  apiKey: "AIzaSyCe-v-njKfLTu2UtIlQvYNCEHKULURJ43g",
-  authDomain: "finanzapp-pro.firebaseapp.com",
-  projectId: "finanzapp-pro",
-  storageBucket: "finanzapp-pro.firebasestorage.app",
-  messagingSenderId: "287718453988",
-  appId: "1:287718453988:web:87d291da075d3fba6472f1"
-};
+var firebaseConfig = { 
+   apiKey: "AIzaSyCe-v-njKfLTu2UtIlQvYNCEHKULURJ43g", 
+   authDomain: "finanzapp-pro.firebaseapp.com", 
+   projectId: "finanzapp-pro", 
+   storageBucket: "finanzapp-pro.firebasestorage.app", 
+   messagingSenderId: "287718453988", 
+   appId: "1:287718453988:web:87d291da075d3fba6472f1" 
+}; 
 
 // Inicializar Firebase con reintentos si es necesario
 function initFirebase() {
-
   if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "TU_API_KEY") {
-
     try {
-
       if (!firebase.apps.length) {
-
         firebase.initializeApp(firebaseConfig);
-
-        // Inicializar Firestore
-        window.db = firebase.firestore();
-
         console.log("Firebase inicializado correctamente.");
-
       }
-
       setupAuthObserver(); // Configurar el observador una vez inicializado
-
     } catch (e) {
-
       console.error("Error al inicializar Firebase:", e);
-
     }
-
   } else {
-
     console.log("Esperando SDK de Firebase o configuración pendiente... Reintentando en 1s");
-
     setTimeout(initFirebase, 1000);
-
   }
-
 }
 
 // Iniciar proceso de carga
 window.addEventListener('load', initFirebase);
 
 function loginWithGoogle() {
-
   if (firebaseConfig.apiKey === "TU_API_KEY") {
     showToast("Configura Firebase en el código para usar Google Login", "warning");
     return;
   }
-
+  
   // Verificar si el SDK está cargado
   if (typeof firebase === 'undefined' || !firebase.auth) {
     showToast("Error: El SDK de Firebase no se ha cargado. Revisa tu conexión a internet o los bloqueadores de anuncios.", "danger");
     console.error("Firebase SDK not found. Check network/blocked scripts.");
     return;
   }
-
+  
   var provider = new firebase.auth.GoogleAuthProvider();
-
   showToast("Abriendo ventana de Google...", "info");
-
+  
   firebase.auth().signInWithPopup(provider)
-
     .then(function(result) {
-
       showToast("Bienvenido " + (result.user.displayName || ""), "success");
-
     })
-
     .catch(function(e) {
-
       console.error("Error en login:", e);
-
       if (e.code === 'auth/popup-blocked') {
-
         showToast("Error: Ventana emergente bloqueada. Por favor, actívala en tu navegador.", "danger");
-
       } else {
-
         showToast("Error en login: " + e.message, "danger");
-
       }
-
     });
 }
 
 function loginGuest() {
-
   localStorage.setItem('fp_user_mode', 'guest');
   localStorage.setItem('fp_user_uid', 'local_guest');
-
   showToast("Entrando como invitado (Datos locales)", "info");
-
   initAppSession();
 }
 
 function logout() {
-
   localStorage.removeItem('fp_user_mode');
   localStorage.removeItem('fp_user_uid');
-
   try {
-
     if (typeof firebase !== 'undefined' && firebase.auth && firebaseConfig.apiKey !== "TU_API_KEY") {
-
-      firebase.auth().signOut()
-
-        .then(function() {
-          location.reload();
-        })
-
-        .catch(function(e) {
-          console.error("Error signing out:", e);
-          location.reload();
-        });
-
+      firebase.auth().signOut().then(function() {
+        location.reload();
+      }).catch(function(e) {
+        console.error("Error signing out:", e);
+        location.reload();
+      });
     } else {
-
       location.reload();
-
     }
-
-  } catch (e) {
-
+  } catch (e) { 
     console.error("Exception in logout:", e);
     location.reload();
-
   }
 }
 
 function initAppSession() {
-
   document.getElementById('view-login').classList.add('d-none');
   document.getElementById('mainNav').classList.remove('d-none');
   document.getElementById('fpLayout').classList.remove('d-none');
-
-  if (window.innerWidth <= 768)
-    document.getElementById('saldoBarMobile').classList.remove('d-none');
-
+  if (window.innerWidth <= 768) document.getElementById('saldoBarMobile').classList.remove('d-none');
   document.body.classList.remove('is-loading');
-
+  
   // Mostrar perfil si es modo auth
   var mode = localStorage.getItem('fp_user_mode');
   var userProfile = document.getElementById('userProfileNav');
-
   if (mode === 'auth' && typeof firebase !== 'undefined' && firebase.auth().currentUser) {
-
     var user = firebase.auth().currentUser;
-
     if (userProfile) {
-
       userProfile.classList.add('d-flex');
       userProfile.classList.remove('d-none');
-
-      document.getElementById('userPhoto').src =
-        user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'U');
-
-      document.getElementById('userName').textContent =
-        (user.displayName || "").split(' ')[0];
-
+      document.getElementById('userPhoto').src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'U');
+      document.getElementById('userName').textContent = (user.displayName || "").split(' ')[0];
     }
-
     showToast("¡Bienvenido de nuevo, " + (user.displayName || "Usuario") + "! 👋", "success");
-
   } else {
-
-    if (userProfile)
-      userProfile.classList.add('d-none');
-
+    if (userProfile) userProfile.classList.add('d-none');
     if (mode === 'guest') {
       showToast("Bienvenido, Invitado. Estás en modo de solo lectura local. 👋", "info");
     }
@@ -4087,89 +4081,60 @@ function initAppSession() {
 
   // Re-inicializar datos con el prefijo del usuario
   FinanceService.initialize();
-
   updateChips();
   navigateTo('dashboard');
 }
 
 // Observador de estado de Auth
 function setupAuthObserver() {
-
   if (typeof firebase !== 'undefined' && firebase.auth && firebaseConfig.apiKey !== "TU_API_KEY") {
-
     firebase.auth().onAuthStateChanged(function(user) {
-
       if (user) {
-
-        // Verificar si el correo está en la lista blanca
-        var userEmail = (user.email || "").toLowerCase();
-        var currentWhitelist = getAuthWhitelist();
-
-        var isAuthorized = currentWhitelist.some(function(email) {
-          return email.toLowerCase() === userEmail;
-        });
+          // Verificar si el correo está en la lista blanca
+          var userEmail = (user.email || "").toLowerCase();
+          var currentWhitelist = getAuthWhitelist();
+          var isAuthorized = currentWhitelist.some(function(email) {
+            return email.toLowerCase() === userEmail;
+          });
 
         if (isAuthorized) {
-
           localStorage.setItem('fp_user_mode', 'auth');
           localStorage.setItem('fp_user_uid', user.uid);
-
           // Marcar si es admin
           if (userEmail === AUTH_ADMIN.toLowerCase()) {
             localStorage.setItem('fp_user_role', 'admin');
           } else {
             localStorage.removeItem('fp_user_role');
           }
-
           initAppSession();
-
         } else {
-
           // No autorizado: cerrar sesión y mostrar error
           showToast("Acceso denegado: Tu correo (" + userEmail + ") no está autorizado.", "danger");
-
           firebase.auth().signOut();
-
           localStorage.removeItem('fp_user_mode');
           localStorage.removeItem('fp_user_uid');
-
           document.getElementById('view-login').classList.remove('d-none');
           document.body.classList.remove('is-loading');
-
         }
-
       } else {
-
         // SIEMPRE mostrar login al refrescar si no hay usuario de Firebase
         // Incluso si estaba en modo invitado antes
-
         localStorage.removeItem('fp_user_mode');
         localStorage.removeItem('fp_user_uid');
-
         document.getElementById('view-login').classList.remove('d-none');
         document.body.classList.remove('is-loading');
-
       }
-
     });
-
   } else {
-
     // Si no hay Firebase o SDK configurado, mostrar login
     window.addEventListener('DOMContentLoaded', function() {
-
       document.getElementById('view-login').classList.remove('d-none');
       document.body.classList.remove('is-loading');
-
     });
-
   }
 }
 
-function lsGetStr(k){
-  return localStorage.getItem(k)||'';
-}
-
+function lsGetStr(k){return localStorage.getItem(k)||'';}
 
 
 // ══════════════════════════════════════════════════════
