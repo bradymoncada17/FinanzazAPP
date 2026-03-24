@@ -1819,7 +1819,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 // ══════════════════════════════════════════════════════
 //  STORAGE
 // ══════════════════════════════════════════════════════
-var KEYS={TX:'fp_tx',DEBTS:'fp_debts',SAV:'fp_sav',CLIENTS:'fp_clients',INIT:'fp_init',CATS_DATA:'fp_categories',GIST_TOKEN:'fp_gt',GIST_ID:'fp_gi',SYNC_DATE:'fp_sd'};
+var KEYS={TX:'fp_tx',DEBTS:'fp_debts',SAV:'fp_sav',CLIENTS:'fp_clients',INIT:'fp_init',CATS_DATA:'fp_categories',GIST_TOKEN:'fp_gt',GIST_ID:'fp_gi',SYNC_DATE:'fp_sd',CONCEPTOS:'fp_conceptos',LAST_VIEW:'fp_last_view'};
 
 function getUID() {
   var mode = localStorage.getItem('fp_user_mode');
@@ -1965,7 +1965,8 @@ var DEFAULT_CONCEPTOS={
 };
 function getConceptos(cat){
   try{
-    var stored=localStorage.getItem('fp_conceptos');
+    var stored=localStorage.getItem(getK(KEYS.CONCEPTOS));
+    if(!stored)stored=localStorage.getItem('fp_conceptos');
     var all=stored?JSON.parse(stored):{};
     var custom=all[cat]||[];
     var defaults=DEFAULT_CONCEPTOS[cat]||[];
@@ -1976,19 +1977,21 @@ function getConceptos(cat){
 }
 function saveConcepto(cat,concepto){
   try{
-    var stored=localStorage.getItem('fp_conceptos');
+    var stored=localStorage.getItem(getK(KEYS.CONCEPTOS));
+    if(!stored)stored=localStorage.getItem('fp_conceptos');
     var all=stored?JSON.parse(stored):{};
     all[cat]=all[cat]||[];
     if(all[cat].indexOf(concepto)<0)all[cat].push(concepto);
-    localStorage.setItem('fp_conceptos',JSON.stringify(all));
+    localStorage.setItem(getK(KEYS.CONCEPTOS),JSON.stringify(all));
   }catch(e){}
 }
 function deleteConcepto(cat,concepto){
   try{
-    var stored=localStorage.getItem('fp_conceptos');
+    var stored=localStorage.getItem(getK(KEYS.CONCEPTOS));
+    if(!stored)stored=localStorage.getItem('fp_conceptos');
     var all=stored?JSON.parse(stored):{};
     all[cat]=(all[cat]||[]).filter(function(c){return c!==concepto;});
-    localStorage.setItem('fp_conceptos',JSON.stringify(all));
+    localStorage.setItem(getK(KEYS.CONCEPTOS),JSON.stringify(all));
   }catch(e){}
 }
 var DEFAULT_CATEGORIES_DATA=[
@@ -2214,6 +2217,19 @@ document.addEventListener('DOMContentLoaded',function(){
   if(btn)btn.addEventListener('click',function(){sb.classList.toggle('open');ov.classList.toggle('show');});
   adjustMobileLayout();
   window.addEventListener('resize',adjustMobileLayout);
+  document.addEventListener('click',function(){touchSessionActivity();},true);
+  document.addEventListener('keydown',function(){touchSessionActivity();},true);
+  document.addEventListener('visibilitychange',onVisibilitySession);
+  window.addEventListener('beforeunload',function(){try{sessionStorage.setItem('fp_scroll_y',String(window.scrollY||0));}catch(e){}});
+  setInterval(function(){
+    if(document.hidden)return;
+    if(typeof firebase==='undefined'||!firebase.auth||!firebase.auth().currentUser)return;
+    if(localStorage.getItem('fp_user_mode')!=='auth')return;
+    if(checkIdleSessionExpired()){
+      firebase.auth().signOut();
+      showToast('Sesión cerrada por inactividad prolongada.','info');
+    }
+  },5*60*1000);
   // initFirebase() inicia el flujo de auth → initAppSession() → navigateTo()
   // No llamar initData/navigateTo aquí para evitar race condition con auth
 });
@@ -2221,10 +2237,27 @@ document.addEventListener('DOMContentLoaded',function(){
 // ══════════════════════════════════════════════════════
 //  NAVEGACIÓN
 // ══════════════════════════════════════════════════════
+var _FP_VIEWS=['dashboard','transactions','debts','tarjetas','prestamos','clientes','savings','historial','categorias','config','about'];
+function getRestoreView(){
+  try{
+    var v=localStorage.getItem(getK(KEYS.LAST_VIEW));
+    if(v&&_FP_VIEWS.indexOf(v)>=0)return v;
+  }catch(e){}
+  return 'dashboard';
+}
+function restoreScrollAfterLoad(){
+  var y=parseInt(sessionStorage.getItem('fp_scroll_y')||'0',10);
+  if(y<=0)return;
+  setTimeout(function(){
+    window.scrollTo(0,y);
+    try{sessionStorage.removeItem('fp_scroll_y');}catch(e){}
+  },120);
+}
 function navigateTo(view){
   ['dashboard','transactions','debts','tarjetas','prestamos','clientes','savings','historial','categorias','config','about'].forEach(function(v){var el=document.getElementById('view-'+v);if(el)el.classList.toggle('d-none',v!==view);});
   document.querySelectorAll('.sidebar-link').forEach(function(l){l.classList.toggle('active',l.dataset.view===view||l.id==='nav-'+view);});
   State.currentView=view;closeSidebar();
+  try{localStorage.setItem(getK(KEYS.LAST_VIEW),view);}catch(e){}
   if(view==='dashboard')renderDashboard();
   if(view==='transactions')renderTransactions();
   if(view==='debts')renderDebts();
@@ -4083,6 +4116,58 @@ var firebaseConfig = {
 
 var _db = null; // Firestore instance
 var _firestoreListener = null; // Para desuscribir listener
+var _lastCloudPullTs = 0;
+/** Sin actividad: pedir login tras 14 días (ajustable) */
+var FP_IDLE_MS = 14 * 24 * 60 * 60 * 1000;
+/** Segundo plano: cerrar sesión si pasan 72 h fuera de la app */
+var FP_HIDDEN_MS = 72 * 60 * 60 * 1000;
+
+function touchSessionActivity() {
+  try { localStorage.setItem('fp_last_activity_ts', String(Date.now())); } catch (e) {}
+}
+function checkIdleSessionExpired() {
+  var t = parseInt(localStorage.getItem('fp_last_activity_ts') || '0', 10);
+  if (!t) return false;
+  return Date.now() - t > FP_IDLE_MS;
+}
+function onVisibilitySession() {
+  if (document.hidden) {
+    try { localStorage.setItem('fp_hidden_since_ts', String(Date.now())); } catch (e) {}
+    return;
+  }
+  var hid = parseInt(localStorage.getItem('fp_hidden_since_ts') || '0', 10);
+  try { localStorage.removeItem('fp_hidden_since_ts'); } catch (e) {}
+  if (hid && Date.now() - hid > FP_HIDDEN_MS) {
+    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser && localStorage.getItem('fp_user_mode') === 'auth') {
+      firebase.auth().signOut();
+      showToast('Sesión cerrada: pasó mucho tiempo con la app en segundo plano.', 'info');
+      return;
+    }
+  }
+  touchSessionActivity();
+  maybePullCloudData();
+}
+function maybePullCloudData() {
+  if (localStorage.getItem('fp_user_mode') !== 'auth' || !_db) return;
+  var uid = localStorage.getItem('fp_user_uid');
+  if (!uid) return;
+  if (Date.now() - _lastCloudPullTs < 45000) return;
+  _lastCloudPullTs = Date.now();
+  loadFromFirestore(uid, function () {
+    rebuildCatSelects();
+    updateChips();
+    var v = State.currentView;
+    if (v === 'dashboard') renderDashboard();
+    else if (v === 'transactions') renderTransactions();
+    else if (v === 'debts') renderDebts();
+    else if (v === 'tarjetas') renderTarjetas();
+    else if (v === 'prestamos') renderPrestamos();
+    else if (v === 'clientes') renderClientes();
+    else if (v === 'savings') renderSavings();
+    else if (v === 'historial') initHistorial();
+    else if (v === 'categorias') renderCategorias();
+  });
+}
 
 function initFirebase() {
   if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "TU_API_KEY") {
@@ -4093,16 +4178,16 @@ function initFirebase() {
       }
       if (firebase.firestore) {
         _db = firebase.firestore();
-        // Habilitar persistencia offline para PWA
         _db.enablePersistence({synchronizeTabs: true}).catch(function(err){
           console.warn('Persistencia offline no disponible:', err.code);
         });
       }
-      // Sin persistencia de sesión: cada apertura/recarga exige volver a iniciar sesión
-      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
-        .then(function () { return firebase.auth().signOut(); })
-        .catch(function (e) { console.warn('[Auth] setPersistence/signOut:', e); return firebase.auth().signOut(); })
-        .finally(function () { setupAuthObserver(); });
+      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(function () { setupAuthObserver(); })
+        .catch(function (e) {
+          console.warn('[Auth] setPersistence:', e);
+          setupAuthObserver();
+        });
     } catch (e) {
       console.error("Error al inicializar Firebase:", e);
     }
@@ -4123,7 +4208,7 @@ function getAllUserData() {
     tarjetas: getTarjetas(),
     clientes: getClientes(),
     prestamos: getPrestamos(),
-    conceptos: (function(){try{return JSON.parse(localStorage.getItem('fp_conceptos'))||{};}catch(e){return{};}}()),
+    conceptos: (function(){try{var c=localStorage.getItem(getK(KEYS.CONCEPTOS));if(!c)c=localStorage.getItem('fp_conceptos');return c?JSON.parse(c):{};}catch(e){return{};}}()),
     savedAt: new Date().toISOString()
   };
 }
@@ -4137,7 +4222,7 @@ function applyAllUserData(data) {
   if (data.tarjetas) localStorage.setItem(getK(KEYS_TC), JSON.stringify(data.tarjetas));
   if (data.clientes) localStorage.setItem(getK(KEYS_CLI), JSON.stringify(data.clientes));
   if (data.prestamos) localStorage.setItem(getK(KEYS_PT), JSON.stringify(data.prestamos));
-  if (data.conceptos) localStorage.setItem('fp_conceptos', JSON.stringify(data.conceptos));
+  if (data.conceptos) localStorage.setItem(getK(KEYS.CONCEPTOS), JSON.stringify(data.conceptos));
   localStorage.setItem(getK(KEYS.INIT), 'true');
 }
 
@@ -4158,6 +4243,19 @@ function saveToFirestore() {
     });
   }, 3000);
 }
+
+function flushSaveToFirestore() {
+  if (!_db || localStorage.getItem('fp_user_mode') !== 'auth') return;
+  var uid = localStorage.getItem('fp_user_uid');
+  if (!uid) return;
+  try {
+    clearTimeout(_saveThrottle);
+    _saveThrottle = null;
+    var data = getAllUserData();
+    _db.collection('users').doc(uid).set(data, { merge: false });
+  } catch (e) {}
+}
+window.addEventListener('pagehide', flushSaveToFirestore);
 
 // Cargar desde Firestore
 function loadFromFirestore(uid, callback) {
@@ -4191,8 +4289,6 @@ function loginWithGoogle() {
     return;
   }
   var provider = new firebase.auth.GoogleAuthProvider();
-  // Obliga a elegir cuenta (no reutilizar silenciosamente la última de Google)
-  provider.setCustomParameters({ prompt: 'select_account' });
   showToast("Abriendo ventana de Google...", "info");
   firebase.auth().signInWithPopup(provider)
     .then(function(result) {
@@ -4222,6 +4318,8 @@ function logout() {
   localStorage.removeItem('fp_user_mode');
   localStorage.removeItem('fp_user_uid');
   localStorage.removeItem('fp_user_role');
+  localStorage.removeItem('fp_last_activity_ts');
+  localStorage.removeItem('fp_hidden_since_ts');
   try {
     if (typeof firebase !== 'undefined' && firebase.auth) {
       firebase.auth().signOut().then(function() { location.reload(); }).catch(function() { location.reload(); });
@@ -4278,7 +4376,9 @@ function initAppSession(user) {
       updateChips();
       loadGistConfigToUI();
       updateSyncMiniStatus();
-      navigateTo('dashboard');
+      touchSessionActivity();
+      navigateTo(getRestoreView());
+      restoreScrollAfterLoad();
     });
   } else {
     // Modo invitado: cargar datos demo locales
@@ -4287,7 +4387,8 @@ function initAppSession(user) {
     updateChips();
     loadGistConfigToUI();
     updateSyncMiniStatus();
-    navigateTo('dashboard');
+    navigateTo(getRestoreView());
+    restoreScrollAfterLoad();
   }
 }
 
@@ -4305,6 +4406,11 @@ function setupAuthObserver() {
 
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
+        if (checkIdleSessionExpired()) {
+          firebase.auth().signOut();
+          showToast('Sesión cerrada por inactividad prolongada. Vuelve a iniciar sesión.', 'info');
+          return;
+        }
         var userEmail = (user.email || "").toLowerCase();
         var currentWhitelist = getAuthWhitelist();
         var isAuthorized = currentWhitelist.some(function(email) {
@@ -4319,6 +4425,7 @@ function setupAuthObserver() {
           } else {
             localStorage.removeItem('fp_user_role');
           }
+          touchSessionActivity();
           initAppSession(user);
         } else {
           showToast("Acceso denegado: " + userEmail + " no está autorizado.", "danger");
@@ -4330,7 +4437,10 @@ function setupAuthObserver() {
           document.body.classList.remove('is-loading');
         }
       } else {
-        // Sin usuario: mostrar login
+        if (localStorage.getItem('fp_user_mode') === 'guest' && localStorage.getItem('fp_user_uid') === 'local_guest') {
+          initAppSession(null);
+          return;
+        }
         localStorage.removeItem('fp_user_mode');
         localStorage.removeItem('fp_user_uid');
         localStorage.removeItem('fp_user_role');
@@ -4374,8 +4484,12 @@ function updateSyncDetailStatus(){var el=document.getElementById('syncDetailStat
   if(!token){el.innerHTML='<div class="empty-state">Sin configurar</div>';return;}
   el.innerHTML='<div class="d-flex flex-column gap-2"><div class="d-flex justify-content-between align-items-center p-2" style="background:var(--fp-surface2);border-radius:8px"><span style="font-size:12.5px">Token</span><span class="fp-badge fp-badge-green">OK</span></div><div class="d-flex justify-content-between align-items-center p-2" style="background:var(--fp-surface2);border-radius:8px"><span style="font-size:12.5px">Gist ID</span><span class="fp-badge '+(gid?'fp-badge-green':'fp-badge-gray')+'">'+(gid?gid.slice(0,8)+'…':'Sin crear')+'</span></div>'+(gid?'<a href="https://gist.github.com/'+gid+'" target="_blank" class="btn fp-btn-outline fp-btn-sm">Ver Gist</a>':'')+'</div>';
 }
-function buildSyncPayload(){return{version:'4.1',savedAt:new Date().toISOString(),transactions:lsGet(KEYS.TX),debts:lsGet(KEYS.DEBTS),savings:lsGet(KEYS.SAV),catsData:getCatsData(),tarjetas:getTarjetas(),clientes:getClientes(),prestamos:getPrestamos()};}
-function applySyncPayload(data){if(data.transactions)lsSet(KEYS.TX,data.transactions);if(data.debts)lsSet(KEYS.DEBTS,data.debts);if(data.savings)lsSet(KEYS.SAV,data.savings);if(data.catsData)setCatsData(data.catsData);if(data.tarjetas)localStorage.setItem(getK(KEYS_TC),JSON.stringify(data.tarjetas));if(data.clientes)localStorage.setItem(getK(KEYS_CLI),JSON.stringify(data.clientes));if(data.prestamos)localStorage.setItem(getK(KEYS_PT),JSON.stringify(data.prestamos));localStorage.setItem(getK(KEYS.INIT),'true');}
+function buildSyncPayload(){
+  var conceptos={};
+  try{var c=localStorage.getItem(getK(KEYS.CONCEPTOS));if(!c)c=localStorage.getItem('fp_conceptos');conceptos=c?JSON.parse(c):{};}catch(e){}
+  return{version:'4.1',savedAt:new Date().toISOString(),transactions:lsGet(KEYS.TX),debts:lsGet(KEYS.DEBTS),savings:lsGet(KEYS.SAV),catsData:getCatsData(),tarjetas:getTarjetas(),clientes:getClientes(),prestamos:getPrestamos(),conceptos:conceptos};
+}
+function applySyncPayload(data){if(data.transactions)lsSet(KEYS.TX,data.transactions);if(data.debts)lsSet(KEYS.DEBTS,data.debts);if(data.savings)lsSet(KEYS.SAV,data.savings);if(data.catsData)setCatsData(data.catsData);if(data.tarjetas)localStorage.setItem(getK(KEYS_TC),JSON.stringify(data.tarjetas));if(data.clientes)localStorage.setItem(getK(KEYS_CLI),JSON.stringify(data.clientes));if(data.prestamos)localStorage.setItem(getK(KEYS_PT),JSON.stringify(data.prestamos));if(data.conceptos)localStorage.setItem(getK(KEYS.CONCEPTOS),JSON.stringify(data.conceptos));localStorage.setItem(getK(KEYS.INIT),'true');}
 async function syncToGist(){var token=getGistToken();if(!token){showToast('Configura el token primero','danger');navigateTo('config');return;}gistLog('⏳ Guardando…');showToast('Guardando en nube…','info');var payload=JSON.stringify(buildSyncPayload(),null,2);var gid=getGistId();try{var method=gid?'PATCH':'POST';var url=gid?'https://api.github.com/gists/'+gid:'https://api.github.com/gists';var body={description:'FinanzApp Pro — Sync',public:false,files:{'finanzapp-data.json':{content:payload}}};var res=await fetch(url,{method:method,headers:{'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});if(!res.ok){var err=await res.json();throw new Error(err.message||res.status);}var json=await res.json();localStorage.setItem(getK(KEYS.GIST_ID),json.id);var now=new Date().toLocaleString('es-CO');localStorage.setItem(getK(KEYS.SYNC_DATE),now);var gId=document.getElementById('gistId');if(gId)gId.value=json.id;updateSyncMiniStatus();updateSyncDetailStatus();gistLog('✅ Guardado el '+now);showToast('Guardado en nube ✓','success');}catch(e){gistLog('❌ Error: '+e.message);showToast('Error: '+e.message,'danger');}}
 async function loadFromGist(){var token=getGistToken(),gid=getGistId();if(!token){showToast('Configura el token primero','danger');navigateTo('config');return;}if(!gid){showToast('Guarda primero para crear el Gist','danger');return;}gistLog('⏳ Cargando…');showToast('Cargando desde nube…','info');try{var res=await fetch('https://api.github.com/gists/'+gid,{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}});if(!res.ok){var err=await res.json();throw new Error(err.message||res.status);}var json=await res.json();var file=json.files['finanzapp-data.json'];if(!file)throw new Error('Archivo no encontrado en el Gist');var data=JSON.parse(file.content);applySyncPayload(data);var now=new Date().toLocaleString('es-CO');localStorage.setItem(getK(KEYS.SYNC_DATE),now);updateSyncMiniStatus();updateSyncDetailStatus();rebuildCatSelects();updateChips();gistLog('✅ Cargado.');showToast('Datos cargados ✓','success');navigateTo(State.currentView);}catch(e){gistLog('❌ Error: '+e.message);showToast('Error: '+e.message,'danger');}}
 
