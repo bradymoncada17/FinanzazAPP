@@ -17,6 +17,8 @@
 <!-- FIREBASE SDK (COMPAT) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
 
 <style>
 :root{
@@ -98,8 +100,8 @@
 .btn-apple:hover { background: #1a1a1a; }
 
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:var(--fp-text);margin:0;overflow-x:hidden;font-size:14px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+html,body{overscroll-behavior-y:none;overflow-x:hidden;-webkit-tap-highlight-color:transparent;height:100%}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:var(--fp-text);margin:0;font-size:14px;background-attachment:fixed;background-image:radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:99px}
@@ -341,37 +343,35 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .badge-virtual{background:rgba(124,58,237,.12);color:var(--fp-violet);border:1px solid rgba(124,58,237,.2);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700}
 /* MOBILE */
 @media(max-width:768px){
-  .fp-sidebar{transform:translateX(-100%)}
+  .fp-sidebar{transform:translateX(-100%);width:280px;top:0;z-index:1200}
   .fp-sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.3)}
   .sidebar-overlay.show{display:block}
-  .fp-main{margin-left:0;padding:14px 12px;padding-bottom:74px}
-  .page-title{font-size:18px}
-  .fp-page-header{flex-direction:column;align-items:flex-start;margin-bottom:16px}
+  .fp-main{margin-left:0;padding:calc(16px + env(safe-area-inset-top)) 14px calc(85px + env(safe-area-inset-bottom)) 14px}
+  .page-title{font-size:22px;font-weight:800}
+  .fp-page-header{flex-direction:column;align-items:flex-start;margin-bottom:16px;gap:8px}
   .saldo-chips{display:none!important}
-  .saldo-bar-mobile{display:block}
-  .fp-layout{padding-top:calc(var(--navbar-h) + 60px)}
-  .fp-sidebar{top:0;z-index:1200}
-  .hist-tab{min-width:80px;font-size:11.5px;padding:7px 8px}
-  .kpi-card{padding:14px}
-  .kpi-value{font-size:16px}
-  .kpi-sm-val{font-size:15px}
-  .fp-table{font-size:11.5px}
-  .fp-table thead th{padding:8px 8px;font-size:8.5px}
-  .fp-table tbody td{padding:9px 8px}
-  .debt-detail-box{margin:8px;border-radius:16px;max-height:95vh}
-  .debt-detail-header{padding:16px 18px}
-  .debt-detail-body{padding:16px 18px}
-  .fp-modal .modal-body{padding:16px}
-  .source-opt{padding:7px 9px}
-  .row.g-3>[class*=col]{padding-top:6px;padding-bottom:0}
+  .saldo-bar-mobile{display:block;top:calc(var(--navbar-h) + env(safe-area-inset-top))}
+  .fp-layout{padding-top:calc(var(--navbar-h) + 60px + env(safe-area-inset-top))}
+  .hist-tab{min-width:80px;font-size:11px;padding:8px 6px}
+  .kpi-card{padding:18px;gap:12px;border-radius:18px}
+  .kpi-value{font-size:18px}
+  .kpi-icon-wrap{width:42px;height:42px;font-size:16px}
+  .kpi-sm-val{font-size:14px}
+  .fp-table{font-size:11px}
+  .fp-table thead th{padding:10px 8px;font-size:8px}
+  .fp-table tbody td{padding:12px 8px}
+  .fp-modal .modal-body{padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+  .source-opt{padding:10px 12px;border-radius:12px}
+  .row.g-3>[class*=col]{padding-top:12px;padding-bottom:0}
+  .login-box{padding:30px 24px;border-radius:24px}
 }
 @media(max-width:480px){
-  .fp-main{padding:10px 10px;padding-bottom:70px}
-  .kpi-sm{padding:12px 14px}
-  .fp-card-body{padding:14px}
-  .fp-card-header{padding:12px 14px}
-  .debt-card-body{padding:14px}
-  .saving-card-body{padding:14px}
+  .fp-main{padding:12px 10px;padding-bottom:80px}
+  .kpi-sm{padding:14px 16px}
+  .fp-card-body{padding:16px}
+  .fp-card-header{padding:14px 16px}
+  .debt-card-body{padding:16px}
+  .saving-card-body{padding:16px}
 }
 
 /* ═══════════════════════════════════════════
@@ -570,18 +570,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <path d="M3.96 10.72c-.18-.54-.28-1.12-.28-1.72s.1-1.18.28-1.72V4.93H.95C.35 6.15 0 7.53 0 9s.35 2.85.95 4.07l3.01-2.35z" fill="#FBBC05"/>
         <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.51 0 2.43 1.93.95 4.93l3.01 2.35c.71-2.13 2.69-3.71 5.04-3.71z" fill="#EA4335"/>
       </svg>
-      Continuar con Google
+      Acceder con Google
     </button>
-    
+
     <div style="margin: 20px 0; color: rgba(255,255,255,0.2); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">O</div>
     
     <button class="btn-social" onclick="loginGuest()">
       <i class="bi bi-person-fill"></i>
-      Modo Invitado (Local)
+      Entrar como Invitado
     </button>
 
     <p style="margin-top: 32px; font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 500;">
-      Tu privacidad es nuestra prioridad. <br> Google Login es 100% gratuito.
+      Tu privacidad es nuestra prioridad. <br> El inicio de sesión con Google es recomendado.
     </p>
   </div>
 </div>
@@ -3880,12 +3880,12 @@ function imprimirPlanPagos(id){
   win.document.write('</body></html>');
   win.document.close();
 }
-
-
 // ══════════════════════════════════════════════════════
-//  FIREBASE & AUTH
+// FIREBASE & AUTH
 // ══════════════════════════════════════════════════════
+
 var AUTH_ADMIN = "bradymoncada17@gmail.com";
+
 var KEYS_GLOBAL = {
   WHITELIST: 'fp_global_whitelist'
 };
@@ -3893,7 +3893,11 @@ var KEYS_GLOBAL = {
 function getAuthWhitelist() {
   var stored = localStorage.getItem(KEYS_GLOBAL.WHITELIST);
   if (stored) {
-    try { return JSON.parse(stored); } catch(e) { return [AUTH_ADMIN]; }
+    try {
+      return JSON.parse(stored);
+    } catch(e) {
+      return [AUTH_ADMIN];
+    }
   }
   return [AUTH_ADMIN];
 }
@@ -3902,114 +3906,180 @@ function saveAuthWhitelist(list) {
   localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(list));
 }
 
-var firebaseConfig = { 
-   apiKey: "AIzaSyCe-v-njKfLTu2UtIlQvYNCEHKULURJ43g", 
-   authDomain: "finanzapp-pro.firebaseapp.com", 
-   projectId: "finanzapp-pro", 
-   storageBucket: "finanzapp-pro.firebasestorage.app", 
-   messagingSenderId: "287718453988", 
-   appId: "1:287718453988:web:87d291da075d3fba6472f1" 
-}; 
+var firebaseConfig = {
+  apiKey: "AIzaSyCe-v-njKfLTu2UtIlQvYNCEHKULURJ43g",
+  authDomain: "finanzapp-pro.firebaseapp.com",
+  projectId: "finanzapp-pro",
+  storageBucket: "finanzapp-pro.firebasestorage.app",
+  messagingSenderId: "287718453988",
+  appId: "1:287718453988:web:87d291da075d3fba6472f1"
+};
 
 // Inicializar Firebase con reintentos si es necesario
 function initFirebase() {
+
   if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "TU_API_KEY") {
+
     try {
+
       if (!firebase.apps.length) {
+
         firebase.initializeApp(firebaseConfig);
+
+        // Inicializar Firestore
+        window.db = firebase.firestore();
+
         console.log("Firebase inicializado correctamente.");
+
       }
+
       setupAuthObserver(); // Configurar el observador una vez inicializado
+
     } catch (e) {
+
       console.error("Error al inicializar Firebase:", e);
+
     }
+
   } else {
+
     console.log("Esperando SDK de Firebase o configuración pendiente... Reintentando en 1s");
+
     setTimeout(initFirebase, 1000);
+
   }
+
 }
 
 // Iniciar proceso de carga
 window.addEventListener('load', initFirebase);
 
 function loginWithGoogle() {
+
   if (firebaseConfig.apiKey === "TU_API_KEY") {
     showToast("Configura Firebase en el código para usar Google Login", "warning");
     return;
   }
-  
+
   // Verificar si el SDK está cargado
   if (typeof firebase === 'undefined' || !firebase.auth) {
     showToast("Error: El SDK de Firebase no se ha cargado. Revisa tu conexión a internet o los bloqueadores de anuncios.", "danger");
     console.error("Firebase SDK not found. Check network/blocked scripts.");
     return;
   }
-  
+
   var provider = new firebase.auth.GoogleAuthProvider();
+
   showToast("Abriendo ventana de Google...", "info");
-  
+
   firebase.auth().signInWithPopup(provider)
+
     .then(function(result) {
+
       showToast("Bienvenido " + (result.user.displayName || ""), "success");
+
     })
+
     .catch(function(e) {
+
       console.error("Error en login:", e);
+
       if (e.code === 'auth/popup-blocked') {
+
         showToast("Error: Ventana emergente bloqueada. Por favor, actívala en tu navegador.", "danger");
+
       } else {
+
         showToast("Error en login: " + e.message, "danger");
+
       }
+
     });
 }
 
 function loginGuest() {
+
   localStorage.setItem('fp_user_mode', 'guest');
   localStorage.setItem('fp_user_uid', 'local_guest');
+
   showToast("Entrando como invitado (Datos locales)", "info");
+
   initAppSession();
 }
 
 function logout() {
+
   localStorage.removeItem('fp_user_mode');
   localStorage.removeItem('fp_user_uid');
+
   try {
+
     if (typeof firebase !== 'undefined' && firebase.auth && firebaseConfig.apiKey !== "TU_API_KEY") {
-      firebase.auth().signOut().then(function() {
-        location.reload();
-      }).catch(function(e) {
-        console.error("Error signing out:", e);
-        location.reload();
-      });
+
+      firebase.auth().signOut()
+
+        .then(function() {
+          location.reload();
+        })
+
+        .catch(function(e) {
+          console.error("Error signing out:", e);
+          location.reload();
+        });
+
     } else {
+
       location.reload();
+
     }
-  } catch (e) { 
+
+  } catch (e) {
+
     console.error("Exception in logout:", e);
     location.reload();
+
   }
 }
 
 function initAppSession() {
+
   document.getElementById('view-login').classList.add('d-none');
   document.getElementById('mainNav').classList.remove('d-none');
   document.getElementById('fpLayout').classList.remove('d-none');
-  if (window.innerWidth <= 768) document.getElementById('saldoBarMobile').classList.remove('d-none');
+
+  if (window.innerWidth <= 768)
+    document.getElementById('saldoBarMobile').classList.remove('d-none');
+
   document.body.classList.remove('is-loading');
-  
+
   // Mostrar perfil si es modo auth
   var mode = localStorage.getItem('fp_user_mode');
   var userProfile = document.getElementById('userProfileNav');
+
   if (mode === 'auth' && typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+
     var user = firebase.auth().currentUser;
+
     if (userProfile) {
+
       userProfile.classList.add('d-flex');
       userProfile.classList.remove('d-none');
-      document.getElementById('userPhoto').src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'U');
-      document.getElementById('userName').textContent = (user.displayName || "").split(' ')[0];
+
+      document.getElementById('userPhoto').src =
+        user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'U');
+
+      document.getElementById('userName').textContent =
+        (user.displayName || "").split(' ')[0];
+
     }
+
     showToast("¡Bienvenido de nuevo, " + (user.displayName || "Usuario") + "! 👋", "success");
+
   } else {
-    if (userProfile) userProfile.classList.add('d-none');
+
+    if (userProfile)
+      userProfile.classList.add('d-none');
+
     if (mode === 'guest') {
       showToast("Bienvenido, Invitado. Estás en modo de solo lectura local. 👋", "info");
     }
@@ -4017,64 +4087,90 @@ function initAppSession() {
 
   // Re-inicializar datos con el prefijo del usuario
   FinanceService.initialize();
+
   updateChips();
   navigateTo('dashboard');
 }
 
 // Observador de estado de Auth
 function setupAuthObserver() {
+
   if (typeof firebase !== 'undefined' && firebase.auth && firebaseConfig.apiKey !== "TU_API_KEY") {
+
     firebase.auth().onAuthStateChanged(function(user) {
+
       if (user) {
-          // Verificar si el correo está en la lista blanca
-          var userEmail = (user.email || "").toLowerCase();
-          var currentWhitelist = getAuthWhitelist();
-          var isAuthorized = currentWhitelist.some(function(email) {
-            return email.toLowerCase() === userEmail;
-          });
+
+        // Verificar si el correo está en la lista blanca
+        var userEmail = (user.email || "").toLowerCase();
+        var currentWhitelist = getAuthWhitelist();
+
+        var isAuthorized = currentWhitelist.some(function(email) {
+          return email.toLowerCase() === userEmail;
+        });
 
         if (isAuthorized) {
+
           localStorage.setItem('fp_user_mode', 'auth');
           localStorage.setItem('fp_user_uid', user.uid);
+
           // Marcar si es admin
           if (userEmail === AUTH_ADMIN.toLowerCase()) {
             localStorage.setItem('fp_user_role', 'admin');
           } else {
             localStorage.removeItem('fp_user_role');
           }
+
           initAppSession();
+
         } else {
+
           // No autorizado: cerrar sesión y mostrar error
           showToast("Acceso denegado: Tu correo (" + userEmail + ") no está autorizado.", "danger");
+
           firebase.auth().signOut();
+
           localStorage.removeItem('fp_user_mode');
           localStorage.removeItem('fp_user_uid');
+
           document.getElementById('view-login').classList.remove('d-none');
           document.body.classList.remove('is-loading');
+
         }
+
       } else {
-        if (localStorage.getItem('fp_user_mode') !== 'guest') {
-          document.getElementById('view-login').classList.remove('d-none');
-          document.body.classList.remove('is-loading');
-        } else {
-          initAppSession();
-        }
-      }
-    });
-  } else {
-    // Si no hay Firebase o SDK, mostrar login para modo invitado
-    window.addEventListener('DOMContentLoaded', function() {
-      if (localStorage.getItem('fp_user_mode') === 'guest') {
-        initAppSession();
-      } else {
+
+        // SIEMPRE mostrar login al refrescar si no hay usuario de Firebase
+        // Incluso si estaba en modo invitado antes
+
+        localStorage.removeItem('fp_user_mode');
+        localStorage.removeItem('fp_user_uid');
+
         document.getElementById('view-login').classList.remove('d-none');
         document.body.classList.remove('is-loading');
+
       }
+
     });
+
+  } else {
+
+    // Si no hay Firebase o SDK configurado, mostrar login
+    window.addEventListener('DOMContentLoaded', function() {
+
+      document.getElementById('view-login').classList.remove('d-none');
+      document.body.classList.remove('is-loading');
+
+    });
+
   }
 }
 
-function lsGetStr(k){return localStorage.getItem(k)||'';}
+function lsGetStr(k){
+  return localStorage.getItem(k)||'';
+}
+
+
 
 // ══════════════════════════════════════════════════════
 //  GIST SYNC

@@ -13,72 +13,170 @@
 
 const FinanceService = (() => {
 
-  // ── CLAVES DE ALMACENAMIENTO ──────────────────────────────
+  // ─────────────────────────────────────────────
+  // FIREBASE
+  // ─────────────────────────────────────────────
+  const db = firebase.firestore();
+
+  const getUser = () => firebase.auth().currentUser;
+
+  const isGuest = () => {
+    const mode = localStorage.getItem('fp_user_mode');
+    return mode === 'guest' || !getUser();
+  };
+
   const getUID = () => {
-    const mode = localStorage.getItem('fp_user_mode');
-    if (mode === 'guest') return 'local_guest'; // Siempre el mismo para invitados
-    return localStorage.getItem('fp_user_uid') || 'guest';
-  };
-  
-  const getK = (key) => {
-    const mode = localStorage.getItem('fp_user_mode');
-    // Para invitados, no usamos prefijo dinámico si queremos que sea estático
-    // Pero como pides que no se guarde nada "permanente" para ellos, 
-    // podemos usar un prefijo temporal o simplemente limpiar al entrar.
-    return `${getUID()}_${key}`;
+    const user = getUser();
+    if (user) return user.uid;
+    return 'local_guest';
   };
 
+  // ─────────────────────────────────────────────
+  // CLAVES
+  // ─────────────────────────────────────────────
   const KEYS = {
-    TRANSACTIONS:   'fp_transactions',
-    DEBTS:          'fp_debts',
-    SAVINGS:        'fp_savings',
-    INITIALIZED:    'fp_initialized'
+    TRANSACTIONS: 'transactions',
+    CATEGORIES: 'categories',
+    DEBTS: 'debts',
+    SAVINGS: 'savings'
   };
 
-  // ── HELPERS LOCALSTORAGE ──────────────────────────────────
+  // ─────────────────────────────────────────────
+  // LOCAL STORAGE (INVITADOS)
+  // ─────────────────────────────────────────────
   const ls = {
-    get: (key) => {
-      try { return JSON.parse(localStorage.getItem(getK(key))) || []; }
-      catch { return []; }
+
+    get(key){
+      try{
+        return JSON.parse(
+          localStorage.getItem(`${getUID()}_${key}`)
+        ) || [];
+      }catch{
+        return [];
+      }
     },
-    set: (key, data) => {
-      try { localStorage.setItem(getK(key), JSON.stringify(data)); return true; }
-      catch { console.error('Error guardando en localStorage:', key); return false; }
-    },
-    getBool: (key) => localStorage.getItem(getK(key)) === 'true',
-    setBool: (key, val) => localStorage.setItem(getK(key), String(val))
+
+    set(key,data){
+      localStorage.setItem(
+        `${getUID()}_${key}`,
+        JSON.stringify(data)
+      );
+    }
+
   };
 
-  // ── GENERADOR DE IDs ──────────────────────────────────────
-  const genId = () => `fp_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  // ─────────────────────────────────────────────
+  // FIRESTORE
+  // ─────────────────────────────────────────────
+  const fs = {
 
-  // ── FECHA HOY ─────────────────────────────────────────────
-  const today = () => new Date().toISOString().split('T')[0];
+    async get(key){
 
-  // ══════════════════════════════════════════════════════════
-  //  DATOS MOCK INICIALES (para demo)
-  // ══════════════════════════════════════════════════════════
+      if(isGuest()) return ls.get(key);
+
+      const doc = await db
+        .collection("users")
+        .doc(getUID())
+        .collection("finance")
+        .doc(key)
+        .get();
+
+      if(!doc.exists) return [];
+
+      return doc.data().items || [];
+    },
+
+    async set(key,data){
+
+      if(isGuest()){
+        ls.set(key,data);
+        return;
+      }
+
+      await db
+        .collection("users")
+        .doc(getUID())
+        .collection("finance")
+        .doc(key)
+        .set({
+          items:data
+        });
+
+    }
+
+  };
+
+  // ─────────────────────────────────────────────
+  // UTILIDADES
+  // ─────────────────────────────────────────────
+  const genId = () =>
+    `fp_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+
+  const today = () =>
+    new Date().toISOString().split('T')[0];
+
+  const getDateMinus = (days)=>{
+    const d = new Date();
+    d.setDate(d.getDate()-days);
+    return d.toISOString().split('T')[0];
+  };
+
+  // ─────────────────────────────────────────────
+  // DATOS INICIALES
+  // ─────────────────────────────────────────────
+
+  const DEFAULT_CATEGORIES = [
+
+    {id:genId(),name:"Salario",type:"income"},
+    {id:genId(),name:"Freelance",type:"income"},
+    {id:genId(),name:"Negocio",type:"income"},
+
+    {id:genId(),name:"Vivienda",type:"expense"},
+    {id:genId(),name:"Alimentación",type:"expense"},
+    {id:genId(),name:"Transporte",type:"expense"},
+    {id:genId(),name:"Entretenimiento",type:"expense"},
+    {id:genId(),name:"Salud",type:"expense"},
+    {id:genId(),name:"Educación",type:"expense"}
+
+  ];
+
   const MOCK_DATA = {
-    transactions: [
-      // Ingresos
-      { id: genId(), type:'income', description:'Salario mensual', amount:4500000, date: getDateMinus(0), category:'Salario' },
-      { id: genId(), type:'income', description:'Proyecto freelance', amount:800000, date: getDateMinus(5), category:'Freelance' },
-      { id: genId(), type:'income', description:'Salario anterior', amount:4500000, date: getDateMinus(35), category:'Salario' },
-      { id: genId(), type:'income', description:'Venta usados', amount:250000, date: getDateMinus(40), category:'Negocio' },
-      { id: genId(), type:'income', description:'Bono rendimiento', amount:500000, date: getDateMinus(60), category:'Salario' },
-      // Egresos
-      { id: genId(), type:'expense', description:'Arriendo apartamento', amount:1200000, date: getDateMinus(2), category:'Vivienda' },
-      { id: genId(), type:'expense', description:'Mercado semanal', amount:380000, date: getDateMinus(3), category:'Alimentación' },
-      { id: genId(), type:'expense', description:'Servicios públicos', amount:180000, date: getDateMinus(4), category:'Servicios' },
-      { id: genId(), type:'expense', description:'Gasolina', amount:120000, date: getDateMinus(6), category:'Transporte' },
-      { id: genId(), type:'expense', description:'Cine + cena', amount:95000, date: getDateMinus(8), category:'Entretenimiento' },
-      { id: genId(), type:'expense', description:'Médico general', amount:60000, date: getDateMinus(10), category:'Salud' },
-      { id: genId(), type:'expense', description:'Curso online', amount:150000, date: getDateMinus(12), category:'Educación' },
-      { id: genId(), type:'expense', description:'Mercado semanal', amount:340000, date: getDateMinus(38), category:'Alimentación' },
-      { id: genId(), type:'expense', description:'Arriendo', amount:1200000, date: getDateMinus(36), category:'Vivienda' },
-      { id: genId(), type:'expense', description:'Ropa', amount:220000, date: getDateMinus(45), category:'Entretenimiento' },
-      { id: genId(), type:'expense', description:'Suscripciones streaming', amount:75000, date: getDateMinus(65), category:'Entretenimiento' },
+
+    transactions:[
+      {
+        id:genId(),
+        type:"income",
+        description:"Salario mensual",
+        amount:4500000,
+        date:getDateMinus(0),
+        category:"Salario"
+      },
+      {
+        id:genId(),
+        type:"income",
+        description:"Proyecto freelance",
+        amount:800000,
+        date:getDateMinus(5),
+        category:"Freelance"
+      },
+      {
+        id:genId(),
+        type:"expense",
+        description:"Arriendo apartamento",
+        amount:1200000,
+        date:getDateMinus(2),
+        category:"Vivienda"
+      },
+      {
+        id:genId(),
+        type:"expense",
+        description:"Mercado semanal",
+        amount:380000,
+        date:getDateMinus(3),
+        category:"Alimentación"
+      }
     ],
+
     debts: [
       {
         id: genId(),
@@ -90,34 +188,11 @@ const FinanceService = (() => {
         remainingBalance: 6800000,
         payments: [
           { id: genId(), date: getDateMinus(60), amount: 650000, interest: 210000, capital: 440000 },
-          { id: genId(), date: getDateMinus(30), amount: 650000, interest: 199000, capital: 451000 },
-        ]
-      },
-      {
-        id: genId(),
-        creditor: 'Préstamo Familiar',
-        description: 'Prestado para el carro',
-        totalAmount: 3000000,
-        interestRate: 0,
-        startDate: getDateMinus(45),
-        remainingBalance: 2000000,
-        payments: [
-          { id: genId(), date: getDateMinus(15), amount: 1000000, interest: 0, capital: 1000000 }
-        ]
-      },
-      {
-        id: genId(),
-        creditor: 'Tarjeta Crédito',
-        description: 'Compras por cuotas',
-        totalAmount: 1500000,
-        interestRate: 3.2,
-        startDate: getDateMinus(20),
-        remainingBalance: 1380000,
-        payments: [
-          { id: genId(), date: getDateMinus(5), amount: 200000, interest: 52800, capital: 147200 }
+          { id: genId(), date: getDateMinus(30), amount: 650000, interest: 199000, capital: 451000 }
         ]
       }
     ],
+
     savings: [
       {
         id: genId(),
@@ -126,44 +201,16 @@ const FinanceService = (() => {
         goal: 5000000,
         currentBalance: 2200000,
         transactions: [
-          { id: genId(), type:'deposit', amount: 1500000, date: getDateMinus(60), description:'Depósito inicial' },
-          { id: genId(), type:'deposit', amount: 500000,  date: getDateMinus(30), description:'Ahorro mensual' },
-          { id: genId(), type:'deposit', amount: 200000,  date: getDateMinus(5),  description:'Extra mes' }
-        ]
-      },
-      {
-        id: genId(),
-        name: 'Vacaciones 2025',
-        description: 'Viaje a Cartagena en diciembre',
-        goal: 3000000,
-        currentBalance: 850000,
-        transactions: [
-          { id: genId(), type:'deposit', amount: 500000, date: getDateMinus(45), description:'Inicio fondo' },
-          { id: genId(), type:'deposit', amount: 350000, date: getDateMinus(10), description:'Ahorro quincenal' }
-        ]
-      },
-      {
-        id: genId(),
-        name: 'Nuevo Portátil',
-        description: 'MacBook Pro',
-        goal: 8000000,
-        currentBalance: 1200000,
-        transactions: [
-          { id: genId(), type:'deposit', amount: 800000, date: getDateMinus(70), description:'Depósito inicial' },
-          { id: genId(), type:'deposit', amount: 500000, date: getDateMinus(35), description:'Ahorro' },
-          { id: genId(), type:'use',     amount: 100000, date: getDateMinus(20), description:'Accesorio temporal' }
+          { id: genId(), type:'deposit', amount: 1500000, date: getDateMinus(60), description:'Depósito inicial' }
         ]
       }
     ]
+
   };
 
-  // Función helper para fechas pasadas
-  function getDateMinus(days) {
-    const d = new Date();
-    d.setDate(d.getDate() - days);
-    return d.toISOString().split('T')[0];
-  }
+  return {};
 
+})();
   // ══════════════════════════════════════════════════════════
   //  INICIALIZACIÓN — Carga datos mock o migra si es primera vez
   // ══════════════════════════════════════════════════════════
@@ -506,4 +553,4 @@ const FinanceService = (() => {
     today
   };
 
-})();
+;
