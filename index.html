@@ -1470,24 +1470,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 </div>
 
 
-<!-- MODAL CLIENTE -->
-<div class="modal fade fp-modal" id="modalCliente" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-    <div class="modal-header"><h5 class="modal-title" id="modalClienteTitle"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Cliente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-    <div class="modal-body">
-      <input type="hidden" id="clienteEditId"/>
-      <div class="row g-3">
-        <div class="col-12"><label class="fp-label">Nombre Completo *</label><input class="fp-input" type="text" id="clienteNombre" placeholder="Ej: Juan Pérez..."/></div>
-        <div class="col-md-6"><label class="fp-label">Teléfono / WhatsApp</label><input class="fp-input" type="text" id="clienteTel" placeholder="Ej: 3001234567..."/></div>
-        <div class="col-md-6"><label class="fp-label">Cédula / ID</label><input class="fp-input" type="text" id="clienteCedula" placeholder="Opcional..."/></div>
-        <div class="col-12"><label class="fp-label">Email</label><input class="fp-input" type="email" id="clienteEmail" placeholder="juan@ejemplo.com"/></div>
-        <div class="col-12"><label class="fp-label">Notas</label><textarea class="fp-input" id="clienteNotas" rows="2" placeholder="Alguna observación..."></textarea></div>
-      </div>
-    </div>
-    <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-primary" onclick="saveCliente()" style="background:var(--fp-violet)"><i class="bi bi-check-lg"></i> Guardar Cliente</button></div>
-  </div></div>
-</div>
-
 <!-- MODAL DETALLE CLIENTE -->
 <div class="modal fade fp-modal" id="modalClienteDetalle" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
@@ -3335,9 +3317,12 @@ function setPrestamos(arr){localStorage.setItem(getK(KEYS_PT),JSON.stringify(arr
 
 // ── CLIENTES ──────────────────────────────────────────
 function openClienteModal(editId){
+  // Limpiar campos
   document.getElementById('cliEditId').value=editId||'';
-  document.getElementById('cliNombre').value='';document.getElementById('cliTelefono').value='';
-  document.getElementById('cliDocumento').value='';document.getElementById('cliDireccion').value='';
+  document.getElementById('cliNombre').value='';
+  document.getElementById('cliTelefono').value='';
+  document.getElementById('cliDocumento').value='';
+  document.getElementById('cliDireccion').value='';
   document.getElementById('cliNotas').value='';
   if(editId){
     var cli=getClientes().find(function(c){return c.id===editId;});
@@ -3352,7 +3337,11 @@ function openClienteModal(editId){
   } else {
     document.getElementById('modalClienteTitle').innerHTML='<i class="bi bi-person-plus-fill me-2"></i>Nuevo Cliente';
   }
-  new bootstrap.Modal(document.getElementById('modalCliente')).show();
+  // Permitir modales apilados
+  var modalEl=document.getElementById('modalCliente');
+  var existing=bootstrap.Modal.getInstance(modalEl);
+  if(existing)existing.dispose();
+  new bootstrap.Modal(modalEl,{backdrop:true,keyboard:true}).show();
 }
 
 function saveCliente(){
@@ -3364,8 +3353,23 @@ function saveCliente(){
   if(editId){var idx=all.findIndex(function(c){return c.id===editId;});if(idx>=0)all[idx]=cli;else all.push(cli);}
   else all.push(cli);
   setClientes(all);
-  bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
-  renderClientes();rebuildClienteSelect();
+  // Cerrar modal
+  var modalEl=document.getElementById('modalCliente');
+  var modalInst=bootstrap.Modal.getInstance(modalEl);
+  if(modalInst)modalInst.hide();
+  // Actualizar selects de clientes en todos los formularios
+  rebuildClienteSelect();
+  // Si hay un select de préstamos visible, seleccionar el nuevo cliente
+  if(!editId){
+    var ptSel=document.getElementById('ptClienteId');
+    if(ptSel){
+      // Esperar a que el modal cierre y luego seleccionar
+      setTimeout(function(){
+        ptSel.value=cli.id;
+      },300);
+    }
+  }
+  if(State.currentView==='clientes')renderClientes();
   showToast((editId?'Cliente actualizado':'Cliente registrado')+' ✓','success');
 }
 
