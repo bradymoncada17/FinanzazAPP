@@ -1817,7 +1817,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 
 <script>
 // ══════════════════════════════════════════════════════
-//  STORAGE
+//  STORAGE (Integrado con sincronización en la nube)
 // ══════════════════════════════════════════════════════
 var KEYS={TX:'fp_tx',DEBTS:'fp_debts',SAV:'fp_sav',CLIENTS:'fp_clients',INIT:'fp_init',CATS_DATA:'fp_categories',GIST_TOKEN:'fp_gt',GIST_ID:'fp_gi',SYNC_DATE:'fp_sd',CONCEPTOS:'fp_conceptos',LAST_VIEW:'fp_last_view'};
 
@@ -1832,12 +1832,89 @@ function getK(key) {
 }
 
 function lsGet(k){try{return JSON.parse(localStorage.getItem(getK(k)))||[];}catch(e){return[];}}
-function lsSet(k,d){try{localStorage.setItem(getK(k),JSON.stringify(d));}catch(e){}}
+function lsSet(k,d){
+  try{
+    localStorage.setItem(getK(k),JSON.stringify(d));
+  }catch(e){console.error('Error guardando:', e);}
+}
 function lsGetStr(k){return localStorage.getItem(getK(k))||'';}
 function genId(){return 'fp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
 function today(){return new Date().toISOString().split('T')[0];}
 function dMinus(n){var d=new Date();d.setDate(d.getDate()-n);return d.toISOString().split('T')[0];}
 function esc(str){if(!str)return '';return str.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ══════════════════════════════════════════════════════
+//  SINCRONIZACIÓN CON GITHUB GIST
+// ══════════════════════════════════════════════════════
+var _gistDebounceTimer = null;
+
+async function syncToGist() {
+  var token = localStorage.getItem(KEYS.GIST_TOKEN);
+  var gistId = localStorage.getItem(KEYS.GIST_ID);
+  if (!token) return false;
+  try {
+    var data = {
+      updated: new Date().toISOString(),
+      transactions: lsGet(KEYS.TX),
+      debts: lsGet(KEYS.DEBTS),
+      savings: lsGet(KEYS.SAV),
+      tarjetas: (typeof getTarjetas !== 'undefined') ? getTarjetas() : [],
+      prestamos: (typeof getPrestamos !== 'undefined') ? getPrestamos() : [],
+      clientes: (typeof getClientes !== 'undefined') ? getClientes() : []
+    };
+    var content = JSON.stringify(data, null, 2);
+    var filename = 'finanzapp-data.json';
+    var url, method;
+    if (gistId) {
+      url = 'https://api.github.com/gists/' + gistId;
+      method = 'PATCH';
+    } else {
+      url = 'https://api.github.com/gists';
+      method = 'POST';
+    }
+    var res = await fetch(url, {
+      method: method,
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: 'FinanzApp Pro - Backup', public: false, files: { [filename]: { content: content } } })
+    });
+    var result = await res.json();
+    if (result.id && !gistId) localStorage.setItem(KEYS.GIST_ID, result.id);
+    console.log('[Gist] Backup guardado');
+    return true;
+  } catch(e) { console.error('[Gist] Error:', e); return false; }
+}
+
+function debouncedSyncToGist() {
+  if (_gistDebounceTimer) clearTimeout(_gistDebounceTimer);
+  _gistDebounceTimer = setTimeout(syncToGist, 2000);
+}
+
+async function loadFromGist() {
+  var token = localStorage.getItem(KEYS.GIST_TOKEN);
+  var gistId = localStorage.getItem(KEYS.GIST_ID);
+  if (!token || !gistId) { showToast('Configura GitHub primero', 'warning'); return false; }
+  try {
+    var res = await fetch('https://api.github.com/gists/' + gistId, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!res.ok) throw new Error('Gist no encontrado');
+    var gist = await res.json();
+    var file = gist.files['finanzapp-data.json'];
+    if (!file) throw new Error('Archivo no encontrado');
+    var rawRes = await fetch(file.raw_url);
+    var data = await rawRes.json();
+    if (data.transactions) lsSet(KEYS.TX, data.transactions);
+    if (data.debts) lsSet(KEYS.DEBTS, data.debts);
+    if (data.savings) lsSet(KEYS.SAV, data.savings);
+    if (data.tarjetas && typeof setTarjetas !== 'undefined') setTarjetas(data.tarjetas);
+    if (data.prestamos && typeof setPrestamos !== 'undefined') setPrestamos(data.prestamos);
+    if (data.clientes && typeof setClientes !== 'undefined') setClientes(data.clientes);
+    showToast('Datos cargados desde Gist', 'success');
+    navigateTo(State.currentView);
+    return true;
+  } catch(e) { showToast('Error: ' + e.message, 'danger'); return false; }
+}
+
+// Alias para compatibilidad
+var syncAllToCloud = debouncedSyncToGist;
 
 // ══════════════════════════════════════════════════════
 //  FILTRO MES
@@ -2004,7 +2081,7 @@ var DEFAULT_CATEGORIES_DATA=[
   {id:'cat_otro',name:'Otro',icon:'bi-grid-fill',color:'#64748b',concepts:['Varios']}
 ];
 function getCatsData(){var s=localStorage.getItem(getK(KEYS.CATS_DATA));if(!s)s=localStorage.getItem(KEYS.CATS_DATA);return s?JSON.parse(s):DEFAULT_CATEGORIES_DATA;}
-function setCatsData(d){localStorage.setItem(getK(KEYS.CATS_DATA),JSON.stringify(d));}
+function setCatsData(d){localStorage.setItem(getK(KEYS.CATS_DATA),JSON.stringify(d));saveToFirestore();}
 
 function renderCategorias(){
   var cats=getCatsData();var grid=document.getElementById('categoriesGrid');if(!grid)return;
@@ -3298,7 +3375,10 @@ function toggleAcc(id){var body=document.getElementById(id);var chev=document.ge
 // ══════════════════════════════════════════════════════
 var KEYS_TC='fp_tarjetas';
 function getTarjetas(){try{return JSON.parse(localStorage.getItem(getK(KEYS_TC)))||[];}catch(e){return[];}}
-function setTarjetas(arr){localStorage.setItem(getK(KEYS_TC),JSON.stringify(arr));}
+function setTarjetas(arr){
+  localStorage.setItem(getK(KEYS_TC),JSON.stringify(arr));
+  saveToFirestore();
+}
 
 function calcTcUsado(tc){
   var base=tc.cupoUsado||0;
@@ -3545,9 +3625,15 @@ function verMovsTarjeta(id){
 var KEYS_CLI='fp_clientes';
 var KEYS_PT='fp_prestamos';
 function getClientes(){try{return JSON.parse(localStorage.getItem(getK(KEYS_CLI)))||[];}catch(e){return[];}}
-function setClientes(arr){localStorage.setItem(getK(KEYS_CLI),JSON.stringify(arr));}
+function setClientes(arr){
+  localStorage.setItem(getK(KEYS_CLI),JSON.stringify(arr));
+  saveToFirestore();
+}
 function getPrestamos(){try{return JSON.parse(localStorage.getItem(getK(KEYS_PT)))||[];}catch(e){return[];}}
-function setPrestamos(arr){localStorage.setItem(getK(KEYS_PT),JSON.stringify(arr));}
+function setPrestamos(arr){
+  localStorage.setItem(getK(KEYS_PT),JSON.stringify(arr));
+  saveToFirestore();
+}
 
 // ── CLIENTES ──────────────────────────────────────────
 function openClienteModal(editId){
@@ -4226,10 +4312,17 @@ function applyAllUserData(data) {
   localStorage.setItem(getK(KEYS.INIT), 'true');
 }
 
-// Guardar en Firestore (throttle 3s para no saturar)
+// Guardar en Firestore o Gist (throttle 3s para no saturar)
 var _saveThrottle = null;
 function saveToFirestore() {
-  if (!_db || localStorage.getItem('fp_user_mode') !== 'auth') return;
+  var mode = localStorage.getItem('fp_user_mode');
+  // Si hay Gist configurado, usar Gist (funciona para todos los modos)
+  if (localStorage.getItem(KEYS.GIST_TOKEN)) {
+    debouncedSyncToGist();
+    return;
+  }
+  // Solo para usuarios autenticados con Firebase
+  if (mode !== 'auth' || !_db) return;
   var uid = localStorage.getItem('fp_user_uid');
   if (!uid) return;
   clearTimeout(_saveThrottle);
