@@ -5407,9 +5407,9 @@ var KEYS_GLOBAL = {
 function getAuthWhitelist() {
   var stored = localStorage.getItem(KEYS_GLOBAL.WHITELIST);
   if (stored) {
-    try { return JSON.parse(stored); } catch(e) { return [AUTH_ADMIN], Johan.chaverra@pascualbravo.edu.co"; }
+    try { return JSON.parse(stored); } catch(e) { return [AUTH_ADMIN]; }
   }
-  return [AUTH_ADMIN],"Johan.chaverra@pascualbravo.edu.co";
+  return [AUTH_ADMIN];
 }
 
 function saveAuthWhitelist(list) {
