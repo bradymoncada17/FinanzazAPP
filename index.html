@@ -370,13 +370,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .debt-card-name{font-size:14px;font-weight:800;color:var(--fp-text);letter-spacing:-.2px;margin-bottom:2px}
 .debt-card-desc{font-size:11.5px;color:var(--fp-text3);margin-bottom:12px}
 .debt-main-amount{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--fp-danger)}
-.debt-detail-overlay{position:fixed;inset:0;background:rgba(15,23,42,.75);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fdIn .2s ease}
+.debt-detail-overlay{position:fixed;inset:0;background:rgba(15,23,42,.75);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fdIn .2s ease;padding:12px;box-sizing:border-box}
 @keyframes fdIn{from{opacity:0}to{opacity:1}}
-.debt-detail-box{background:var(--fp-surface);border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.2);width:100%;max-width:800px;max-height:92vh;overflow-y:auto;margin:12px;animation:bxIn .25s cubic-bezier(.4,0,.2,1)}
+.debt-detail-box{background:var(--fp-surface);border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.2);width:100%;max-width:800px;max-height:92vh;overflow-y:auto;overflow-x:hidden;margin:0;animation:bxIn .25s cubic-bezier(.4,0,.2,1);-webkit-overflow-scrolling:touch}
+.plan-option{transition:all .2s}
+.plan-option:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.plan-option-rec{border-color:rgba(34,197,94,.5)!important}
 @keyframes bxIn{from{opacity:0;transform:scale(.97) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.debt-detail-header{background:linear-gradient(135deg,#0f172a,#1e293b);padding:22px 26px;border-radius:20px 20px 0 0;position:relative}
+.debt-detail-header{background:linear-gradient(135deg,#0f172a,#1e293b);padding:16px 20px;border-radius:20px 20px 0 0;position:relative}
 .debt-detail-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#dc2626,#f97316,#dc2626)}
-.debt-detail-body{padding:22px 26px}
+.debt-detail-body{padding:16px 20px}
+@media(max-width:576px){
+  .debt-detail-box{margin:0;border-radius:16px 16px 12px 12px;max-height:90vh}
+  .debt-detail-overlay{align-items:center;padding:16px;justify-content:center}
+}
 /* SAVING */
 .saving-card{background:var(--fp-surface);border:1px solid var(--fp-border);border-radius:var(--rl);overflow:hidden;transition:all .25s;box-shadow:var(--sh)}
 .saving-card:hover{transform:translateY(-2px);box-shadow:var(--sh-lg)}
@@ -1371,7 +1378,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 
 <!-- MODAL NUEVA DEUDA -->
 <div class="modal fade fp-modal" id="modalDebt" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width:800px"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title" id="modalDebtTitle"><i class="bi bi-file-earmark-plus-fill me-2"></i>Registrar Deuda</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="debtEditId"/>
@@ -1390,10 +1397,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 </div>
       <div class="row g-3">
         <div class="col-md-6"><label class="fp-label">Acreedor / Nombre *</label><input class="fp-input" type="text" id="debtCreditor" placeholder="Ej: Banco, Cooperativa..."/></div>
-        <div class="col-md-6"><label class="fp-label" id="debtTotalLabel">Capital inicial ($) *</label><input class="fp-input fp-input-mono" type="number" id="debtTotal" placeholder="0" min="0.01" step="0.01" oninput="previewCuota()"/></div>
-        <div class="col-md-3"><label class="fp-label">Tasa mensual (%)</label><input class="fp-input fp-input-mono" type="number" id="debtRate" placeholder="Ej: 2.1" min="0" step="0.01" value="0" oninput="syncTasas('mensual');previewCuota()"/></div>
-        <div class="col-md-3"><label class="fp-label">Tasa anual (%)</label><input class="fp-input fp-input-mono" type="number" id="debtRateAnual" placeholder="Ej: 25.2" min="0" step="0.01" value="0" oninput="syncTasas('anual');previewCuota()"/></div>
-        <div class="col-md-3"><label class="fp-label">Plazo (meses)</label><input class="fp-input fp-input-mono" type="number" id="debtMonths" placeholder="Ej: 48" min="1" step="1" value="12" oninput="previewCuota()"/></div>
+        <div class="col-md-6"><label class="fp-label" id="debtTotalLabel">Capital inicial ($) *</label><input class="fp-input fp-input-mono" type="number" id="debtTotal" placeholder="0" min="0.01" step="0.01" oninput="previewCuota();actualizarPlanPagosPreview()"/></div>
+        <div class="col-md-3"><label class="fp-label">Tasa mensual (%)</label><input class="fp-input fp-input-mono" type="number" id="debtRate" placeholder="Ej: 2.1" min="0" step="0.01" value="0" oninput="syncTasas('mensual');previewCuota();actualizarPlanPagosPreview()"/></div>
+        <div class="col-md-3"><label class="fp-label">Tasa anual (%)</label><input class="fp-input fp-input-mono" type="number" id="debtRateAnual" placeholder="Ej: 25.2" min="0" step="0.01" value="0" oninput="syncTasas('anual');previewCuota();actualizarPlanPagosPreview()"/></div>
+        <div class="col-md-3"><label class="fp-label">Plazo (meses)</label><input class="fp-input fp-input-mono" type="number" id="debtMonths" placeholder="Ej: 48" min="1" step="1" value="12" oninput="previewCuota();actualizarPlanPagosPreview()"/></div>
         <div class="col-md-3"><label class="fp-label">Cuota calculada</label><div id="cuotaPreview" style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--fp-primary)">$0</div></div>
         <!-- CUOTA MANUAL -->
         <div class="col-12">
@@ -1404,7 +1411,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             </div>
             <div id="manualCuotaField" style="display:none">
               <div class="row g-2">
-                <div class="col-md-6"><input class="fp-input fp-input-mono" type="number" id="debtCuotaManual" placeholder="Ej: 440990" min="0" step="1" value="0" oninput="previewCuota()"/></div>
+                <div class="col-md-6"><input class="fp-input fp-input-mono" type="number" id="debtCuotaManual" placeholder="Ej: 440990" min="0" step="1" value="0" oninput="previewCuota();actualizarPlanPagosPreview()"/></div>
               </div>
             </div>
           </div>
@@ -1418,9 +1425,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             </div>
             <div id="seguroFields" style="display:none">
               <div class="row g-2">
-                <div class="col-md-6"><label class="fp-label" style="color:var(--fp-teal)">Valor del seguro ($/mes)</label><input class="fp-input fp-input-mono" type="number" id="debtSeguroBase" placeholder="Ej: 25000" min="0" step="1" value="0" oninput="previewCuota()"/></div>
+                <div class="col-md-6"><label class="fp-label" style="color:var(--fp-teal)">Valor del seguro ($/mes)</label><input class="fp-input fp-input-mono" type="number" id="debtSeguroBase" placeholder="Ej: 25000" min="0" step="1" value="0" oninput="previewCuota();actualizarPlanPagosPreview()"/></div>
                 <div class="col-md-6"><label class="fp-label" style="color:var(--fp-teal)">Cuota TOTAL (cuota+seguro)</label><div id="cuotaConSeguroPreview" style="background:#fff;border:1px solid rgba(8,145,178,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--fp-teal)">$0</div></div>
-                <div class="col-12"><div style="font-size:11px;color:var(--fp-text2)"><i class="bi bi-info-circle me-1" style="color:var(--fp-teal)"></i>El seguro puede cambiar. Podrás actualizarlo desde el detalle de la deuda.</div></div>
               </div>
             </div>
           </div>
@@ -1434,8 +1440,55 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             </div>
             <div id="aporteFields" style="display:none">
               <div class="row g-2">
-                <div class="col-md-6"><label class="fp-label" style="color:var(--fp-violet)">Aporte social inicial ($/mes)</label><input class="fp-input fp-input-mono" type="number" id="debtAporteBase" placeholder="Ej: 13103" min="0" step="1" value="0" oninput="previewCuota()"/></div>
+                <div class="col-md-6"><label class="fp-label" style="color:var(--fp-violet)">Aporte social inicial ($/mes)</label><input class="fp-input fp-input-mono" type="number" id="debtAporteBase" placeholder="Ej: 13103" min="0" step="1" value="0" oninput="previewCuota();actualizarPlanPagosPreview()"/></div>
                 <div class="col-md-6"><label class="fp-label" style="color:var(--fp-violet)">Cuota TOTAL (con aporte)</label><div id="cuotaTotalPreview" style="background:#fff;border:1px solid rgba(124,58,237,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--fp-violet)">$0</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- PLAN INTELIGENTE DE PAGOS -->
+        <div class="col-12">
+          <div style="background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1));border:1px solid rgba(99,102,241,.2);border-radius:12px;padding:14px;margin-top:8px" id="planPagosPreviewSection">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-primary)"><i class="bi bi-graph-up me-1"></i>Plan Inteligente de Pagos</div>
+              <button type="button" class="btn fp-btn-sm" style="background:rgba(99,102,241,.15);color:var(--fp-primary)" onclick="togglePlanPagosPreview()"><i class="bi bi-chevron-down me-1" id="planPagosToggleIcon"></i></button>
+            </div>
+            <div id="planPagosPreviewContent">
+              <div class="row g-3 mb-3">
+                <div class="col-12">
+                  <div class="d-flex gap-2 flex-wrap">
+                    <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px 14px;text-align:center;flex:1;min-width:120px">
+                      <div style="font-size:9px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Tú puedes pagar</div>
+                      <div style="font-size:18px;font-weight:800;color:var(--fp-gold)" id="planPuedoPagar">$0</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px 14px;text-align:center;flex:1;min-width:120px">
+                      <div style="font-size:9px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Cuota actual</div>
+                      <div style="font-size:18px;font-weight:800;color:var(--fp-primary)" id="planCuotaActual">$0</div>
+                    </div>
+                    <div style="background:rgba(34,197,94,.1);border-radius:8px;padding:10px 14px;text-align:center;flex:1;min-width:120px">
+                      <div style="font-size:9px;color:var(--fp-success);text-transform:uppercase;margin-bottom:4px">Ahorro intereses</div>
+                      <div style="font-size:18px;font-weight:800;color:var(--fp-success)" id="planAhorroIntereses">$0</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="font-size:11px;font-weight:600;color:var(--fp-text2);margin-bottom:8px"><i class="bi bi-lightbulb me-1"></i>Opciones de pago extra recomendadas:</div>
+              <div class="row g-2" id="planOpcionesExtra">
+                <div class="col-6 col-md-3"><div style="background:rgba(255,255,255,.05);border-radius:8px;padding:8px;text-align:center;cursor:pointer" onclick="aplicarExtraPreview(0)"><div style="font-size:10px;color:var(--fp-text2)">Solo cuota</div><div style="font-size:14px;font-weight:700" id="optExtra0">$0</div><div style="font-size:9px;color:var(--fp-text2)" id="optExtra0Meses">--</div></div></div>
+                <div class="col-6 col-md-3"><div style="background:rgba(255,255,255,.05);border-radius:8px;padding:8px;text-align:center;cursor:pointer" onclick="aplicarExtraPreview(50000)"><div style="font-size:10px;color:var(--fp-gold)">+50k extra</div><div style="font-size:14px;font-weight:700" id="optExtra50">$0</div><div style="font-size:9px;color:var(--fp-text2)" id="optExtra50Meses">--</div></div></div>
+                <div class="col-6 col-md-3"><div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:8px;text-align:center;cursor:pointer" onclick="aplicarExtraPreview(100000)"><div style="font-size:10px;color:var(--fp-success)">+100k extra</div><div style="font-size:14px;font-weight:700" id="optExtra100">$0</div><div style="font-size:9px;color:var(--fp-success)" id="optExtra100Meses">--</div></div></div>
+                <div class="col-6 col-md-3"><div style="background:rgba(255,255,255,.05);border-radius:8px;padding:8px;text-align:center;cursor:pointer" onclick="aplicarExtraPreview(200000)"><div style="font-size:10px;color:var(--fp-primary)">+200k extra</div><div style="font-size:14px;font-weight:700" id="optExtra200">$0</div><div style="font-size:9px;color:var(--fp-text2)" id="optExtra200Meses">--</div></div></div>
+              </div>
+              <div id="planPreviewDetalle" style="margin-top:12px;display:none">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--fp-text2);margin-bottom:6px"><i class="bi bi-calendar3 me-1"></i>Detalle del plan con +100k extra</div>
+                <div style="max-height:180px;overflow-y:auto;border-radius:8px;border:1px solid rgba(255,255,255,.1)">
+                  <table style="width:100%;font-size:11px;border-collapse:collapse">
+                    <thead style="position:sticky;top:0;background:rgba(26,86,219,.2)">
+                      <tr><th style="padding:6px 8px;text-align:left;color:rgba(255,255,255,.6)">#</th><th style="padding:6px 8px;text-align:left;color:rgba(255,255,255,.6)">Fecha</th><th style="padding:6px 8px;text-align:right;color:rgba(255,255,255,.6)">Cuota</th><th style="padding:6px 8px;text-align:right;color:rgba(255,255,255,.6)">Interés</th><th style="padding:6px 8px;text-align:right;color:rgba(255,255,255,.6)">Capital</th><th style="padding:6px 8px;text-align:right;color:rgba(255,255,255,.6)">Saldo</th></tr>
+                    </thead>
+                    <tbody id="planPreviewTabla"></tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -1473,13 +1526,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 
 <!-- MODAL ABONO -->
 <div class="modal fade fp-modal" id="modalPayment" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width:800px"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title" id="modalPayTitle"><i class="bi bi-cash-coin me-2"></i>Registrar Pago</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="payDebtId"/><input type="hidden" id="payEditId"/>
       <div style="background:linear-gradient(135deg,var(--fp-primary-lt),rgba(99,102,241,.06));border:1px solid rgba(26,86,219,.12);border-radius:10px;padding:13px 15px;margin-bottom:14px" id="payDebtInfo"></div>
+      
+      <!-- OPCIONES RÁPIDAS -->
+      <div style="margin-bottom:14px" id="payQuickOptions">
+        <div style="font-size:11px;font-weight:600;color:var(--fp-text2);margin-bottom:6px"><i class="bi bi-lightning me-1"></i>Opciones rápidas</div>
+        <div class="d-flex gap-2 flex-wrap" id="payQuickBtns"></div>
+      </div>
+      
       <div class="row g-3">
-        <div class="col-md-5">
+        <div class="col-md-4">
           <div class="row g-3">
             <div class="col-12"><label class="fp-label">Monto del abono ($) *</label><input class="fp-input fp-input-mono" type="number" id="payAmount" placeholder="0" min="0.01" step="0.01" oninput="calcPaymentPreview()"/></div>
             <div class="col-12" id="payAporteRow" style="display:none">
@@ -1503,20 +1563,34 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
             <div class="preview-row"><span>Nuevo saldo</span><span class="preview-val fw-bold" id="prevNewBalance">$0</span></div>
           </div>
         </div>
-        <div class="col-md-3 d-flex flex-column align-items-center pt-2">
+        <div class="col-md-4">
           <p class="fp-label text-center mb-2">Capital vs Interés</p>
-          <div style="width:130px;height:130px;position:relative"><canvas id="payDonut"></canvas><div class="pay-donut-center" id="payDonutCenter"><span>0%</span><small>capital</small></div></div>
-          <div class="d-flex gap-2 mt-2">
+          <div style="width:130px;height:130px;position:relative;margin:0 auto"><canvas id="payDonut"></canvas><div class="pay-donut-center" id="payDonutCenter"><span>0%</span><small>capital</small></div></div>
+          <div class="d-flex gap-2 mt-2 justify-content-center">
             <span style="font-size:10px;display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:var(--fp-danger);display:inline-block"></span>Int.</span>
             <span style="font-size:10px;display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:var(--fp-success);display:inline-block"></span>Cap.</span>
           </div>
         </div>
         <div class="col-md-4">
           <label class="fp-label"><i class="bi bi-wallet2 me-1"></i> ¿De dónde sale?</label>
-          <div id="paySourceList" style="max-height:260px;overflow-y:auto;margin-top:6px"></div>
+          <div id="paySourceList" style="max-height:200px;overflow-y:auto;margin-top:6px"></div>
           <input type="hidden" id="paySourceSelected" value="libre"/>
         </div>
       </div>
+      
+      <!-- IMPACTO DEL PAGO -->
+      <div id="payImpactSection" style="display:none;margin-top:14px">
+        <div style="background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(16,185,129,.1));border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:14px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-success);margin-bottom:10px"><i class="bi bi-graph-up me-1"></i>Impacto de este pago</div>
+          <div class="row g-3">
+            <div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Tiempo ahorrado</div><div style="font-size:20px;font-weight:800;color:var(--fp-success)" id="prevTiempoAhorro">--</div><div style="font-size:10px;color:var(--fp-text2)">días</div></div></div>
+            <div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Intereses ahorrados</div><div style="font-size:20px;font-weight:800;color:var(--fp-gold)" id="prevInteresAhorro">--</div></div></div>
+            <div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Fecha final</div><div style="font-size:16px;font-weight:700;color:var(--fp-primary)" id="prevFechaFinal">--</div></div></div>
+          </div>
+          <div id="prevComparacionPlan" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(34,197,94,.2)"></div>
+        </div>
+      </div>
+      
       <div class="mt-3" id="payHistory"></div>
     </div>
     <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-primary" onclick="savePayment()"><i class="bi bi-check-lg"></i> Confirmar Pago</button></div>
@@ -1525,15 +1599,47 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 
 <!-- MODAL AHORRO -->
 <div class="modal fade fp-modal" id="modalSaving" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:700px"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title" id="modalSavingTitle"><i class="bi bi-piggy-bank-fill me-2"></i>Nueva Cuenta de Ahorro</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <input type="hidden" id="savEditId"/>
       <div class="row g-3">
-        <div class="col-12"><label class="fp-label">Nombre *</label><input class="fp-input" type="text" id="savName" placeholder="Ej: Vacaciones, Emergencias..."/></div>
-        <div class="col-md-6"><label class="fp-label">Meta ($)</label><input class="fp-input fp-input-mono" type="number" id="savGoal" placeholder="0" min="0" step="0.01"/></div>
+        <div class="col-12"><label class="fp-label">Nombre *</label><input class="fp-input" type="text" id="savName" placeholder="Ej: Vacaciones, SOAT, Casa..."/></div>
+        <div class="col-md-6"><label class="fp-label">Meta ($)</label><input class="fp-input fp-input-mono" type="number" id="savGoal" placeholder="0" min="0" step="0.01" oninput="actualizarPlanAhorroPreview()"/></div>
+        <div class="col-md-6"><label class="fp-label">Fecha objetivo (opcional)</label><input class="fp-input" type="date" id="savGoalDate" oninput="actualizarPlanAhorroPreview()"/></div>
         <div class="col-md-6"><label class="fp-label">Saldo inicial ($)</label><input class="fp-input fp-input-mono" type="number" id="savInitial" placeholder="0" min="0" step="0.01" value="0"/></div>
-        <div class="col-12"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="savDesc" placeholder="¿Para qué?"/></div>
+        <div class="col-md-6"><label class="fp-label">Frecuencia preferida</label>
+          <select class="fp-select" id="savFrecuencia" onchange="actualizarPlanAhorroPreview()">
+            <option value="mensual">Mensual</option>
+            <option value="quincenal">Quincenal</option>
+            <option value="semanal">Semanal</option>
+            <option value="diario">Diario</option>
+          </select>
+        </div>
+        <div class="col-12"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="savDesc" placeholder="¿Para qué necesitas este ahorro?"/></div>
+      </div>
+      
+      <!-- PLAN INTELIGENTE DE AHORRO -->
+      <div style="background:linear-gradient(135deg,rgba(234,179,8,.1),rgba(251,191,36,.1));border:1px solid rgba(234,179,8,.2);border-radius:12px;padding:14px;margin-top:14px" id="planAhorroPreviewSection">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-gold)"><i class="bi bi-lightbulb me-1"></i>Plan Inteligente de Ahorro</div>
+          <button type="button" class="btn fp-btn-sm" style="background:rgba(234,179,8,.15);color:var(--fp-gold)" onclick="togglePlanAhorroPreview()"><i class="bi bi-chevron-down me-1" id="planAhorroToggleIcon"></i></button>
+        </div>
+        <div id="planAhorroPreviewContent">
+          <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Tu saldo libre</div><div style="font-size:16px;font-weight:800;color:var(--fp-success)" id="savPlanSaldoLibre">$0</div></div></div>
+            <div class="col-6 col-md-3"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Puedes ahorrar</div><div style="font-size:16px;font-weight:800;color:var(--fp-gold)" id="savPlanPuedoAhorrar">$0</div></div></div>
+            <div class="col-6 col-md-3"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Faltante</div><div style="font-size:16px;font-weight:800;color:var(--fp-danger)" id="savPlanFaltante">$0</div></div></div>
+            <div class="col-6 col-md-3"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Tiempo</div><div style="font-size:16px;font-weight:800;color:var(--fp-primary)" id="savPlanTiempo">--</div></div></div>
+          </div>
+          <div style="font-size:11px;font-weight:600;color:var(--fp-text2);margin-bottom:8px"><i class="bi bi-wallet2 me-1"></i>Según tu capacidad, te recomendamos:</div>
+          <div class="row g-2" id="savPlanOpciones">
+            <div class="col-6 col-md-3"><div style="background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:8px;text-align:center;cursor:pointer;overflow:hidden" onclick="aplicarAhorroPreview('mensual')"><div style="font-size:10px;color:var(--fp-gold);font-weight:600">MENSUAL</div><div style="font-size:14px;font-weight:700;color:var(--fp-text);word-break:break-all" id="savOptMensual">$0</div></div></div>
+            <div class="col-6 col-md-3"><div style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);border-radius:8px;padding:8px;text-align:center;cursor:pointer;overflow:hidden" onclick="aplicarAhorroPreview('quincenal')"><div style="font-size:10px;color:var(--fp-violet);font-weight:600">QUINCENAL</div><div style="font-size:14px;font-weight:700;color:var(--fp-text);word-break:break-all" id="savOptQuincenal">$0</div></div></div>
+            <div class="col-6 col-md-3"><div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:8px;text-align:center;cursor:pointer;overflow:hidden" onclick="aplicarAhorroPreview('semanal')"><div style="font-size:10px;color:var(--fp-success);font-weight:600">SEMANAL</div><div style="font-size:14px;font-weight:700;color:var(--fp-text);word-break:break-all" id="savOptSemanal">$0</div></div></div>
+            <div class="col-6 col-md-3"><div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px;text-align:center;cursor:pointer;overflow:hidden" onclick="aplicarAhorroPreview('diario')"><div style="font-size:10px;color:var(--fp-primary);font-weight:600">DIARIO</div><div style="font-size:14px;font-weight:700;color:var(--fp-text);word-break:break-all" id="savOptDiario">$0</div></div></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-gold" onclick="saveSaving()"><i class="bi bi-check-lg"></i> Crear</button></div>
@@ -2778,60 +2884,511 @@ function previewCuota(){
   var pcs=document.getElementById('cuotaConSeguroPreview');if(pcs)pcs.textContent=fmt(cuota+seg);
 }
 
+// Análisis y plan de pagos inteligente
+function getFinanzasSummary(){
+  var s=calcSaldos();
+  var debts=lsGet(KEYS.DEBTS).filter(function(d){return d.remainingBalance>0;});
+  var catSaldos=calcSaldosPorCat();
+  var deudaMes=debts.reduce(function(sum,d){return sum+(d.cuota||0);},0);
+  return {
+    saldoLibre:s.saldoLibre,
+    totalInc:s.totalInc,
+    totalExp:s.totalExp,
+    totalSav:s.totalSav,
+    catSaldos:catSaldos,
+    deudaMes:deudaMes,
+    totalDebt:debts.reduce(function(sum,d){return sum+d.remainingBalance;},0),
+    numDebts:debts.length,
+    debts:debts
+  };
+}
+
+function generarPlanPagos(debt,extra){
+  extra=extra||0;
+  var tasa=debt.interestRate?(debt.interestRate/100):0;
+  var saldo=debt.remainingBalance||0;
+  var capital=debt.totalAmount||debt.remainingBalance||0;
+  var meses=debt.months||12;
+  var cuotaBase=debt.cuota||0;
+  if(!cuotaBase&&capital>0&&meses>0){
+    cuotaBase=calcCuotaMensual(capital,debt.interestRate||0,meses);
+  }
+  var cuotaTotal=cuotaBase;
+  var pagoOptimo=cuotaBase+extra;
+  
+  function mesesParaPagar(saldo,cuota,tasa){
+    if(!saldo||saldo<=0)return 0;
+    if(!cuota||cuota<=0)return Infinity;
+    if(tasa<=0)return Math.ceil(saldo/cuota);
+    if(cuota<=saldo*tasa)return Infinity;
+    var meses=0;
+    var s=saldo;
+    while(s>0&&meses<600){
+      var interes=s*tasa;
+      var capital=cuota-interes;
+      if(capital<=0)return Infinity;
+      s-=capital;
+      meses++;
+    }
+    return meses;
+  }
+  var mesesActual=mesesParaPagar(saldo,cuotaTotal,tasa);
+  var mesesExtra=mesesParaPagar(saldo,pagoOptimo,tasa);
+  var interesTotalActual=0;
+  var interesTotalExtra=0;
+  var s1=saldo,s2=saldo;
+  if(tasa>0&&saldo>0){
+    for(var m=0;m<Math.min(mesesActual,600);m++){
+      interesTotalActual+=s1*tasa;
+      s1-=(cuotaTotal-s1*tasa);
+    }
+    for(var m=0;m<Math.min(mesesExtra,600);m++){
+      interesTotalExtra+=s2*tasa;
+      s2-=(pagoOptimo-s2*tasa);
+    }
+  }
+  return {
+    saldo:saldo,
+    cuotaActual:cuotaTotal,
+    pagoOptimo:pagoOptimo,
+    tasa:tasa,
+    mesesActual:mesesActual,
+    mesesExtra:mesesExtra,
+    interesAhorrado:interesTotalActual-interesTotalExtra,
+    interesTotalActual:interesTotalActual,
+    interesTotalExtra:interesTotalExtra,
+    mesesAhorrados:mesesActual-mesExtra,
+    saldoLibre:getFinanzasSummary().saldoLibre
+  };
+}
+
+function generarAmortizacionCompleta(debt,extra){
+  var saldo=debt.remainingBalance||0;
+  var tasa=debt.interestRate?(debt.interestRate/100):0;
+  // La cuota base del crédito
+  var cuotaBase=debt.cuota||0;
+  if(!cuotaBase&&saldo>0){
+    var capital=debt.totalAmount||saldo;
+    var meses=debt.months||12;
+    cuotaBase=calcCuotaMensual(capital,debt.interestRate||0,meses);
+  }
+  // Solo sumar aporte/seguro si NO están en la cuota (si son pagos separados)
+  // Esto se determina por el campo hasAporte/hasSeguro
+  var aporteSeparado=0;
+  var seguroSeparado=0;
+  if(debt.hasAporte&&debt.aporteBase&&debt.aporteBase>0){
+    // El usuario indica que hay un aporte SEPARADO
+    var ahora=today();
+    var ajustes=debt.aporteAjustes||[];
+    var ultimoAporte=ajustes.slice().sort(function(a,b){return b.date.localeCompare(a.date);}).find(function(a){return a.date<=ahora;});
+    aporteSeparado=ultimoAporte?ultimoAporte.value:debt.aporteBase||0;
+  }
+  if(debt.hasSeguro&&debt.seguroBase&&debt.seguroBase>0){
+    var ahora=today();
+    var ajustes=debt.seguroAjustes||[];
+    var ultimoSeguro=ajustes.slice().sort(function(a,b){return b.date.localeCompare(a.date);}).find(function(a){return a.date<=ahora;});
+    seguroSeparado=ultimoSeguro?ultimoSeguro.value:debt.seguroBase||0;
+  }
+  // Si tiene ambos campos de aporte/seguro, asumimos que la cuota NO los incluye
+  var cuotaFija=cuotaBase+aporteSeparado+seguroSeparado;
+  var cuota=cuotaFija+extra;
+  var ahora=new Date();
+  var pagos=[];
+  var saldoActual=saldo;
+  var acumInteres=0;
+  var acumCapital=0;
+  var mes=1;
+  while(saldoActual>0.01&&mes<=600){
+    var fecha=new Date(ahora.getFullYear(),ahora.getMonth()+mes,1);
+    var interes=saldoActual*tasa;
+    var capitalPagado=Math.min(cuota-interes,saldoActual);
+    if(cuota<=interes){
+      capitalPagado=0;
+      interes=cuota;
+    }
+    saldoActual=Math.max(0,saldoActual-capitalPagado);
+    acumInteres+=interes;
+    acumCapital+=capitalPagado;
+    pagos.push({
+      num:mes,
+      fecha:fecha.toISOString().split('T')[0],
+      cuota:cuota,
+      interes:interes,
+      capital:capitalPagado,
+      saldo:saldoActual,
+      acumInteres:acumInteres,
+      acumCapital:acumCapital
+    });
+    mes++;
+  }
+  return {pagos:pagos,totalInteres:acumInteres,totalCapital:acumCapital,totalPagado:acumInteres+acumCapital,meses:pagos.length};
+}
+
+function verPlanPagos(id){
+  var debts=lsGet(KEYS.DEBTS);
+  var d=debts.find(function(x){return x.id===id;});if(!d)return;
+  var fin=getFinanzasSummary();
+  
+  var saldo=d.remainingBalance||0;
+  var tasa=d.interestRate||0;
+  var interesMensual=saldo*(tasa/100);
+  // La cuota guardada es el valor total que se paga mensualmente
+  var cuotaTotal=d.cuota||0;
+  if(!cuotaTotal&&saldo>0){
+    var capital=d.totalAmount||saldo;
+    var mesesOriginal=d.months||12;
+    cuotaTotal=calcCuotaMensual(capital,tasa,mesesOriginal);
+  }
+  
+  var opciones=[
+    {label:'Solo cuota',extra:0,color:'var(--fp-text2)',rec:'Opciones básicas'},
+    {label:'+50k extra',extra:50000,color:'var(--fp-gold)'},
+    {label:'+100k extra',extra:100000,color:'var(--fp-success)',rec:true},
+    {label:'+200k extra',extra:200000,color:'var(--fp-primary)'},
+    {label:'+300k extra',extra:300000,color:'var(--fp-orange)'},
+    {label:'+500k extra',extra:500000,color:'var(--fp-danger)'}
+  ];
+  
+  var planes={};
+  opciones.forEach(function(o){
+    planes[o.extra]=generarAmortizacionCompleta(d,o.extra);
+  });
+  var planBase=planes[0];
+  
+  var html='<div class="debt-detail-overlay" id="planPagosOverlay" onclick="if(event.target===this)document.getElementById(\'planPagosOverlay\').remove()">'
+    +'<div class="debt-detail-box" style="max-width:900px;max-height:90vh;display:flex;flex-direction:column">'
+      +'<div class="debt-detail-header">'
+        +'<div class="d-flex justify-content-between align-items-start">'
+          +'<div><h3 style="font-size:18px;font-weight:800;color:#fff;margin:0"><i class="bi bi-graph-up me-2"></i>Plan de Pagos</h3><div style="font-size:12px;color:rgba(255,255,255,0.6)">'+esc(d.creditor)+'</div></div>'
+          +'<button onclick="document.getElementById(\'planPagosOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="bi bi-x-lg"></i></button>'
+        +'</div>'
+      +'</div>'
+      +'<div class="debt-detail-body" style="overflow-y:auto;flex:1;padding-bottom:10px;overflow-x:hidden">'
+        
+        +'<div style="background:rgba(99,102,241,.1);border-radius:10px;padding:12px;margin-bottom:12px;overflow:hidden">'
+          +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(99,102,241,.8);margin-bottom:8px"><i class="bi bi-pie-chart me-1"></i>Resumen Financiero</div>'
+          +'<div class="row g-2">'
+            +'<div class="col-6 col-md-3"><div style="text-align:center;padding:4px"><div style="font-size:9px;color:var(--fp-text2)">Ingresos</div><div style="font-size:13px;font-weight:700;color:var(--fp-success);word-break:break-all;line-height:1.2">'+fmt(fin.totalInc)+'</div></div></div>'
+            +'<div class="col-6 col-md-3"><div style="text-align:center;padding:4px"><div style="font-size:9px;color:var(--fp-text2)">Egresos</div><div style="font-size:13px;font-weight:700;color:var(--fp-danger);word-break:break-all;line-height:1.2">'+fmt(fin.totalExp)+'</div></div></div>'
+            +'<div class="col-6 col-md-3"><div style="text-align:center;padding:4px"><div style="font-size:9px;color:var(--fp-text2)">Cuota</div><div style="font-size:13px;font-weight:700;color:var(--fp-gold);word-break:break-all;line-height:1.2">'+fmt(d.cuota)+'</div></div></div>'
+            +'<div class="col-6 col-md-3"><div style="text-align:center;padding:4px"><div style="font-size:9px;color:var(--fp-text2)">Saldo libre</div><div style="font-size:13px;font-weight:700;color:'+(fin.saldoLibre>=0?'var(--fp-success)':'var(--fp-danger)')+';word-break:break-all;line-height:1.2">'+fmt(fin.saldoLibre)+'</div></div></div>'
+          +'</div>'
+        +'</div>'
+        
+        +'<div style="background:rgba(239,68,68,.1);border-radius:10px;padding:12px;margin-bottom:12px;overflow:hidden">'
+          +'<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">'
+            +'<div><div style="font-size:10px;font-weight:700;color:var(--fp-danger);text-transform:uppercase">Saldo pendiente</div><div style="font-size:20px;font-weight:800;color:#fff;word-break:break-all;line-height:1.2">'+fmt(saldo)+'</div></div>'
+            +'<div class="text-end"><div style="font-size:10px;color:var(--fp-text2)">Tasa: '+tasa+'%</div><div style="font-size:13px;font-weight:600;color:var(--fp-danger)">Int: '+fmt(interesMensual)+'</div></div>'
+          +'</div>'
+        +'</div>'
+        
+        +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:8px"><i class="bi bi-list-ul me-1"></i>Planes de pago (toca uno para ver)</div>'
+        +'<div class="d-flex flex-wrap gap-2 mb-3" style="overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch">';
+  opciones.forEach(function(o){
+    var pl=planes[o.extra];
+    var ahorro=planBase.totalInteres-pl.totalInteres;
+    var tiempoAhorro=planBase.meses-pl.meses;
+    var bg=o.rec?'rgba(34,197,94,.2)':'rgba(255,255,255,.05)';
+    var border=o.rec?'2px solid rgba(34,197,94,.5)':'1px solid rgba(255,255,255,.1)';
+    html+='<div class="plan-option'+(o.rec?' plan-option-rec':'')+'" onclick="mostrarDetallePlan(\''+d.id+'\','+o.extra+','+planBase.totalInteres+','+planBase.meses+')" style="background:'+bg+';border:'+border+';border-radius:10px;padding:10px;cursor:pointer;min-width:120px;flex:1;flex-shrink:0;max-width:180px">'
+      +'<div style="font-size:10px;color:'+o.color+';font-weight:700;margin-bottom:4px">'+(o.rec?'★ ':'')+o.label+'</div>'
+      +'<div style="font-size:14px;font-weight:700;color:#fff;word-break:break-all">'+fmt(pl.pagos.length>0?pl.pagos[0].cuota:cuotaTotal)+'</div>'
+      +'<div style="font-size:10px;color:var(--fp-text2);margin-top:4px"><i class="bi bi-calendar me-1"></i>'+pl.meses+' meses</div>'
+      +'<div style="font-size:10px;color:var(--fp-success);margin-top:2px"><i class="bi bi-piggy-bank me-1"></i>'+fmt(ahorro)+'</div>'
+    +'</div>';
+  });
+  html+='</div>'
+        
+        +'<div id="planDetalleContainer">'
+          +'<div style="background:rgba(234,179,8,.1);border-radius:10px;padding:12px;text-align:center;color:var(--fp-text2);font-size:12px">'
+            +'<i class="bi bi-hand-index me-1"></i>Selecciona un plan para ver el desglose'
+          +'</div>'
+        +'</div>'
+        
+        +'<div class="d-flex gap-2 mt-3 flex-wrap">'
+          +'<button class="btn fp-btn-primary flex-fill" style="min-width:130px" onclick="document.getElementById(\'planPagosOverlay\').remove();openDebtPayment(\''+d.id+'\')"><i class="bi bi-cash-coin me-1"></i>Registrar</button>'
+          +'<button class="btn fp-btn-ghost" onclick="document.getElementById(\'planPagosOverlay\').remove()"><i class="bi bi-x me-1"></i>Cerrar</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  var ex=document.getElementById('planPagosOverlay');if(ex)ex.remove();
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function mostrarDetallePlan(debtId,extra,interesBase,mesesBase){
+  var debts=lsGet(KEYS.DEBTS);
+  var d=debts.find(function(x){return x.id===debtId});if(!d)return;
+  var plan=generarAmortizacionCompleta(d,extra);
+  var container=document.getElementById('planDetalleContainer');
+  if(!container)return;
+  
+  var ahorroInteres=interesBase-plan.totalInteres;
+  var ahorroMeses=mesesBase-plan.meses;
+  var labelExtra=extra>0?' (+'+fmt(extra)+' extra)':'';
+  
+  var html='<div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:12px;margin-bottom:12px;overflow:hidden">'
+    +'<div style="font-size:11px;font-weight:700;color:var(--fp-success);margin-bottom:8px"><i class="bi bi-check-circle me-1"></i>Resumen del Plan'+labelExtra+'</div>'
+    +'<div class="row g-2">'
+      +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Cuota mensual</div><div style="font-size:16px;font-weight:800;color:var(--fp-success);word-break:break-all;line-height:1.2">'+fmt(plan.pagos.length>0?plan.pagos[0].cuota:0)+'</div></div></div>'
+      +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Total a pagar</div><div style="font-size:16px;font-weight:800;color:var(--fp-danger);word-break:break-all;line-height:1.2">'+fmt(plan.totalPagado+d.remainingBalance)+'</div></div></div>'
+      +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Tiempo</div><div style="font-size:16px;font-weight:800;color:var(--fp-primary);word-break:break-all;line-height:1.2">'+plan.meses+' meses</div></div></div>'
+    +'</div>'
+    +'<div class="row g-2 mt-2">'
+      +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Total intereses</div><div style="font-size:13px;font-weight:700;color:var(--fp-danger);word-break:break-all">'+fmt(plan.totalInteres)+'</div></div></div>'
+      +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Ahorro int.</div><div style="font-size:13px;font-weight:700;color:var(--fp-success);word-break:break-all">'+(ahorroInteres>0?'-'+fmt(ahorroInteres):'--')+'</div></div></div>'
+      +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Meses menos</div><div style="font-size:13px;font-weight:700;color:var(--fp-primary);word-break:break-all">'+(ahorroMeses>0?ahorroMeses:'--')+'</div></div></div>'
+    +'</div>'
+  +'</div>'
+  
+  +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:8px"><i class="bi bi-calendar-check me-1"></i>Calendario de pagos</div>'
+  +'<div style="max-height:300px;overflow-y:auto;border-radius:8px;border:1px solid rgba(255,255,255,.1);margin-bottom:12px">'
+    +'<table style="width:100%;font-size:11px;border-collapse:collapse">'
+      +'<thead style="position:sticky;top:0;background:rgba(26,86,219,.3);z-index:1">'
+        +'<tr>'
+          +'<th style="padding:8px 6px;text-align:center;color:rgba(255,255,255,.7)">#</th>'
+          +'<th style="padding:8px 6px;text-align:left;color:rgba(255,255,255,.7)">Fecha</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Cuota</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Interés</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Capital</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Acum Int.</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Saldo</th>'
+        +'</tr>'
+      +'</thead>'
+      +'<tbody>';
+  plan.pagos.forEach(function(p,i){
+    var bg=i%2===0?'rgba(255,255,255,.02)':'';
+    html+='<tr style="background:'+bg+'">'
+      +'<td style="padding:6px;text-align:center;color:rgba(255,255,255,.5)">'+p.num+'</td>'
+      +'<td style="padding:6px">'+fmtDate(p.fecha)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace">'+fmt(p.cuota)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:#fca5a5">'+fmt(p.interes)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:#86efac">'+fmt(p.capital)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:#fcd34d">'+fmt(p.acumInteres)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:'+(p.saldo<=0?'#86efac':'rgba(255,255,255,.7)')+'">'+fmt(p.saldo)+'</td>'
+    +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  
+  container.innerHTML=html;
+}
+
+function generarCalendarioPagos(debt){
+  var plan=generarPlanPagos(debt);
+  var now=new Date();
+  var html='<table class="fp-table" style="font-size:11px"><thead><tr><th>Fecha</th><th>Mes</th><th>Cuota</th><th>Capital</th><th>Interés</th><th>Saldo</th></tr></thead><tbody>';
+  var saldo=debt.remainingBalance||0;
+  var tasa=debt.interestRate?(debt.interestRate/100):0;
+  var cuota=plan.pagoOptimo||0;
+  for(var i=0;i<Math.min(12,plan.mesesExtra);i++){
+    var fecha=new Date(now.getFullYear(),now.getMonth()+i+1,15);
+    var interes=saldo*tasa;
+    var capital=cuota-interes;
+    if(capital<=0)break;
+    saldo-=capital;
+    html+='<tr>'
+      +'<td>'+fmtDate(fecha.toISOString().split('T')[0])+'</td>'
+      +'<td>'+fecha.toLocaleString('es-CO',{month:'short',year:'numeric'})+'</td>'
+      +'<td class="amount-mono">'+fmt(cuota)+'</td>'
+      +'<td class="amount-mono text-success">'+fmt(Math.max(0,capital))+'</td>'
+      +'<td class="amount-mono text-danger">'+fmt(Math.max(0,interes))+'</td>'
+      +'<td class="amount-mono">'+fmt(Math.max(0,saldo))+'</td>'
+    +'</tr>';
+  }
+  html+='</tbody></table>';
+  return html;
+}
+
+function showPagoExtraDetail(debtId,extra){
+  var debts=lsGet(KEYS.DEBTS);
+  var d=debts.find(function(x){return x.id===debtId;});if(!d)return;
+  var plan=generarPlanPagos(d,extra);
+  var modal=document.getElementById('planPagosOverlay');
+  if(modal){
+    modal.querySelector('.debt-detail-body').innerHTML=''
+      +'<div style="background:rgba(34,197,94,.1);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;overflow:hidden">'
+        +'<div style="font-size:14px;font-weight:700;color:var(--fp-text)">Plan con '+fmt(plan.cuotaActual+extra)+'/mes</div>'
+        +'<div style="font-size:22px;font-weight:800;color:var(--fp-success);margin-top:8px;word-break:break-all">Ahorro: '+fmt(Math.max(0,plan.interesAhorrado))+'</div>'
+        +'<div style="font-size:12px;color:var(--fp-text2);margin-top:6px"><i class="bi bi-calendar me-1"></i>'+plan.mesesExtra+' meses ('+plan.mesesAhorrados+' menos)</div>'
+      +'</div>'
+      +'<div style="max-height:300px;overflow-y:auto;overflow-x:hidden">'+generarCalendarioPagosConExtra(d,extra)+'</div>'
+      +'<div class="d-flex gap-2 mt-3 flex-wrap">'
+        +'<button class="btn fp-btn-primary flex-fill" style="min-width:130px" onclick="document.getElementById(\'planPagosOverlay\').remove();openDebtPayment(\''+d.id+'\')"><i class="bi bi-cash-coin me-1"></i>Registrar</button>'
+        +'<button class="btn fp-btn-ghost" onclick="verPlanPagos(\''+d.id+'\')"><i class="bi bi-arrow-left me-1"></i>Volver</button>'
+      +'</div>';
+  }
+}
+
+function generarCalendarioPagosConExtra(debt,extra){
+  var plan=generarPlanPagos(debt,extra);
+  var now=new Date();
+  var html='<table class="fp-table" style="font-size:11px"><thead><tr><th>Fecha</th><th>Mes</th><th>Cuota</th><th>Capital</th><th>Interés</th><th>Saldo</th></tr></thead><tbody>';
+  var saldo=debt.remainingBalance||0;
+  var tasa=debt.interestRate?(debt.interestRate/100):0;
+  var cuota=plan.pagoOptimo||0;
+  for(var i=0;i<Math.min(24,plan.mesesExtra);i++){
+    var fecha=new Date(now.getFullYear(),now.getMonth()+i+1,15);
+    var interes=saldo*tasa;
+    var capital=cuota-interes;
+    if(capital<=0)break;
+    saldo-=capital;
+    html+='<tr>'
+      +'<td>'+fmtDate(fecha.toISOString().split('T')[0])+'</td>'
+      +'<td>'+fecha.toLocaleString('es-CO',{month:'short',year:'numeric'})+'</td>'
+      +'<td class="amount-mono">'+fmt(cuota)+'</td>'
+      +'<td class="amount-mono text-success">'+fmt(Math.max(0,capital))+'</td>'
+      +'<td class="amount-mono text-danger">'+fmt(Math.max(0,interes))+'</td>'
+      +'<td class="amount-mono">'+fmt(Math.max(0,saldo))+'</td>'
+    +'</tr>';
+  }
+  html+='</tbody></table>';
+  return html;
+}
+
 function renderDebts(){
   var debts=lsGet(KEYS.DEBTS).filter(function(d){return d.remainingBalance>0;});
   var totRem=debts.reduce(function(s,d){return s+d.remainingBalance;},0);
   var totInt=debts.reduce(function(s,d){return s+d.remainingBalance*(d.interestRate/100);},0);
-  var totCuota=debts.reduce(function(s,d){return s+(d.cuota||0)+getCurrentAporte(d)+getCurrentSeguro(d);},0);
+  var totCuota=debts.reduce(function(s,d){return s+(d.cuota||0);},0);
   animNum('debtTotalAmt',totRem,false,750);animNum('debtTotalInt',totInt,false,750);animNum('debtTotalCuota',totCuota,false,750);
   document.getElementById('debtCount').textContent=debts.length;
   var bd=document.getElementById('badgeDebts');if(bd)bd.textContent=debts.length;
   var grid=document.getElementById('debtsList');if(!grid)return;
   if(!debts.length){grid.innerHTML='<div class="col-12"><div class="empty-state-large"><i class="bi bi-emoji-smile fs-1" style="color:var(--fp-success)"></i><h4 class="mt-3">¡Sin deudas activas!</h4><button class="btn fp-btn-primary mt-2" onclick="openDebtModal()"><i class="bi bi-plus-lg"></i> Agregar</button></div></div>';return;}
-  grid.innerHTML=debts.map(function(d){
-    var pct=Math.round(((d.totalAmount-d.remainingBalance)/d.totalAmount)*100);
-    var aporte=getCurrentAporte(d);var seguro=getCurrentSeguro(d);var cuotaTotal=(d.cuota||0)+aporte+seguro;
-    var esEfectivo=d.debtType==='efectivo';var gastado=d.gastado||0;var disponible=d.totalAmount-gastado;
-    return '<div class="col-lg-6 col-md-12"><div class="debt-card-compact"><div class="debt-card-top"></div><div class="debt-card-body">'
-      +'<div class="d-flex justify-content-between align-items-start mb-2">'
-        +'<div><div class="debt-card-name">'+esc(d.creditor)+'</div>'+(d.description?'<div class="debt-card-desc">'+esc(d.description)+'</div>':'')+'</div>'
-        +'<div class="d-flex gap-1 align-items-center">'
+  
+  // Agregar análisis de finanzas
+  var fin=getFinanzasSummary();
+  var analisisHtml='<div class="row mb-3">'
+    +'<div class="col-12">'
+      +'<div style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));border-radius:12px;padding:16px;margin-bottom:14px;overflow:hidden">'
+        +'<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">'
+          +'<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-primary)"><i class="bi bi-graph-up me-1"></i>Resumen Financiero</div>'
+          +'<button class="btn fp-btn-sm" style="background:rgba(99,102,241,.2);color:var(--fp-primary)" onclick="verAnalisisCompleto()"><i class="bi bi-arrows-fullscreen me-1"></i>Ver análisis</button>'
+        +'</div>'
+        +'<div class="row g-2 g-md-3">'
+          +'<div class="col-6 col-md-3"><div style="text-align:center;padding:8px 4px"><div style="font-size:10px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Ingresos</div><div style="font-size:16px;font-weight:800;color:var(--fp-success);word-break:break-all;line-height:1.2">'+fmt(fin.totalInc)+'</div></div></div>'
+          +'<div class="col-6 col-md-3"><div style="text-align:center;padding:8px 4px"><div style="font-size:10px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Egresos</div><div style="font-size:16px;font-weight:800;color:var(--fp-danger);word-break:break-all;line-height:1.2">'+fmt(fin.totalExp)+'</div></div></div>'
+          +'<div class="col-6 col-md-3"><div style="text-align:center;padding:8px 4px"><div style="font-size:10px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Saldo libre</div><div style="font-size:16px;font-weight:800;color:'+(fin.saldoLibre>=0?'var(--fp-success)':'var(--fp-danger)')+';word-break:break-all;line-height:1.2">'+fmt(fin.saldoLibre)+'</div></div></div>'
+          +'<div class="col-6 col-md-3"><div style="text-align:center;padding:8px 4px"><div style="font-size:10px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Cuota</div><div style="font-size:16px;font-weight:800;color:var(--fp-violet);word-break:break-all;line-height:1.2">'+fmt(fin.deudaMes)+'</div></div></div>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  
+  grid.innerHTML=analisisHtml;
+  grid.innerHTML+=debts.map(function(d){
+    var totAmt=d.totalAmount||d.remainingBalance||0;
+    var remBal=d.remainingBalance||0;
+    var pct=totAmt>0?Math.round(((totAmt-remBal)/totAmt)*100):0;
+    var aporte=getCurrentAporte(d);var seguro=getCurrentSeguro(d);var cuotaTotal=(d.cuota||0);
+    var esEfectivo=d.debtType==='efectivo';var gastado=d.gastado||0;var disponible=totAmt-gastado;
+    return '<div class="col-lg-6 col-md-12"><div class="debt-card-compact" style="overflow:hidden"><div class="debt-card-top"></div><div class="debt-card-body" style="overflow:hidden">'
+      +'<div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">'
+        +'<div style="min-width:0;flex:1"><div class="debt-card-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(d.creditor)+'</div>'+(d.description?'<div class="debt-card-desc" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(d.description)+'</div>':'')+'</div>'
+        +'<div class="d-flex gap-1 align-items-center flex-shrink-0">'
           +'<span class="'+(esEfectivo?'badge-efectivo':'badge-virtual')+'">'+(esEfectivo?'<i class="bi bi-cash-coin me-1"></i>Efectivo':'<i class="bi bi-credit-card-fill me-1"></i>Virtual')+'</span>'
           +'<button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deleteDebtConfirm(\''+d.id+'\')" title="Eliminar"><i class="bi bi-trash3"></i></button>'
         +'</div>'
       +'</div>'
-      +'<div class="d-flex justify-content-between align-items-start mb-2">'
-        +'<div><div style="font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-text3);font-weight:700">Saldo pendiente</div><div class="debt-main-amount">'+fmt(d.remainingBalance)+'</div></div>'
-        +'<div class="text-end"><div style="font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-text3);font-weight:700">Cuota total/mes</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:700;color:var(--fp-success)">'+fmt(cuotaTotal)+'</div>'
-          +(aporte>0?'<div style="font-size:10px;color:var(--fp-violet)">aporte: '+fmt(aporte)+'</div>':'')
-          +(seguro>0?'<div style="font-size:10px;color:var(--fp-teal)">seguro: '+fmt(seguro)+'</div>':'')
+      +'<div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2" style="overflow:hidden">'
+        +'<div style="min-width:120px"><div style="font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-text3);font-weight:700">Saldo</div><div style="font-family:JetBrains Mono,monospace;font-size:18px;font-weight:800;color:var(--fp-danger);word-break:break-all;line-height:1.2">'+fmt(remBal)+'</div></div>'
+        +'<div class="text-end" style="min-width:100px"><div style="font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-text3);font-weight:700">Cuota/mes</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:700;color:var(--fp-success);word-break:break-all;line-height:1.2">'+fmt(cuotaTotal)+'</div>'
+          +(aporte>0?'<div style="font-size:10px;color:var(--fp-violet);word-break:break-all">+Aporte: '+fmt(aporte)+'</div>':'')
+          +(seguro>0?'<div style="font-size:10px;color:var(--fp-teal);word-break:break-all">+Seguro: '+fmt(seguro)+'</div>':'')
         +'</div>'
       +'</div>'
-      +(esEfectivo?'<div style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.12);border-radius:8px;padding:7px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--fp-primary);font-weight:600"><i class="bi bi-cash-stack me-1"></i>Disponible</span><span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--fp-primary)">'+fmt(disponible)+'</span></div>':'')
-+(d.debtType==='tarjeta'&&d.tarjeta?
-  '<div style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.12);border-radius:8px;padding:7px 10px;margin-bottom:8px">'
-    +'<div class="d-flex justify-content-between align-items-center mb-1">'
-      +'<span style="font-size:11px;color:var(--fp-primary);font-weight:600"><i class="bi bi-credit-card-2-front-fill me-1"></i>Cupo disponible</span>'
-      +'<span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--fp-primary)">'+fmt((function(debt){var ap=debt.tarjeta.cupoAprobado||0;var usado=debt.tarjeta.cupoUsado||0;return Math.max(0,ap-usado);})(d))+'</span>'
+      +(esEfectivo?'<div style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.12);border-radius:8px;padding:7px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span style="font-size:11px;color:var(--fp-primary);font-weight:600"><i class="bi bi-cash-stack me-1"></i>Disponible</span><span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--fp-primary);word-break:break-all">'+fmt(disponible)+'</span></div>':'')
+ +(d.debtType==='tarjeta'&&d.tarjeta?
+  '<div style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.12);border-radius:8px;padding:7px 10px;margin-bottom:8px;overflow:hidden">'
+    +'<div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">'
+      +'<span style="font-size:11px;color:var(--fp-primary);font-weight:600"><i class="bi bi-credit-card-2-front-fill me-1"></i>Cupo disp.</span>'
+      +'<span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--fp-primary);word-break:break-all">'+fmt((function(debt){var ap=debt.tarjeta.cupoAprobado||0;var usado=debt.tarjeta.cupoUsado||0;return Math.max(0,ap-usado);})(d))+'</span>'
     +'</div>'
-    +'<div class="d-flex gap-3" style="font-size:11px;color:var(--fp-text2)">'
-      +(d.tarjeta.diaCorte?'<span><i class="bi bi-scissors me-1"></i>Corte: día '+d.tarjeta.diaCorte+'</span>':'')
-      +(d.tarjeta.diaPago?'<span><i class="bi bi-calendar-check me-1"></i>Pago: día '+d.tarjeta.diaPago+'</span>':'')
-      +(d.tarjeta.tasaTarjeta?'<span><i class="bi bi-percent me-1"></i>'+d.tarjeta.tasaTarjeta+'%/mes</span>':'')
+    +'<div class="d-flex gap-2 gap-md-3 flex-wrap" style="font-size:10px;color:var(--fp-text2)">'
+      +(d.tarjeta.diaCorte?'<span><i class="bi bi-scissors me-1"></i>Corte: '+d.tarjeta.diaCorte+'</span>':'')
+      +(d.tarjeta.diaPago?'<span><i class="bi bi-calendar-check me-1"></i>Pago: '+d.tarjeta.diaPago+'</span>':'')
+      +(d.tarjeta.tasaTarjeta?'<span><i class="bi bi-percent me-1"></i>'+d.tarjeta.tasaTarjeta+'%</span>':'')
     +'</div>'
   +'</div>'
 :'')      
-+'<div class="d-flex justify-content-between mb-1" style="font-size:11px"><span class="text-muted">Pagado '+pct+'%</span><span class="text-muted">'+fmt(d.totalAmount-d.remainingBalance)+' / '+fmt(d.totalAmount)+'</span></div>'
++'<div class="d-flex justify-content-between mb-1 flex-wrap gap-2" style="font-size:11px"><span style="color:var(--fp-text2)">Pagado '+pct+'%</span><span style="color:var(--fp-text2);word-break:break-all">'+fmt(d.totalAmount-d.remainingBalance)+' / '+fmt(d.totalAmount)+'</span></div>'
       +'<div class="fp-progress"><div class="fp-progress-bar'+(pct<20?' bar-danger':'')+'" style="width:'+pct+'%"></div></div>'
-      +'<div class="d-flex gap-2 mt-3 flex-wrap">'
-        +'<button class="btn fp-btn-primary fp-btn-sm" style="flex:1" onclick="openDebtDetail(\''+d.id+'\')" ><i class="bi bi-eye-fill"></i> Detalle</button>'
-        +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openAddDebtAmount(\''+d.id+'\')" title="Añadir más dinero"><i class="bi bi-plus-circle-fill" style="color:var(--fp-gold)"></i></button>'
-        +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openEditDebtAmount(\''+d.id+'\')" title="Editar montos"><i class="bi bi-pencil-fill" style="color:var(--fp-primary)"></i></button>'
-        +(d.hasAporte?'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openAporteModal(\''+d.id+'\')" title="Ajustar aporte" style="color:var(--fp-violet)"><i class="bi bi-people-fill"></i></button>':'')
-        +(d.hasSeguro?'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openSeguroModal(\''+d.id+'\')" title="Ajustar seguro" style="color:var(--fp-teal)"><i class="bi bi-shield-fill"></i></button>':'')
+      +'<div class="d-flex gap-1 gap-md-2 mt-3 flex-wrap">'
+        +'<button class="btn fp-btn-primary fp-btn-sm" style="flex:1;min-width:100px" onclick="verPlanPagos(\''+d.id+'\')"><i class="bi bi-graph-up me-1"></i>Plan</button>'
+        +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openAddDebtAmount(\''+d.id+'\')" title="Añadir"><i class="bi bi-plus-circle-fill" style="color:var(--fp-gold)"></i></button>'
+        +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openEditDebtAmount(\''+d.id+'\')" title="Editar"><i class="bi bi-pencil-fill" style="color:var(--fp-primary)"></i></button>'
+        +(d.hasAporte?'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openAporteModal(\''+d.id+'\')" title="Aporte" style="color:var(--fp-violet)"><i class="bi bi-people-fill"></i></button>':'')
+        +(d.hasSeguro?'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openSeguroModal(\''+d.id+'\')" title="Seguro" style="color:var(--fp-teal)"><i class="bi bi-shield-fill"></i></button>':'')
       +'</div>'
     +'</div></div></div>';
   }).join('');
+}
+
+// Función para análisis completo
+function verAnalisisCompleto(){
+  var fin=getFinanzasSummary();
+  var debts=fin.debts;
+  var puedoExtra=Math.max(0,Math.min(fin.saldoLibre*0.3,500000));
+  var html='<div class="debt-detail-overlay" id="analisisOverlay" onclick="if(event.target===this)document.getElementById(\'analisisOverlay\').remove()">'
+    +'<div class="debt-detail-box" style="max-width:800px;overflow:hidden">'
+      +'<div class="debt-detail-header">'
+        +'<div class="d-flex justify-content-between align-items-start flex-wrap gap-2">'
+          +'<div style="min-width:0"><h3 style="font-size:16px;font-weight:800;color:#fff;margin:0"><i class="bi bi-pie-chart me-2"></i>Resumen Financiero</h3></div>'
+          +'<button onclick="document.getElementById(\'analisisOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="bi bi-x-lg"></i></button>'
+        +'</div>'
+      +'</div>'
+      +'<div class="debt-detail-body" style="overflow:hidden">'
+        +'<div class="row g-2 mb-3">'
+          +'<div class="col-6 col-md-3"><div style="background:var(--fp-success-lt);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:var(--fp-success);font-weight:600;margin-bottom:4px">Ingresos</div><div style="font-size:15px;font-weight:800;color:var(--fp-success);word-break:break-all;line-height:1.2">'+fmt(fin.totalInc)+'</div></div></div>'
+          +'<div class="col-6 col-md-3"><div style="background:var(--fp-danger-lt);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:var(--fp-danger);font-weight:600;margin-bottom:4px">Egresos</div><div style="font-size:15px;font-weight:800;color:var(--fp-danger);word-break:break-all;line-height:1.2">'+fmt(fin.totalExp)+'</div></div></div>'
+          +'<div class="col-6 col-md-3"><div style="background:rgba(99,102,241,.1);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:var(--fp-primary);font-weight:600;margin-bottom:4px">Saldo libre</div><div style="font-size:15px;font-weight:800;color:'+(fin.saldoLibre>=0?'var(--fp-success)':'var(--fp-danger)')+';word-break:break-all;line-height:1.2">'+fmt(fin.saldoLibre)+'</div></div></div>'
+          +'<div class="col-6 col-md-3"><div style="background:var(--fp-violet-lt);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:var(--fp-violet);font-weight:600;margin-bottom:4px">Total deudas</div><div style="font-size:15px;font-weight:800;color:var(--fp-violet);word-break:break-all;line-height:1.2">'+fmt(fin.totalDebt)+'</div></div></div>'
+        +'</div>'
+        +'<div style="background:rgba(234,179,8,.1);border-radius:10px;padding:12px;margin-bottom:14px;overflow:hidden">'
+          +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(234,179,8,.8);margin-bottom:8px"><i class="bi bi-wallet2 me-1"></i>Distribución sugerida</div>'
+          +'<div class="row g-2">'
+            +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Deudas</div><div style="font-size:14px;font-weight:700;color:var(--fp-gold);word-break:break-all">'+fmt(Math.max(0,fin.saldoLibre*0.4))+'</div></div></div>'
+            +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Ahorro</div><div style="font-size:14px;font-weight:700;color:var(--fp-success);word-break:break-all">'+fmt(Math.max(0,fin.saldoLibre*0.3))+'</div></div></div>'
+            +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Reserva</div><div style="font-size:14px;font-weight:700;color:var(--fp-primary);word-break:break-all">'+fmt(Math.max(0,fin.saldoLibre*0.3))+'</div></div></div>'
+          +'</div>'
+        +'</div>'
+        +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:10px"><i class="bi bi-list-ul me-1"></i>Análisis por deuda</div>';
+  debts.forEach(function(d){
+    var plan=generarPlanPagos(d);
+    html+='<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:12px;margin-bottom:8px;overflow:hidden">'
+      +'<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">'
+        +'<div><div style="font-size:13px;font-weight:700;color:#fff">'+esc(d.creditor)+'</div><div style="font-size:11px;color:rgba(255,255,255,0.7)">'+fmt(d.remainingBalance)+' · '+d.interestRate+'% mensual</div></div>'
+        +'<button class="btn fp-btn-sm" style="background:var(--fp-primary);color:#fff;flex-shrink:0" onclick="document.getElementById(\'analisisOverlay\').remove();verPlanPagos(\''+d.id+'\')"><i class="bi bi-graph-up me-1"></i>Ver plan</button>'
+      +'</div>'
+      +'<div class="row g-2" style="font-size:11px;overflow:hidden">'
+        +'<div class="col-4"><div style="color:var(--fp-text2)">Cuota:</div><div style="font-size:13px;font-weight:700;color:#fff;word-break:break-all">'+fmt(plan.cuotaActual)+'</div></div>'
+        +'<div class="col-4"><div style="color:var(--fp-text2)">Tiempo:</div><div style="font-size:13px;font-weight:700;color:#fff">'+(plan.mesesActual===Infinity?'600+':plan.mesesActual+' meses')+'</div></div>'
+        +'<div class="col-4"><div style="color:var(--fp-text2)">Ahorro extra:</div><div style="font-size:13px;font-weight:700;color:var(--fp-success);word-break:break-all">'+fmt(Math.max(0,plan.interesAhorrado))+'</div></div>'
+      +'</div>'
+    +'</div>';
+  });
+  html+='<div class="d-flex gap-2 mt-3">'
+    +'<button class="btn fp-btn-primary flex-fill" onclick="navigateTo(\'savings\')"><i class="bi bi-piggy-bank me-1"></i>Ir a Ahorros</button>'
+    +'<button class="btn fp-btn-ghost" onclick="document.getElementById(\'analisisOverlay\').remove()"><i class="bi bi-x me-1"></i>Cerrar</button>'
+  +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  var ex=document.getElementById('analisisOverlay');if(ex)ex.remove();
+  document.body.insertAdjacentHTML('beforeend',html);
+  
+  setTimeout(fixOverlayOverflow,50);
+}
+
+function fixOverlayOverflow(){
+  var overlay=document.querySelector('.debt-detail-overlay');
+  if(overlay){
+    var box=overlay.querySelector('.debt-detail-box');
+    if(box){
+      box.style.overflowX='hidden';
+      box.style.maxWidth='100%';
+    }
+  }
 }
 
 function deleteDebtConfirm(id){if(!confirm('¿Eliminar esta deuda?'))return;lsSet(KEYS.DEBTS,lsGet(KEYS.DEBTS).filter(function(d){return d.id!==id;}));renderDebts();updateChips();showToast('Eliminada','warning');}
@@ -2854,7 +3411,109 @@ var dtt=document.getElementById('debtTasaTarjeta');if(dtt)dtt.value='0';
 var dts=document.getElementById('debtTarjetaSection');if(dts)dts.style.display='none';document.getElementById('cuotaTotalPreview').textContent='$0';
   setDebtType('efectivo');
   document.getElementById('modalDebtTitle').innerHTML='<i class="bi bi-file-earmark-plus-fill me-2"></i>Registrar Deuda';
+  // Inicializar plan de pagos preview
+  setTimeout(actualizarPlanPagosPreview,200);
   new bootstrap.Modal(document.getElementById('modalDebt')).show();
+}
+
+function togglePlanPagosPreview(){
+  var content=document.getElementById('planPagosPreviewContent');
+  var icon=document.getElementById('planPagosToggleIcon');
+  if(content.style.display==='none'){
+    content.style.display='block';
+    icon.className='bi bi-chevron-up me-1';
+  } else {
+    content.style.display='none';
+    icon.className='bi bi-chevron-down me-1';
+  }
+}
+
+function actualizarPlanPagosPreview(){
+  var tot=parseFloat(document.getElementById('debtTotal').value)||0;
+  var tasa=parseFloat(document.getElementById('debtRate').value)||0;
+  var seguroBase=document.getElementById('debtHasSeguro').checked?(parseFloat(document.getElementById('debtSeguroBase').value)||0):0;
+  var aporteBase=document.getElementById('debtHasAporte').checked?(parseFloat(document.getElementById('debtAporteBase').value)||0):0;
+  var cuotaBase=document.getElementById('debtManualCuota').checked?(parseFloat(document.getElementById('debtCuotaManual').value)||0):0;
+  if(!document.getElementById('debtManualCuota').checked&&tot>0&&tasa>0){
+    cuotaBase=calcCuotaMensual(tot,tasa,parseInt(document.getElementById('debtMonths').value)||12);
+  }
+  var cuotaTotal=cuotaBase;
+  var fin=getFinanzasSummary();
+  var puedoPagar=Math.max(0,Math.min(fin.saldoLibre*0.4,cuotaTotal+500000));
+  
+  document.getElementById('planPuedoPagar').textContent=fmt(puedoPagar);
+  document.getElementById('planCuotaActual').textContent=fmt(cuotaTotal);
+  
+  var plan0=generarPlanPagosPreview(tot,tasa,cuotaTotal);
+  var plan50=generarPlanPagosPreview(tot,tasa,cuotaTotal+50000);
+  var plan100=generarPlanPagosPreview(tot,tasa,cuotaTotal+100000);
+  var plan200=generarPlanPagosPreview(tot,tasa,cuotaTotal+200000);
+  
+  document.getElementById('optExtra0').textContent=fmt(plan0.cuotaTotal)+'/mes';
+  document.getElementById('optExtra0Meses').textContent=plan0.meses===600?'600+ meses':plan0.meses+' meses';
+  document.getElementById('optExtra50').textContent=fmt(plan50.cuotaTotal)+'/mes';
+  document.getElementById('optExtra50Meses').textContent=plan50.meses===600?'600+ meses':plan50.meses+' meses';
+  document.getElementById('optExtra100').textContent=fmt(plan100.cuotaTotal)+'/mes';
+  document.getElementById('optExtra100Meses').textContent=plan100.meses===600?'600+ meses':plan100.meses+' meses';
+  document.getElementById('optExtra200').textContent=fmt(plan200.cuotaTotal)+'/mes';
+  document.getElementById('optExtra200Meses').textContent=plan200.meses===600?'600+ meses':plan200.meses+' meses';
+  
+  var ahorro=plan0.interesTotal-plan100.interesTotal;
+  document.getElementById('planAhorroIntereses').textContent=fmt(Math.max(0,ahorro));
+  
+  var detalleDiv=document.getElementById('planPreviewDetalle');
+  var tabla=document.getElementById('planPreviewTabla');
+  if(tot>0&&tasa>0&&cuotaTotal>0&&plan100.meses<600){
+    detalleDiv.style.display='block';
+    var s=tot;
+    var hoy=new Date();
+    var mesesTexto='';
+    var rows='';
+    for(var m=1;m<=Math.min(plan100.meses,24);m++){
+      var fecha=new Date(hoy.getFullYear(),hoy.getMonth()+m,1);
+      var interes=s*tasa/100;
+      var capital=plan100.cuotaTotal-interes;
+      if(capital<=0)break;
+      s-=capital;
+      var bg=m%2===0?'rgba(255,255,255,.02)':'';
+      rows+='<tr style="background:'+bg+'"><td style="padding:5px 8px;color:rgba(255,255,255,.5)">'+m+'</td><td style="padding:5px 8px">'+fmtDate(fecha.toISOString().split('T')[0])+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace">'+fmt(plan100.cuotaTotal)+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace;color:#fca5a5">'+fmt(interes)+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace;color:#86efac">'+fmt(Math.max(0,capital))+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace;color:'+(s<=0?'#86efac':'rgba(255,255,255,.7)')+'">'+fmt(Math.max(0,s))+'</td></tr>';
+    }
+    if(plan100.meses>24)rows+='<tr><td colspan="6" style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:10px">... y '+(plan100.meses-24)+' cuotas más</td></tr>';
+    tabla.innerHTML=rows;
+  }else{
+    detalleDiv.style.display='none';
+  }
+}
+
+function generarPlanPagosPreview(saldo,tasaMensual,cuotaTotal){
+  var meses=0;
+  var interesTotal=0;
+  var s=saldo;
+  while(s>0&&meses<600){
+    var interes=s*tasaMensual/100;
+    interesTotal+=interes;
+    var capital=cuotaTotal-interes;
+    if(capital<=0)break;
+    s-=capital;
+    meses++;
+  }
+  return {cuotaTotal:cuotaTotal,meses:meses,interesTotal:interesTotal,saldoFinal:s};
+}
+
+function aplicarExtraPreview(extra){
+  var cuotaBase=document.getElementById('debtManualCuota').checked?(parseFloat(document.getElementById('debtCuotaManual').value)||0):0;
+  if(!document.getElementById('debtManualCuota').checked){
+    cuotaBase=calcCuotaMensual(parseFloat(document.getElementById('debtTotal').value)||0,parseFloat(document.getElementById('debtRate').value)||0,parseInt(document.getElementById('debtMonths').value)||12);
+  }
+  var seguroBase=document.getElementById('debtHasSeguro').checked?(parseFloat(document.getElementById('debtSeguroBase').value)||0):0;
+  var aporteBase=document.getElementById('debtHasAporte').checked?(parseFloat(document.getElementById('debtAporteBase').value)||0):0;
+  var total=cuotaBase+seguroBase+aporteBase+extra;
+  document.getElementById('debtManualCuota').checked=true;
+  document.getElementById('manualCuotaField').style.display='block';
+  document.getElementById('debtCuotaManual').value=total;
+  previewCuota();
+  actualizarPlanPagosPreview();
+  showToast('Cuota actualizada a '+fmt(total)+'/mes','success');
 }
 
 function saveDebt(){
@@ -3008,16 +3667,46 @@ function editPayment(debtId,payId){
 
 // MODAL ABONO
 var _payChart=null;
+var _currentDebtData=null;
+function openDebtPayment(id){openPaymentModal(id);}
 function openPaymentModal(id){
   var debts=lsGet(KEYS.DEBTS);var d=debts.find(function(x){return x.id===id;});if(!d)return;
-  document.getElementById('payDebtId').value=id;document.getElementById('payEditId').value='';document.getElementById('payAmount').value='';document.getElementById('payDate').value=today();document.getElementById('payPreview').style.display='none';
+  _currentDebtData=d;
+  document.getElementById('payDebtId').value=id;document.getElementById('payEditId').value='';document.getElementById('payAmount').value='';document.getElementById('payDate').value=today();document.getElementById('payPreview').style.display='none';document.getElementById('payImpactSection').style.display='none';
   document.getElementById('modalPayTitle').innerHTML='<i class="bi bi-cash-coin me-2"></i>Registrar Pago';
-  var cuota=d.cuota||calcCuotaMensual(d.totalAmount,d.interestRate,d.months||12);var aporte=getCurrentAporte(d);var seguro=getCurrentSeguro(d);var cuotaTotal=cuota+aporte+seguro;
+  // La cuota guardada es el valor total (ya incluye todo)
+  var cuotaTotal=d.cuota||0;
+  if(!cuotaTotal&&d.totalAmount){
+    cuotaTotal=calcCuotaMensual(d.totalAmount,d.interestRate||0,d.months||12);
+  }
+  // Campos de aporte/seguro solo para pagos separados
   var ar=document.getElementById('payAporteRow');var sr=document.getElementById('paySeguroRow');var pr=document.getElementById('prevAporteRow');var psr=document.getElementById('prevSeguroRow');var aref=document.getElementById('payAporteRef');var sref=document.getElementById('paySeguroRef');
-  if(ar)ar.style.display=d.hasAporte?'block':'none';if(sr)sr.style.display=d.hasSeguro?'block':'none';if(pr)pr.style.display=d.hasAporte?'flex':'none';if(psr)psr.style.display=d.hasSeguro?'flex':'none';if(aref)aref.textContent=fmt(aporte);if(sref)sref.textContent=fmt(seguro);
-  if(d.hasAporte&&document.getElementById('payAporte'))document.getElementById('payAporte').value=aporte;
-  if(d.hasSeguro&&document.getElementById('paySeguro'))document.getElementById('paySeguro').value=seguro;
-  document.getElementById('payDebtInfo').innerHTML='<div class="d-flex gap-3 flex-wrap" style="font-size:12.5px"><div><small class="text-muted d-block" style="font-size:9.5px">ACREEDOR</small><strong>'+esc(d.creditor)+'</strong></div><div><small class="text-muted d-block" style="font-size:9.5px">SALDO</small><strong class="text-danger" style="font-family:JetBrains Mono,monospace">'+fmt(d.remainingBalance)+'</strong></div><div><small class="text-muted d-block" style="font-size:9.5px">TASA</small><strong>'+d.interestRate+'%</strong></div><div><small class="text-muted d-block" style="font-size:9.5px">CUOTA TOTAL</small><strong class="text-success" style="font-family:JetBrains Mono,monospace">'+fmt(cuotaTotal)+'</strong></div></div>';
+  var mostrarAporte=(d.hasAporte&&d.aporteBase>0);
+  var mostrarSeguro=(d.hasSeguro&&d.seguroBase>0);
+  if(ar)ar.style.display=mostrarAporte?'block':'none';if(sr)sr.style.display=mostrarSeguro?'block':'none';if(pr)pr.style.display=mostrarAporte?'flex':'none';if(psr)psr.style.display=mostrarSeguro?'flex':'none';
+  var aporteDefault=mostrarAporte?(d.aporteBase||0):0;
+  var seguroDefault=mostrarSeguro?(d.seguroBase||0):0;
+  if(aref)aref.textContent=fmt(aporteDefault);if(sref)sref.textContent=fmt(seguroDefault);
+  if(mostrarAporte&&document.getElementById('payAporte'))document.getElementById('payAporte').value=aporteDefault;
+  if(mostrarSeguro&&document.getElementById('paySeguro'))document.getElementById('paySeguro').value=seguroDefault;
+  document.getElementById('payDebtInfo').innerHTML='<div class="d-flex gap-3 flex-wrap" style="font-size:12.5px"><div><small class="text-muted d-block" style="font-size:9.5px">ACREEDOR</small><strong>'+esc(d.creditor)+'</strong></div><div><small class="text-muted d-block" style="font-size:9.5px">SALDO</small><strong class="text-danger" style="font-family:JetBrains Mono,monospace">'+fmt(d.remainingBalance)+'</strong></div><div><small class="text-muted d-block" style="font-size:9.5px">TASA</small><strong>'+(d.interestRate||0)+'%</strong></div><div><small class="text-muted d-block" style="font-size:9.5px">CUOTA TOTAL</small><strong class="text-success" style="font-family:JetBrains Mono,monospace">'+fmt(cuotaTotal)+'</strong></div></div>';
+  
+  // Generar botones rápidos
+  var quickBtns=document.getElementById('payQuickBtns');
+  var opts=[
+    {label:'Cuota',extra:0,color:'var(--fp-text2)'},
+    {label:'+50k',extra:50000,color:'var(--fp-gold)'},
+    {label:'+100k',extra:100000,color:'var(--fp-success)'},
+    {label:'+200k',extra:200000,color:'var(--fp-primary)'},
+    {label:'+300k',extra:300000,color:'var(--fp-orange)'}
+  ];
+  var btnsHtml='';
+  opts.forEach(function(o){
+    var monto=cuotaTotal+o.extra;
+    btnsHtml+='<button class="btn btn-sm" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:'+o.color+';font-size:11px" onclick="setPayAmountQuick('+monto+')">'+o.label+'<br><span style="font-family:JetBrains Mono,monospace;font-size:12px">'+fmt(monto)+'</span></button>';
+  });
+  quickBtns.innerHTML=btnsHtml;
+  
   buildPaySourceList();
   var ctx=document.getElementById('payDonut');if(_payChart){_payChart.destroy();_payChart=null;}
   _payChart=new Chart(ctx,{type:'doughnut',data:{labels:['Capital','Interés'],datasets:[{data:[1,1],backgroundColor:['#059669','#dc2626'],borderWidth:0,hoverOffset:4}]},options:{cutout:'65%',animation:{duration:400},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+fmt(c.raw);}}}}}});
@@ -3026,6 +3715,11 @@ function openPaymentModal(id){
   var hel=document.getElementById('payHistory');
   hel.innerHTML=hist.length?'<div class="history-title"><i class="bi bi-clock-history"></i> Últimos pagos</div>'+hist.map(function(p){return '<div class="history-item"><span class="text-muted" style="font-size:11px">'+fmtDate(p.date)+'</span><span class="d-flex gap-2" style="font-size:11px"><span class="text-danger">↗ '+fmt(p.interest)+'</span><span class="text-success">↘ '+fmt(p.capital)+'</span><strong>'+fmt(p.amount)+'</strong></span></div>';}).join(''):'';
   new bootstrap.Modal(document.getElementById('modalPayment')).show();
+}
+
+function setPayAmountQuick(monto){
+  document.getElementById('payAmount').value=monto;
+  calcPaymentPreview();
 }
 function buildPaySourceList(){
   var s=calcSaldos();var catSaldos=calcSaldosPorCat();var savs=lsGet(KEYS.SAV);
@@ -3038,16 +3732,142 @@ function buildPaySourceList(){
 }
 function selectPaySource(val,el){document.getElementById('paySourceSelected').value=val;document.querySelectorAll('#paySourceList .source-opt').forEach(function(o){o.classList.remove('selected');});if(el)el.classList.add('selected');}
 function calcPaymentPreview(){
-  var id=document.getElementById('payDebtId').value;var amt=parseFloat(document.getElementById('payAmount').value)||0;var prev=document.getElementById('payPreview');
-  if(!amt||amt<=0){prev.style.display='none';return;}
-  var d=lsGet(KEYS.DEBTS).find(function(x){return x.id===id;});if(!d)return;
-  var intAmt=d.remainingBalance*(d.interestRate/100);var pInt=Math.min(amt,intAmt);var pCap=Math.max(0,amt-pInt);var newBal=Math.max(0,d.remainingBalance-pCap);
-  document.getElementById('prevInterest').textContent=fmt(pInt);document.getElementById('prevCapital').textContent=fmt(pCap);document.getElementById('prevNewBalance').textContent=fmt(newBal);
-  var apEl=document.getElementById('prevAporte');var payApEl=document.getElementById('payAporte');if(apEl&&payApEl)apEl.textContent=fmt(parseFloat(payApEl.value)||0);
-  var seEl=document.getElementById('prevSeguro');var paySeEl=document.getElementById('paySeguro');if(seEl&&paySeEl)seEl.textContent=fmt(parseFloat(paySeEl.value)||0);
+  var id=document.getElementById('payDebtId').value;
+  var amt=parseFloat(document.getElementById('payAmount').value)||0;
+  var prev=document.getElementById('payPreview');
+  if(!amt||amt<=0){
+    prev.style.display='none';
+    document.getElementById('payImpactSection').style.display='none';
+    return;
+  }
+  var d=lsGet(KEYS.DEBTS).find(function(x){return x.id===id;});
+  if(!d)return;
+  
+  var tasa=(d.interestRate||0)/100;
+  var saldoCredito=d.remainingBalance||0;
+  var intDelMes=saldoCredito*tasa;
+  var pInt=Math.min(amt,intDelMes);
+  var pCap=Math.max(0,amt-pInt);
+  var nuevoSaldoCredito=Math.max(0,saldoCredito-pCap);
+  var aporteVal=parseFloat(document.getElementById('payAporte').value)||0;
+  var seguroVal=parseFloat(document.getElementById('paySeguro').value)||0;
+  
+  document.getElementById('prevInterest').textContent=fmt(pInt);
+  document.getElementById('prevCapital').textContent=fmt(pCap);
+  document.getElementById('prevNewBalance').textContent=fmt(nuevoSaldoCredito);
+  var apEl=document.getElementById('prevAporte');
+  var payApEl=document.getElementById('payAporte');
+  if(apEl&&payApEl)apEl.textContent=fmt(aporteVal);
+  var seEl=document.getElementById('prevSeguro');
+  var paySeEl=document.getElementById('paySeguro');
+  if(seEl&&paySeEl)seEl.textContent=fmt(seguroVal);
   prev.style.display='block';
-  if(_payChart){_payChart.data.datasets[0].data=[pCap,pInt];_payChart.update();}
-  var capPct=amt>0?Math.round(pCap/amt*100):0;document.getElementById('payDonutCenter').innerHTML='<span>'+capPct+'%</span><small>capital</small>';
+  
+  if(_payChart){
+    _payChart.data.datasets[0].data=[pCap,pInt];
+    _payChart.update();
+  }
+  var capPct=amt>0?Math.round(pCap/amt*100):0;
+  document.getElementById('payDonutCenter').innerHTML='<span>'+capPct+'%</span><small>capital</small>';
+  
+  // La cuota total que el usuario paga mensualmente
+  // Si la deuda tiene cuota guardada, usamos esa como la cuota total
+  // No sumamos aporte/seguro porque ya están incluidos en la cuota
+  var cuotaTotal=d.cuota||0;
+  if(!cuotaTotal&&d.totalAmount){
+    cuotaTotal=calcCuotaMensual(d.totalAmount,d.interestRate||0,d.months||12);
+  }
+  
+  // Si el usuario está ingresando aporte/seguro en este pago, lo manejamos
+  // pero la cuota normal se mantiene como está
+  var aporteExtra=aporteVal;
+  var seguroExtra=seguroVal;
+  
+  // El capital de la cuota normal (después de intereses del primer mes)
+  var capitalCuotaNormal=Math.max(0,cuotaTotal-intDelMes);
+  
+  // Cuánto del pago va EXTRAS sobre la cuota normal
+  // Primero cubrimos intereses, luego cuota, luego el extra
+  var pagoExtra=Math.max(0,pCap-capitalCuotaNormal);
+  
+  if(pagoExtra<=0||tasa<=0){
+    document.getElementById('payImpactSection').style.display='block';
+    document.getElementById('prevTiempoAhorro').textContent='0';
+    document.getElementById('prevTiempoAhorro').style.color='var(--fp-text2)';
+    document.getElementById('prevInteresAhorro').textContent='--';
+    document.getElementById('prevFechaFinal').textContent='--';
+    document.getElementById('prevComparacionPlan').innerHTML='<div style="font-size:11px;color:var(--fp-text2);text-align:center"><i class="bi bi-info-circle me-1"></i>Este pago solo cubre la cuota normal. No reduce el tiempo de la deuda.</div>';
+    return;
+  }
+  
+  // Escenario SIN este pago extra
+  var acumInteresSin=0;
+  var s1=saldoCredito;
+  var mesesSin=0;
+  while(s1>0.01&&mesesSin<600){
+    var int1=s1*tasa;
+    acumInteresSin+=int1;
+    var cap1=cuotaTotal-int1;
+    if(cap1<=0)break;
+    s1-=cap1;
+    mesesSin++;
+  }
+  
+  // Escenario CON este pago extra (el saldo ya está reducido por el capital extra)
+  var acumInteresCon=0;
+  var s2=nuevoSaldoCredito;
+  var mesesCon=0;
+  while(s2>0.01&&mesesCon<600){
+    var int2=s2*tasa;
+    acumInteresCon+=int2;
+    var cap2=cuotaTotal-int2;
+    if(cap2<=0)break;
+    s2-=cap2;
+    mesesCon++;
+  }
+  
+  var interesAhorrado=Math.max(0,acumInteresSin-acumInteresCon);
+  var diasAhorro=Math.round((mesesSin-mesesCon)*30);
+  
+  var ahora=new Date();
+  var fechaFinal=new Date(ahora.getFullYear(),ahora.getMonth()+Math.ceil(mesesCon),1);
+  
+  document.getElementById('payImpactSection').style.display='block';
+  document.getElementById('prevTiempoAhorro').textContent=diasAhorro>0?'-'+diasAhorro:'0';
+  document.getElementById('prevTiempoAhorro').style.color=diasAhorro>0?'var(--fp-success)':'var(--fp-text2)';
+  document.getElementById('prevInteresAhorro').textContent=interesAhorrado>0?'-'+fmt(interesAhorrado):'--';
+  document.getElementById('prevFechaFinal').textContent=fmtDate(fechaFinal.toISOString().split('T')[0]);
+  
+  // Comparación de planes futuros
+  var compHtml='<div style="font-size:10px;color:var(--fp-text2);margin-bottom:6px"><i class="bi bi-info-circle me-1"></i>Si pagaras este monto cada mes:</div><div class="row g-2">';
+  var planes=[
+    {label:'Solo cuota',extra:0},
+    {label:'+50k',extra:50000},
+    {label:'+100k',extra:100000},
+    {label:'+200k',extra:200000}
+  ];
+  planes.forEach(function(p){
+    var cuotaFutura=cuotaTotal+p.extra;
+    var acumI=0;
+    var s3=nuevoSaldoCredito;
+    var m3=0;
+    while(s3>0.01&&m3<600){
+      var i3=s3*tasa;
+      acumI+=i3;
+      var c3=cuotaFutura-i3;
+      if(c3<=0)break;
+      s3-=c3;
+      m3++;
+    }
+    var diasF=Math.round(m3*30);
+    compHtml+='<div class="col-3"><div style="background:rgba(255,255,255,.03);border-radius:6px;padding:8px;text-align:center">'
+      +'<div style="font-size:9px;color:var(--fp-text2)">'+p.label+'</div>'
+      +'<div style="font-size:13px;font-weight:700;color:#fff">'+diasF+' días</div>'
+      +'<div style="font-size:9px;color:var(--fp-gold)">Int: '+fmt(acumI)+'</div>'
+    +'</div></div>';
+  });
+  compHtml+='</div>';
+  document.getElementById('prevComparacionPlan').innerHTML=compHtml;
 }
 function savePayment(){
   var id=document.getElementById('payDebtId').value;var editId=document.getElementById('payEditId').value;var amt=parseFloat(document.getElementById('payAmount').value);var date=document.getElementById('payDate').value;var srcVal=document.getElementById('paySourceSelected').value||'libre';
@@ -3146,12 +3966,169 @@ function saveSeguroAjuste(){
 // ══════════════════════════════════════════════════════
 //  AHORROS
 // ══════════════════════════════════════════════════════
+function calcularPlanAhorro(monto,fechaObj,periodicidad){
+  periodicidad=periodicidad||'mensual';
+  var now=new Date();
+  var objetivo=new Date(fechaObj);
+  var diffMs=objetivo-now;
+  var diffDias=Math.ceil(diffMs/(1000*60*60*24));
+  var diffMeses=Math.round(diffDias/30);
+  if(diffMeses<=0)diffMeses=1;
+  var pendiente=Math.max(0,monto);
+  var ahorroSugerido=Math.ceil(pendiente/diffMeses);
+  var semanas=Math.round(diffDias/7);
+  var quincenas=Math.round(diffMeses*2);
+  return {
+    monto:monto,
+    faltante:pendiente,
+    diasRestantes:diffDias,
+    mesesRestantes:diffMeses,
+    semanasRestantes:semanas,
+    quincenasRestantes:quincenas,
+    ahorroMensual:ahorroSugerido,
+    ahorroSemanal:Math.ceil(pendiente/semanas),
+    ahorroQuincenal:Math.ceil(pendiente/quincenas),
+    ahorroDiario:Math.ceil(pendiente/diffDias)
+  };
+}
+
+function verPlanAhorro(savingId){
+  var accs=lsGet(KEYS.SAV);
+  var s=accs.find(function(a){return a.id===savingId;});
+  if(!s)return;
+  var fin=getFinanzasSummary();
+  var plan=calcularPlanAhorro(s.goal-s.currentBalance,s.goalDate||new Date(Date.now()+365*24*60*60*1000).toISOString().split('T')[0]);
+  var puedoAhorrar=Math.max(0,fin.saldoLibre*0.3);
+  var html='<div class="debt-detail-overlay" id="planAhorroOverlay" onclick="if(event.target===this)document.getElementById(\'planAhorroOverlay\').remove()">'
+    +'<div class="debt-detail-box" style="max-width:700px">'
+      +'<div class="debt-detail-header">'
+        +'<div class="d-flex justify-content-between align-items-start">'
+          +'<div><h3 style="font-size:18px;font-weight:800;color:#fff;margin:0"><i class="bi bi-piggy-bank me-2"></i>'+esc(s.name)+'</h3><div style="font-size:12px;color:rgba(255,255,255,0.6)">Plan de ahorro</div></div>'
+          +'<button onclick="document.getElementById(\'planAhorroOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="bi bi-x-lg"></i></button>'
+        +'</div>'
+      +'</div>'
+      +'<div class="debt-detail-body">'
+        // Estado actual
+        +'<div class="row g-3 mb-3">'
+          +'<div class="col-4"><div style="background:rgba(234,179,8,.1);border-radius:10px;padding:14px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-gold);font-weight:600;margin-bottom:4px">Meta</div><div style="font-size:18px;font-weight:800;color:var(--fp-gold)">'+fmt(s.goal)+'</div></div></div>'
+          +'<div class="col-4"><div style="background:var(--fp-success-lt);border-radius:10px;padding:14px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-success);font-weight:600;margin-bottom:4px">Actual</div><div style="font-size:18px;font-weight:800;color:var(--fp-success)">'+fmt(s.currentBalance)+'</div></div></div>'
+          +'<div class="col-4"><div style="background:var(--fp-danger-lt);border-radius:10px;padding:14px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-danger);font-weight:600;margin-bottom:4px">Falta</div><div style="font-size:18px;font-weight:800;color:var(--fp-danger)">'+fmt(Math.max(0,s.goal-s.currentBalance))+'</div></div></div>'
+        +'</div>'
+        
+        // Opciones de frecuencia
+        +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:10px"><i class="bi bi-calendar-range me-1"></i>Opciones de ahorro según frecuencia</div>'
+        +'<div class="row g-2 mb-3">'
+          +'<div class="col-6"><div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);border-radius:10px;padding:12px;cursor:pointer;overflow:hidden" onclick="depositarAhorro(\''+s.id+'\','+plan.ahorroMensual+',\'mensual\')">'
+            +'<div style="font-size:11px;font-weight:700;color:var(--fp-gold);margin-bottom:4px"><i class="bi bi-calendar me-1"></i>MENSUAL</div>'
+            +'<div style="font-size:18px;font-weight:800;color:var(--fp-text);word-break:break-all;line-height:1.2">'+fmt(plan.ahorroMensual)+'</div>'
+            +'<div style="font-size:10px;color:var(--fp-text2);margin-top:4px">x'+plan.mesesRestantes+' meses</div>'
+            +'<div style="font-size:9px;color:var(--fp-gold);margin-top:4px">Recomendado</div>'
+          +'</div></div>'
+          +'<div class="col-6"><div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:10px;padding:12px;cursor:pointer;overflow:hidden" onclick="depositarAhorro(\''+s.id+'\','+plan.ahorroQuincenal+',\'quincenal\')">'
+            +'<div style="font-size:11px;font-weight:700;color:var(--fp-violet);margin-bottom:4px"><i class="bi bi-calendar2-week me-1"></i>QUINCENAL</div>'
+            +'<div style="font-size:18px;font-weight:800;color:var(--fp-text);word-break:break-all;line-height:1.2">'+fmt(plan.ahorroQuincenal)+'</div>'
+            +'<div style="font-size:10px;color:var(--fp-text2);margin-top:4px">x'+plan.quincenasRestantes+' quincenas</div>'
+          +'</div></div>'
+          +'<div class="col-6"><div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:12px;cursor:pointer;overflow:hidden" onclick="depositarAhorro(\''+s.id+'\','+plan.ahorroSemanal+',\'semanal\')">'
+            +'<div style="font-size:11px;font-weight:700;color:var(--fp-success);margin-bottom:4px"><i class="bi bi-calendar3 me-1"></i>SEMANAL</div>'
+            +'<div style="font-size:18px;font-weight:800;color:var(--fp-text);word-break:break-all;line-height:1.2">'+fmt(plan.ahorroSemanal)+'</div>'
+            +'<div style="font-size:10px;color:var(--fp-text2);margin-top:4px">x'+plan.semanasRestantes+' semanas</div>'
+          +'</div></div>'
+          +'<div class="col-6"><div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px;cursor:pointer;overflow:hidden" onclick="depositarAhorro(\''+s.id+'\','+plan.ahorroDiario+',\'diario\')">'
+            +'<div style="font-size:11px;font-weight:700;color:var(--fp-primary);margin-bottom:4px"><i class="bi bi-calendar3-event me-1"></i>DIARIO</div>'
+            +'<div style="font-size:18px;font-weight:800;color:var(--fp-text);word-break:break-all;line-height:1.2">'+fmt(plan.ahorroDiario)+'</div>'
+            +'<div style="font-size:10px;color:var(--fp-text2);margin-top:4px">x'+plan.diasRestantes+' días</div>'
+          +'</div></div>'
+        +'</div>'
+        
+        // Tu capacidad
+        +'<div style="background:rgba(99,102,241,.1);border-radius:10px;padding:14px;margin-bottom:14px">'
+          +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-primary);margin-bottom:8px"><i class="bi bi-wallet2 me-1"></i>Tu capacidad de ahorro</div>'
+          +'<div class="row g-2">'
+            +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Saldo libre</div><div style="font-size:14px;font-weight:700;color:'+(fin.saldoLibre>=0?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(fin.saldoLibre)+'</div></div></div>'
+            +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Puedes ahorrar</div><div style="font-size:14px;font-weight:700;color:var(--fp-gold)">'+fmt(puedoAhorrar)+'</div></div></div>'
+            +'<div class="col-4"><div style="text-align:center"><div style="font-size:9px;color:var(--fp-text2)">Días restantes</div><div style="font-size:14px;font-weight:700;color:var(--fp-primary)">'+plan.diasRestantes+'</div></div></div>'
+          +'</div>'
+        +'</div>'
+        
+        // Calendario sugerido
+        +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:10px"><i class="bi bi-calendar-check me-1"></i>Próximos depósitos sugeridos</div>'
+        +'<div style="max-height:180px;overflow-y:auto;margin-bottom:14px">'
+          +generarCalendarioAhorro(s,plan.ahorroMensual)
+        +'</div>'
+        
+        +'<div class="d-flex gap-2">'
+          +'<button class="btn fp-btn-gold flex-fill" onclick="document.getElementById(\'planAhorroOverlay\').remove();openSavingMoveModal(\''+s.id+'\',\'deposit\')"><i class="bi bi-plus-lg me-1"></i>Depositar ahora</button>'
+          +'<button class="btn fp-btn-ghost" onclick="document.getElementById(\'planAhorroOverlay\').remove()"><i class="bi bi-x me-1"></i>Cerrar</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  var ex=document.getElementById('planAhorroOverlay');if(ex)ex.remove();
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function generarCalendarioAhorro(saving,frecuencia){
+  var plan=calcularPlanAhorro(saving.goal-saving.currentBalance,new Date(Date.now()+365*24*60*60*1000).toISOString().split('T')[0],frecuencia);
+  var now=new Date();
+  var html='<table class="fp-table" style="font-size:11px"><thead><tr><th>Fecha</th><th>Monto</th><th>Acumulado</th></tr></thead><tbody>';
+  var acum=saving.currentBalance;
+  var monto=plan.ahorroMensual;
+  var dias=1;
+  switch(frecuencia){
+    case'diario':monto=plan.ahorroDiario;dias=1;break;
+    case'semanal':monto=plan.ahorroSemanal;dias=7;break;
+    case'quincenal':monto=plan.ahorroQuincenal;dias=15;break;
+    default:monto=plan.ahorroMensual;dias=30;
+  }
+  for(var i=0;i<6;i++){
+    var fecha=new Date(now.getFullYear(),now.getMonth(),now.getDate()+dias*(i+1));
+    acum+=monto;
+    html+='<tr>'
+      +'<td>'+fmtDate(fecha.toISOString().split('T')[0])+'</td>'
+      +'<td class="amount-mono text-success">+'+fmt(monto)+'</td>'
+      +'<td class="amount-mono">'+fmt(Math.min(acum,saving.goal))+'</td>'
+    +'</tr>';
+  }
+  html+='</tbody></table>';
+  return html;
+}
+
+function depositarAhorro(savingId,monto,tipo){
+  document.getElementById('planAhorroOverlay').remove();
+  openSavingMoveModal(savingId,'deposit');
+  setTimeout(function(){
+    document.getElementById('savMoveAmount').value=monto;
+    document.getElementById('savMoveDesc').value='Ahorro '+tipo;
+  },100);
+}
+
 function renderSavings(){
   var accs=lsGet(KEYS.SAV);var tot=accs.reduce(function(s,a){return s+a.currentBalance;},0);animNum('savingsTotal',tot,false,700);
+  var fin=getFinanzasSummary();
   var grid=document.getElementById('savingsGrid');if(!grid)return;
-  if(!accs.length){grid.innerHTML='<div class="col-12"><div class="empty-state-large"><i class="bi bi-piggy-bank" style="font-size:3rem;color:var(--fp-gold)"></i><h4 class="mt-3">Sin cuentas</h4><button class="btn fp-btn-primary mt-2" onclick="openSavingModal()"><i class="bi bi-plus-lg"></i> Crear</button></div></div>';return;}
-  var circ=201; // Simplificado
-  grid.innerHTML=accs.map(function(s){
+  
+  // Resumen de finanzas y capacidad de ahorro
+  var resumenHtml='<div class="row mb-3">'
+    +'<div class="col-12">'
+      +'<div style="background:linear-gradient(135deg,rgba(234,179,8,.15),rgba(251,191,36,.15));border-radius:12px;padding:16px;margin-bottom:14px">'
+        +'<div class="d-flex justify-content-between align-items-center mb-3">'
+          +'<div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-gold)"><i class="bi bi-piggy-bank me-1"></i>Resumen de Ahorros</div></div>'
+          +'<button class="btn fp-btn-sm" style="background:rgba(234,179,8,.2);color:var(--fp-gold)" onclick="verResumenAhorros()"><i class="bi bi-graph-up me-1"></i>Ver plan</button>'
+        +'</div>'
+        +'<div class="row g-3">'
+          +'<div class="col-6 col-md-3"><div style="text-align:center"><div style="font-size:10px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Total ahorrado</div><div style="font-size:20px;font-weight:800;color:var(--fp-gold)">'+fmt(tot)+'</div></div></div>'
+          +'<div class="col-6 col-md-3"><div style="text-align:center"><div style="font-size:10px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Saldo libre</div><div style="font-size:20px;font-weight:800;color:'+(fin.saldoLibre>=0?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(fin.saldoLibre)+'</div></div></div>'
+          +'<div class="col-6 col-md-3"><div style="text-align:center"><div style="font-size:10px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Para ahorro (30%)</div><div style="font-size:20px;font-weight:800;color:var(--fp-success)">'+fmt(Math.max(0,fin.saldoLibre*0.3))+'</div></div></div>'
+          +'<div class="col-6 col-md-3"><div style="text-align:center"><div style="font-size:10px;color:var(--fp-text2);text-transform:uppercase;margin-bottom:4px">Cuentas</div><div style="font-size:20px;font-weight:800;color:var(--fp-primary)">'+accs.length+'</div></div></div>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  
+  if(!accs.length){grid.innerHTML=resumenHtml+'<div class="col-12"><div class="empty-state-large"><i class="bi bi-piggy-bank" style="font-size:3rem;color:var(--fp-gold)"></i><h4 class="mt-3">Sin cuentas</h4><button class="btn fp-btn-primary mt-2" onclick="openSavingModal()"><i class="bi bi-plus-lg"></i> Crear</button></div></div>';return;}
+  var circ=201;
+  grid.innerHTML=resumenHtml+accs.map(function(s){
     var pct=s.goal>0?Math.min(100,Math.round(s.currentBalance/s.goal*100)):0;
     var off=circ-(pct/100)*circ;
     var movs=(s.transactions||[]).slice(-3).reverse();
@@ -3175,26 +4152,108 @@ function renderSavings(){
       +(s.goal>0?'<div class="fp-progress mt-1"><div class="fp-progress-bar bar-gold" style="width:'+pct+'%"></div></div>':'')
       +'<div class="d-flex gap-2 mt-2 flex-wrap">'
         +'<button class="btn fp-btn-gold fp-btn-sm flex-fill" onclick="openSavingMoveModal(\''+s.id+'\',\'deposit\')"><i class="bi bi-plus-lg"></i> Depositar</button>'
-        +'<button class="btn fp-btn-ghost fp-btn-sm flex-fill" onclick="openSavingMoveModal(\''+s.id+'\',\'withdraw\')"><i class="bi bi-dash-lg"></i> Retirar</button>'
-        +'<button class="btn fp-btn-ghost fp-btn-sm flex-fill" onclick="openSavingMoveModal(\''+s.id+'\',\'use\')"><i class="bi bi-cart3"></i> Usar</button>'
-        +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openEditSavBalance(\''+s.id+'\')" title="Editar saldo"><i class="bi bi-pencil-fill" style="color:var(--fp-primary)"></i></button>'
+        +(s.goal>0?'<button class="btn fp-btn-primary fp-btn-sm" onclick="verPlanAhorro(\''+s.id+'\')"><i class="bi bi-graph-up"></i></button>':'')
+        +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="openEditSavBalance(\''+s.id+'\')" title="Editar"><i class="bi bi-pencil-fill" style="color:var(--fp-primary)"></i></button>'
       +'</div>'
       +(s.goal>0?'<button class="btn fp-btn-ghost fp-btn-sm text-danger mt-1 w-100" onclick="deleteSaving(\''+s.id+'\')"><i class="bi bi-trash3 me-1"></i> Eliminar</button>':'')
       +hist
     +'</div></div></div>';
   }).join('');
 }
+
+function verResumenAhorros(){
+  var accs=lsGet(KEYS.SAV);
+  var fin=getFinanzasSummary();
+  var html='<div class="debt-detail-overlay" id="resumenAhorroOverlay" onclick="if(event.target===this)document.getElementById(\'resumenAhorroOverlay\').remove()">'
+    +'<div class="debt-detail-box" style="max-width:750px">'
+      +'<div class="debt-detail-header">'
+        +'<div class="d-flex justify-content-between align-items-start">'
+          +'<div><h3 style="font-size:18px;font-weight:800;color:#fff;margin:0"><i class="bi bi-piggy-bank me-2"></i>Plan de Ahorro General</h3></div>'
+          +'<button onclick="document.getElementById(\'resumenAhorroOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="bi bi-x-lg"></i></button>'
+        +'</div>'
+      +'</div>'
+      +'<div class="debt-detail-body">'
+        +'<div class="row g-3 mb-3">'
+          +'<div class="col-md-4"><div style="background:var(--fp-success-lt);border-radius:10px;padding:14px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-success);font-weight:600;margin-bottom:6px">Total ahorrado</div><div style="font-size:22px;font-weight:800;color:var(--fp-success)">'+fmt(accs.reduce(function(s,a){return s+a.currentBalance;},0))+'</div></div></div>'
+          +'<div class="col-md-4"><div style="background:rgba(99,102,241,.1);border-radius:10px;padding:14px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-primary);font-weight:600;margin-bottom:6px">Saldo libre</div><div style="font-size:22px;font-weight:800;color:var(--fp-primary)">'+fmt(fin.saldoLibre)+'</div></div></div>'
+          +'<div class="col-md-4"><div style="background:rgba(234,179,8,.1);border-radius:10px;padding:14px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-gold);font-weight:600;margin-bottom:6px">Para ahorrar (30%)</div><div style="font-size:22px;font-weight:800;color:var(--fp-gold)">'+fmt(Math.max(0,fin.saldoLibre*0.3))+'</div></div></div>'
+        +'</div>';
+  accs.forEach(function(a){
+    var plan=calcularPlanAhorro(a.goal-a.currentBalance,new Date(Date.now()+365*24*60*60*1000).toISOString().split('T')[0]);
+    html+='<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);border-radius:8px;padding:12px;margin-bottom:8px">'
+      +'<div class="d-flex justify-content-between align-items-center mb-2">'
+        +'<div><div style="font-size:13px;font-weight:700;color:#fff">'+esc(a.name)+'</div><div style="font-size:11px;color:var(--fp-text2)">'+fmt(a.currentBalance)+' / '+fmt(a.goal)+'</div></div>'
+        +'<button class="btn fp-btn-sm" style="background:var(--fp-gold);color:#fff" onclick="document.getElementById(\'resumenAhorroOverlay\').remove();verPlanAhorro(\''+a.id+'\')"><i class="bi bi-graph-up me-1"></i>Ver plan</button>'
+      +'</div>'
+      +'<div class="row g-2" style="font-size:11px">'
+        +'<div class="col-4"><span style="color:var(--fp-text2)">Faltante:</span> '+fmt(Math.max(0,a.goal-a.currentBalance))+'</div>'
+        +'<div class="col-4"><span style="color:var(--fp-text2)">Ahorro men.:</span> '+fmt(plan.ahorroMensual)+'</div>'
+        +'<div class="col-4"><span style="color:var(--fp-text2)">Meses:</span> '+plan.mesesRestantes+'</div>'
+      +'</div>'
+    +'</div>';
+  });
+  html+='<div class="d-flex gap-2 mt-3">'
+    +'<button class="btn fp-btn-gold flex-fill" onclick="document.getElementById(\'resumenAhorroOverlay\').remove();openSavingModal()"><i class="bi bi-plus-lg me-1"></i>Nueva cuenta</button>'
+    +'<button class="btn fp-btn-ghost" onclick="document.getElementById(\'resumenAhorroOverlay\').remove()"><i class="bi bi-x me-1"></i>Cerrar</button>'
+  +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  var ex=document.getElementById('resumenAhorroOverlay');if(ex)ex.remove();
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
 function openSavingModal(){
-  document.getElementById('savEditId').value='';document.getElementById('savName').value='';document.getElementById('savGoal').value='';document.getElementById('savInitial').value='0';document.getElementById('savDesc').value='';
+  document.getElementById('savEditId').value='';document.getElementById('savName').value='';document.getElementById('savGoal').value='';document.getElementById('savGoalDate').value='';document.getElementById('savInitial').value='0';document.getElementById('savDesc').value='';document.getElementById('savFrecuencia').value='mensual';
   document.getElementById('modalSavingTitle').innerHTML='<i class="bi bi-piggy-bank-fill me-2"></i>Nueva Cuenta de Ahorro';
+  setTimeout(actualizarPlanAhorroPreview,200);
   new bootstrap.Modal(document.getElementById('modalSaving')).show();
 }
 function saveSaving(){
-  var editId=document.getElementById('savEditId').value;var name=document.getElementById('savName').value.trim();var goal=parseFloat(document.getElementById('savGoal').value)||0;var init=parseFloat(document.getElementById('savInitial').value)||0;var desc=document.getElementById('savDesc').value.trim();
+  var editId=document.getElementById('savEditId').value;var name=document.getElementById('savName').value.trim();var goal=parseFloat(document.getElementById('savGoal').value)||0;var init=parseFloat(document.getElementById('savInitial').value)||0;var desc=document.getElementById('savDesc').value.trim();var freq=document.getElementById('savFrecuencia').value;
   if(!name){showToast('El nombre es obligatorio','danger');return;}
   var all=lsGet(KEYS.SAV);
-  if(editId){var idx=all.findIndex(function(s){return s.id===editId;});if(idx>=0){all[idx].name=name;all[idx].goal=goal;all[idx].description=desc;lsSet(KEYS.SAV,all);bootstrap.Modal.getInstance(document.getElementById('modalSaving')).hide();renderSavings();showToast('Actualizada ✓','success');return;}}
-  var txs=init>0?[{id:genId(),type:'deposit',amount:init,date:today(),description:'Saldo inicial'}]:[];all.push({id:genId(),name:name,description:desc,goal:goal,currentBalance:init,transactions:txs});lsSet(KEYS.SAV,all);bootstrap.Modal.getInstance(document.getElementById('modalSaving')).hide();renderSavings();updateChips();showToast('Cuenta creada ✓','success');
+  if(editId){var idx=all.findIndex(function(s){return s.id===editId;});if(idx>=0){all[idx].name=name;all[idx].goal=goal;all[idx].description=desc;all[idx].frecuencia=freq;lsSet(KEYS.SAV,all);bootstrap.Modal.getInstance(document.getElementById('modalSaving')).hide();renderSavings();showToast('Actualizada ✓','success');return;}}
+  var txs=init>0?[{id:genId(),type:'deposit',amount:init,date:today(),description:'Saldo inicial'}]:[];all.push({id:genId(),name:name,description:desc,goal:goal,frecuencia:freq,currentBalance:init,transactions:txs});lsSet(KEYS.SAV,all);bootstrap.Modal.getInstance(document.getElementById('modalSaving')).hide();renderSavings();updateChips();showToast('Cuenta creada ✓','success');
+}
+function actualizarPlanAhorroPreview(){
+  var goal=parseFloat(document.getElementById('savGoal').value)||0;
+  var init=parseFloat(document.getElementById('savInitial').value)||0;
+  var goalDate=document.getElementById('savGoalDate').value;
+  var fin=getFinanzasSummary();
+  var puedoAhorrar=Math.max(0,fin.saldoLibre*0.3);
+  var restante=Math.max(0,goal-init);
+  document.getElementById('savPlanSaldoLibre').textContent=fmt(fin.saldoLibre);
+  document.getElementById('savPlanPuedoAhorrar').textContent=fmt(puedoAhorrar);
+  document.getElementById('savPlanFaltante').textContent=goal>init?fmt(Math.max(0,restante-puedoAhorrar*12)):'--';
+  
+  var tiempo='--';
+  if(goal>0&&puedoAhorrar>0&&restante>0){
+    var diasRestantes=goalDate?(Math.max(0,Math.ceil((new Date(goalDate)-new Date())/(1000*60*60*24)))):365;
+    tiempo=diasRestantes<=30?'< '+diasRestantes+' días':Math.ceil(diasRestantes/30)+' meses';
+  }
+  document.getElementById('savPlanTiempo').innerHTML=tiempo;
+  
+  document.getElementById('savOptMensual').textContent=fmt(puedoAhorrar);
+  document.getElementById('savOptQuincenal').textContent=fmt(puedoAhorrar/2);
+  document.getElementById('savOptSemanal').textContent=fmt(puedoAhorrar/4);
+  document.getElementById('savOptDiario').textContent=fmt(puedoAhorrar/30);
+}
+function togglePlanAhorroPreview(){
+  var content=document.getElementById('planAhorroPreviewContent');
+  var icon=document.getElementById('planAhorroToggleIcon');
+  if(content.style.display==='none'){
+    content.style.display='block';
+    icon.className='bi bi-chevron-up me-1';
+  }else{
+    content.style.display='none';
+    icon.className='bi bi-chevron-down me-1';
+  }
+}
+function aplicarAhorroPreview(frecuencia){
+  document.getElementById('savFrecuencia').value=frecuencia;
+  actualizarPlanAhorroPreview();
+  showToast('Frecuencia: '+frecuencia,'success');
 }
 function deleteSaving(id){if(!confirm('¿Eliminar?'))return;lsSet(KEYS.SAV,lsGet(KEYS.SAV).filter(function(s){return s.id!==id;}));renderSavings();updateChips();showToast('Eliminada','warning');}
 function openEditSavBalance(id){
@@ -3418,21 +4477,46 @@ function renderTarjetas(){
     var disp=calcTcCupoDisponible(tc);
     var usado=calcTcUsado(tc);
     var pct=tc.cupoAprobado>0?Math.min(100,Math.round(usado/tc.cupoAprobado*100)):0;
+    // SEMÁFORO: Verde <50%, Amarillo 50-79%, Naranja 80-89%, Rojo >=90%
+    var semaforo=pct<50?'#22c55e':pct<70?'#eab308':pct<90?'#f97316':'#ef4444';
+    var semaforoLabel=pct<50?'Uso saludable':pct<70?'Precaución':pct<90?'Alerta':'Crítico';
+    var semaforoBg=pct<50?'rgba(34,197,94,0.1)':pct<70?'rgba(234,179,8,0.1)':pct<90?'rgba(249,115,22,0.1)':'rgba(239,68,68,0.1)';
     var barColor=pct>=90?'bar-danger':pct>=70?'bar-gold':'bar-success';
     var franqLabel={visa:'VISA',mastercard:'MC',amex:'AMEX',otro:'TC'}[tc.franquicia||'otro']||'TC';
     var franqColor={visa:'#1a56db',mastercard:'#c81e1e',amex:'#057a55',otro:'#475569'}[tc.franquicia||'otro']||'#475569';
-    var proxCorte='';var proxPago='';
-    if(tc.diaCorte){var corte=new Date(now.getFullYear(),now.getMonth(),tc.diaCorte);if(corte<=now)corte=new Date(now.getFullYear(),now.getMonth()+1,tc.diaCorte);var dc=Math.ceil((corte-now)/(1000*60*60*24));proxCorte='Corte: '+dc+' días (día '+tc.diaCorte+')';}
-    if(tc.diaPago){var pago=new Date(now.getFullYear(),now.getMonth(),tc.diaPago);if(pago<=now)pago=new Date(now.getFullYear(),now.getMonth()+1,tc.diaPago);var dp=Math.ceil((pago-now)/(1000*60*60*24));proxPago='Pago: '+dp+' días (día '+tc.diaPago+')';}
+    // Calcular fechas de corte y pago
+    var proxCorte='';var proxPago='';var pagoMinimo=0;var diasParaPago=0;var proxFechaPago=null;
+    if(tc.diaCorte||tc.diaPago){
+      var proxCorteDate=null;
+      if(tc.diaCorte){
+        proxCorteDate=new Date(now.getFullYear(),now.getMonth(),tc.diaCorte);
+        if(proxCorteDate<=now)proxCorteDate=new Date(now.getFullYear(),now.getMonth()+1,tc.diaCorte);
+        var dc=Math.ceil((proxCorteDate-now)/(1000*60*60*24));
+        proxCorte='Corte: '+dc+' días';
+      }
+      if(tc.diaPago){
+        proxFechaPago=new Date(now.getFullYear(),now.getMonth(),tc.diaPago);
+        if(proxFechaPago<=now||(proxCorteDate&&proxCorteDate<now))proxFechaPago=new Date(now.getFullYear(),now.getMonth()+1,tc.diaPago);
+        diasParaPago=Math.ceil((proxFechaPago-now)/(1000*60*60*24));
+        proxPago='Pago: '+diasParaPago+' días';
+        // Calcular pago mínimo (típicamente 5-15% del usado o min $50)
+        pagoMinimo=Math.max(50000,Math.round(usado*0.1));
+      }
+    }
     var tid=esc(tc.id);
     return '<div class="col-lg-6 col-md-12">'
       +'<div class="fp-card" style="overflow:hidden">'
-        +'<div style="height:3px;background:linear-gradient(90deg,var(--fp-primary),#6366f1)"></div>'
+        +'<div style="height:3px;background:linear-gradient(90deg,'+semaforo+',#6366f1)"></div>'
         +'<div class="fp-card-body">'
-          +'<div class="d-flex justify-content-between align-items-start mb-3">'
+          +'<div class="d-flex justify-content-between align-items-start mb-2">'
             +'<div>'
               +'<div style="font-size:15px;font-weight:800;color:var(--fp-text)">'+esc(tc.nombre)+'</div>'
-              +(tc.descripcion?'<div style="font-size:11.5px;color:var(--fp-text3)">'+esc(tc.descripcion)+'</div>':'')
+              +'<div class="d-flex align-items-center gap-2 mt-1">'
+                +'<span style="display:inline-flex;align-items:center;gap:4px;background:'+semaforoBg+';color:'+semaforo+';padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600">'
+                  +'<span style="width:6px;height:6px;border-radius:50%;background:'+semaforo+'"></span>'
+                  +semaforoLabel+' ('+pct+'%)'
+                +'</span>'
+              +'</div>'
             +'</div>'
             +'<div class="d-flex align-items-center gap-2">'
               +'<div style="background:var(--fp-primary-lt);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:900;font-style:italic;color:'+franqColor+'">'+franqLabel+'</div>'
@@ -3440,27 +4524,118 @@ function renderTarjetas(){
               +'<button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="deleteTarjeta(\''+tid+'\')" title="Eliminar"><i class="bi bi-trash3"></i></button>'
             +'</div>'
           +'</div>'
-          +'<div class="row g-2 mb-3">'
+          +'<div class="row g-2 mb-2">'
             +'<div class="col-4"><div style="background:var(--fp-primary-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-primary);font-weight:700;margin-bottom:2px">Cupo</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:var(--fp-primary)">'+fmt(tc.cupoAprobado)+'</div></div></div>'
             +'<div class="col-4"><div style="background:var(--fp-danger-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-danger);font-weight:700;margin-bottom:2px">Usado</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:var(--fp-danger)">'+fmt(usado)+'</div></div></div>'
             +'<div class="col-4"><div style="background:var(--fp-success-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-success);font-weight:700;margin-bottom:2px">Disponible</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:var(--fp-success)">'+fmt(disp)+'</div></div></div>'
           +'</div>'
           +'<div class="d-flex justify-content-between mb-1" style="font-size:11px"><span class="text-muted">Uso: '+pct+'%</span><span class="text-muted">'+fmt(usado)+' / '+fmt(tc.cupoAprobado)+'</span></div>'
-          +'<div class="fp-progress mb-3" style="height:6px"><div class="fp-progress-bar '+barColor+'" style="width:'+pct+'%;animation:none"></div></div>'
-          +'<div class="d-flex gap-3 flex-wrap mb-3" style="font-size:11.5px;color:var(--fp-text2)">'
-            +(tc.tasa?'<span><i class="bi bi-percent me-1" style="color:var(--fp-orange)"></i>'+tc.tasa+'%/mes</span>':'')
-            +(proxCorte?'<span><i class="bi bi-scissors me-1" style="color:var(--fp-violet)"></i>'+proxCorte+'</span>':'')
-           +(proxPago?'<span><i class="bi bi-calendar-check me-1" style="color:var(--fp-success)"></i>'+proxPago+'</span>':'')
-            +(tc.fechaInicio?'<span><i class="bi bi-calendar-plus me-1" style="color:var(--fp-teal)"></i>Desde: '+fmtDate(tc.fechaInicio)+'</span>':'')
-          +'</div>'
+          +'<div class="fp-progress mb-2" style="height:6px"><div class="fp-progress-bar '+barColor+'" style="width:'+pct+'%;animation:none"></div></div>'
+          // Info de fechas y pago mínimo
+          +(pagoMinimo>0?'<div style="background:'+semaforoBg+';border:1px solid '+semaforo+'30;border-radius:8px;padding:8px 10px;margin-bottom:10px">'
+            +'<div class="d-flex justify-content-between align-items-center">'
+              +'<div>'
+                +'<div style="font-size:10px;font-weight:600;color:'+semaforo+';text-transform:uppercase;letter-spacing:.5px">Próximo pago</div>'
+                +'<div style="font-size:12px;font-weight:700;color:var(--fp-text)">'+proxPago+' (fecha '+fmtDate(proxFechaPago?proxFechaPago.toISOString().split('T')[0]:'')+')</div>'
+              +'</div>'
+              +'<div class="text-end">'
+                +'<div style="font-size:10px;font-weight:600;color:var(--fp-text2);text-transform:uppercase">Pago mínimo</div>'
+                +'<div style="font-size:14px;font-weight:800;color:'+semaforo+';font-family:JetBrains Mono,monospace">'+fmt(pagoMinimo)+'</div>'
+              +'</div>'
+            +'</div>'
+            +'<div style="font-size:10px;color:var(--fp-text2);margin-top:4px"><i class="bi bi-info-circle me-1"></i>Para evitar intereses, paga el valor usado completo</div>'
+          +'</div>':'')
           +'<div class="d-flex gap-2">'
             +'<button class="btn fp-btn-primary fp-btn-sm flex-fill" onclick="openTcPagoModal(\''+tid+'\')"><i class="bi bi-cash-coin me-1"></i> Registrar pago</button>'
-            +'<button class="btn fp-btn-ghost fp-btn-sm flex-fill" onclick="verMovsTarjeta(\''+tid+'\')"><i class="bi bi-list-ul me-1"></i> Movimientos</button>'
+            +'<button class="btn fp-btn-ghost fp-btn-sm flex-fill" onclick="verMovsTarjeta(\''+tid+'\')"><i class="bi bi-list-ul me-1"></i> Movs</button>'
+            +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="verTcDetail(\''+tid+'\')" style="background:var(--fp-primary-lt)"><i class="bi bi-graph-up" style="color:var(--fp-primary)"></i></button>'
           +'</div>'
         +'</div>'
       +'</div>'
     +'</div>';
   }).join('');
+}
+
+// Función para ver detalle completo de tarjeta
+function verTcDetail(id){
+  var tc=getTarjetas().find(function(t){return t.id===id;});if(!tc)return;
+  var usado=calcTcUsado(tc);
+  var disp=calcTcCupoDisponible(tc);
+  var pct=tc.cupoAprobado>0?Math.round(usado/tc.cupoAprobado*100):0;
+  var now=new Date();
+  var proxFechaPago=null;var diasPago=0;
+  if(tc.diaPago){
+    proxFechaPago=new Date(now.getFullYear(),now.getMonth(),tc.diaPago);
+    if(proxFechaPago<=now)proxFechaPago=new Date(now.getFullYear(),now.getMonth()+1,tc.diaPago);
+    diasPago=Math.ceil((proxFechaPago-now)/(1000*60*60*24));
+  }
+  var pagoMin=Math.max(50000,Math.round(usado*0.1));
+  var pagoTotal=usado;
+  var pago3meses=Math.round(usado/3);
+  
+  var html='<div class="debt-detail-overlay" id="tcDetailOverlay" onclick="if(event.target===this)document.getElementById(\'tcDetailOverlay\').remove()">'
+    +'<div class="debt-detail-box" style="max-width:700px">'
+      +'<div class="debt-detail-header">'
+        +'<div class="d-flex justify-content-between align-items-start">'
+          +'<div><h3 style="font-size:18px;font-weight:800;color:#fff;margin:0">'+esc(tc.nombre)+'</h3><div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px">Detalle completo</div></div>'
+          +'<button onclick="document.getElementById(\'tcDetailOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="bi bi-x-lg"></i></button>'
+        +'</div>'
+      +'</div>'
+      +'<div class="debt-detail-body">'
+        +'<div class="row g-3 mb-3">'
+          +'<div class="col-md-3"><div style="background:var(--fp-primary-lt);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-primary);font-weight:600">Cupo Total</div><div style="font-size:18px;font-weight:800;color:var(--fp-primary);font-family:JetBrains Mono,monospace">'+fmt(tc.cupoAprobado)+'</div></div></div>'
+          +'<div class="col-md-3"><div style="background:var(--fp-danger-lt);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-danger);font-weight:600">Usado</div><div style="font-size:18px;font-weight:800;color:var(--fp-danger);font-family:JetBrains Mono,monospace">'+fmt(usado)+'</div></div></div>'
+          +'<div class="col-md-3"><div style="background:var(--fp-success-lt);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-success);font-weight:600">Disponible</div><div style="font-size:18px;font-weight:800;color:var(--fp-success);font-family:JetBrains Mono,monospace">'+fmt(disp)+'</div></div></div>'
+          +'<div class="col-md-3"><div style="background:var(--fp-gold-lt);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-gold);font-weight:600">Uso</div><div style="font-size:18px;font-weight:800;color:var(--fp-gold)">'+pct+'%</div></div></div>'
+        +'</div>'
+        
+        // Sección de fechas importantes
+        +'<div style="background:rgba(59,130,246,.1);border-radius:8px;padding:12px;margin-bottom:12px">'
+          +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(59,130,246,.8);margin-bottom:10px"><i class="bi bi-calendar-event me-1"></i>Fechas importantes</div>'
+          +'<div class="row g-2">'
+            +(tc.diaCorte?'<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Día de corte</div><div style="font-size:14px;font-weight:700">Día '+tc.diaCorte+' de cada mes</div></div>':'')
+            +(tc.diaPago?'<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Día de pago</div><div style="font-size:14px;font-weight:700">Día '+tc.diaPago+' de cada mes</div></div>':'')
+          +'</div>'
+        +'</div>'
+        
+        // Opciones de pago
+        +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:10px"><i class="bi bi-wallet2 me-1"></i>Opciones de pago</div>'
+        +'<div class="row g-2 mb-3">'
+          +'<div class="col-md-4"><div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px;text-align:center">'
+            +'<div style="font-size:10px;color:var(--fp-danger);font-weight:600;margin-bottom:4px">PAGO MÍNIMO</div>'
+            +'<div style="font-size:16px;font-weight:800;color:var(--fp-danger);font-family:JetBrains Mono,monospace">'+fmt(pagoMin)+'</div>'
+            +'<div style="font-size:9px;color:var(--fp-text2);margin-top:4px">+ intereses sobre saldo</div>'
+          +'</div></div>'
+          +'<div class="col-md-4"><div style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:10px;text-align:center">'
+            +'<div style="font-size:10px;color:var(--fp-orange);font-weight:600;margin-bottom:4px">PARCIAL 3 MESES</div>'
+            +'<div style="font-size:16px;font-weight:800;color:var(--fp-orange);font-family:JetBrains Mono,monospace">'+fmt(pago3meses)+'</div>'
+            +'<div style="font-size:9px;color:var(--fp-text2);margin-top:4px">x3 meses + intereses</div>'
+          +'</div></div>'
+          +'<div class="col-md-4"><div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:10px;text-align:center">'
+            +'<div style="font-size:10px;color:var(--fp-success);font-weight:600;margin-bottom:4px">PAGO TOTAL</div>'
+            +'<div style="font-size:16px;font-weight:800;color:var(--fp-success);font-family:JetBrains Mono,monospace">'+fmt(pagoTotal)+'</div>'
+            +'<div style="font-size:9px;color:var(--fp-success);margin-top:4px">¡Sin intereses!</div>'
+          +'</div></div>'
+        +'</div>'
+        
+        // Próximo pago
+        +(proxFechaPago?'<div style="background:rgba(139,92,246,.1);border-radius:8px;padding:12px;margin-bottom:12px">'
+          +'<div style="font-size:10px;text-transform:uppercase;color:var(--fp-violet);font-weight:600;margin-bottom:6px"><i class="bi bi-clock me-1"></i>Próximo pago en '+diasPago+' días</div>'
+          +'<div class="d-flex justify-content-between align-items-center">'
+            +'<div><div style="font-size:11px;color:var(--fp-text2)">Fecha límite</div><div style="font-size:16px;font-weight:700">'+fmtDate(proxFechaPago.toISOString().split('T')[0])+'</div></div>'
+            +'<div class="text-end"><div style="font-size:11px;color:var(--fp-text2)">Monto recomendado</div><div style="font-size:18px;font-weight:800;color:var(--fp-success)">'+fmt(pagoTotal)+'</div></div>'
+          +'</div>'
+        +'</div>':'')
+        
+        +'<div class="d-flex gap-2">'
+          +'<button class="btn fp-btn-primary flex-fill" onclick="document.getElementById(\'tcDetailOverlay\').remove();openTcPagoModal(\''+esc(tc.id)+'\')"><i class="bi bi-cash-coin me-1"></i>Registrar Pago</button>'
+          +'<button class="btn fp-btn-ghost" onclick="document.getElementById(\'tcDetailOverlay\').remove()"><i class="bi bi-x me-1"></i>Cerrar</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+  var ex=document.getElementById('tcDetailOverlay');if(ex)ex.remove();
+  document.body.insertAdjacentHTML('beforeend',html);
 }
 
 function openTarjetaModal(editId){
@@ -3562,36 +4737,47 @@ function deleteTarjeta(id){
 function openTcPagoModal(id){
   var tc=getTarjetas().find(function(t){return t.id===id;});if(!tc)return;
   var usado=calcTcUsado(tc);var disp=calcTcCupoDisponible(tc);
+  var pagoMin=Math.max(50000,Math.round(usado*0.1));
   var s=calcSaldos();var catSaldos=calcSaldosPorCat();var savs=lsGet(KEYS.SAV);
   // Construir opciones de fuente
   var srcHtml='<div class="source-opt selected" id="tcpago-src-libre" onclick="selectTcPagoSource(\'libre\',this)"><div class="source-opt-name"><i class="bi bi-wallet-fill" style="color:var(--fp-success)"></i> Dinero libre</div><span class="source-opt-bal" style="color:var(--fp-success)">'+fmt(s.saldoLibre)+'</span></div>';
   if(catSaldos.length){srcHtml+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fp-text3);padding:6px 0 3px">Por categoría</div>';catSaldos.forEach(function(item){var color=CAT_COLORS[item.cat]||'#94a3b8';srcHtml+='<div class="source-opt" onclick="selectTcPagoSource(\'cat_'+esc(item.cat)+'\',this)"><div class="source-opt-name"><span style="width:8px;height:8px;border-radius:50%;background:'+color+';display:inline-block"></span> '+esc(item.cat)+'</div><span class="source-opt-bal" style="color:'+(item.libre>=0?'var(--fp-success)':'var(--fp-danger)')+'">'+fmt(item.libre)+'</span></div>';});}
   if(savs.length){srcHtml+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fp-text3);padding:6px 0 3px">Desde ahorros</div>';savs.forEach(function(sv){srcHtml+='<div class="source-opt" onclick="selectTcPagoSource(\'sav_'+sv.id+'\',this)"><div class="source-opt-name"><i class="bi bi-piggy-bank-fill" style="color:var(--fp-gold)"></i> '+esc(sv.name)+'</div><span class="source-opt-bal" style="color:var(--fp-gold)">'+fmt(sv.currentBalance)+'</span></div>';});}
   var html='<div class="debt-detail-overlay" id="tcPagoOverlay" onclick="if(event.target===this)document.getElementById(\'tcPagoOverlay\').remove()">'
-    +'<div class="debt-detail-box" style="max-width:680px">'
+    +'<div class="debt-detail-box" style="max-width:720px">'
       +'<div class="debt-detail-header">'
         +'<div class="d-flex justify-content-between align-items-start">'
           +'<div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(59,130,246,.8);margin-bottom:4px"><i class="bi bi-credit-card-2-front-fill me-1"></i>Pago de Tarjeta</div><h3 style="font-size:18px;font-weight:800;color:#fff;margin:0">'+esc(tc.nombre)+'</h3></div>'
           +'<button onclick="document.getElementById(\'tcPagoOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="bi bi-x-lg"></i></button>'
         +'</div>'
         +'<div class="row g-2 mt-2">'
-          +'<div class="col-4"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Cupo</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#93c5fd">'+fmt(tc.cupoAprobado)+'</div></div></div>'
-          +'<div class="col-4"><div style="background:rgba(220,38,38,.15);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(252,165,165,.7);margin-bottom:2px">Usado</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#fca5a5">'+fmt(usado)+'</div></div></div>'
-          +'<div class="col-4"><div style="background:rgba(5,122,85,.15);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(110,231,183,.7);margin-bottom:2px">Disponible</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#6ee7b7">'+fmt(disp)+'</div></div></div>'
+          +'<div class="col-3"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px">Cupo Total</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#93c5fd">'+fmt(tc.cupoAprobado)+'</div></div></div>'
+          +'<div class="col-3"><div style="background:rgba(220,38,38,.15);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(252,165,165,.7);margin-bottom:2px">Usado</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#fca5a5">'+fmt(usado)+'</div></div></div>'
+          +'<div class="col-3"><div style="background:rgba(5,122,85,.15);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(110,231,183,.7);margin-bottom:2px">Disponible</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#6ee7b7">'+fmt(disp)+'</div></div></div>'
+          +'<div class="col-3"><div style="background:rgba(249,115,22,.15);border-radius:8px;padding:8px 10px"><div style="font-size:9px;text-transform:uppercase;color:rgba(251,191,36,.9);margin-bottom:2px">Pago Mín.</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#fbbf24">'+fmt(pagoMin)+'</div></div></div>'
         +'</div>'
       +'</div>'
       +'<div class="debt-detail-body">'
+        // Opciones rápidas de pago
+        +'<div style="margin-bottom:12px">'
+          +'<div style="font-size:11px;font-weight:600;color:var(--fp-text2);margin-bottom:6px"><i class="bi bi-lightning me-1"></i>Pago rápido:</div>'
+          +'<div class="d-flex gap-2">'
+            +'<button class="btn fp-btn-sm" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444" onclick="document.getElementById(\'tcPagoMonto\').value='+pagoMin+';document.getElementById(\'tcPagoDesc\').value=\'Pago mínimo\'">Pago mínimo: '+fmt(pagoMin)+'</button>'
+            +'<button class="btn fp-btn-sm" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);color:#f97316" onclick="document.getElementById(\'tcPagoMonto\').value='+Math.round(usado*0.3)+';document.getElementById(\'tcPagoDesc\').value=\'Pago parcial 30%\'">30%: '+fmt(Math.round(usado*0.3))+'</button>'
+            +'<button class="btn fp-btn-sm" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e" onclick="document.getElementById(\'tcPagoMonto\').value='+usado+';document.getElementById(\'tcPagoDesc\').value=\'Pago total\'">Pago total: '+fmt(usado)+'</button>'
+          +'</div>'
+        +'</div>'
         +'<div class="row g-3">'
           +'<div class="col-md-5">'
             +'<div class="row g-3">'
-              +'<div class="col-12"><label class="fp-label">Monto del pago ($) *</label><input class="fp-input fp-input-mono" type="number" id="tcPagoMonto" placeholder="0" min="0.01" step="0.01"/></div>'
+              +'<div class="col-12"><label class="fp-label">Monto del pago ($) *</label><input class="fp-input fp-input-mono" type="number" id="tcPagoMonto" placeholder="0" min="0.01" step="0.01" value="'+usado+'" style="font-size:16px;font-weight:700"/></div>'
               +'<div class="col-12"><label class="fp-label">Fecha</label><input class="fp-input" type="date" id="tcPagoFecha" value="'+today()+'"/></div>'
               +'<div class="col-12"><label class="fp-label">Descripción (opcional)</label><input class="fp-input" type="text" id="tcPagoDesc" placeholder="Ej: Pago mínimo, pago total..."/></div>'
             +'</div>'
           +'</div>'
           +'<div class="col-md-7">'
             +'<label class="fp-label"><i class="bi bi-wallet2 me-1"></i> ¿De dónde sale el dinero?</label>'
-            +'<div style="max-height:240px;overflow-y:auto;margin-top:6px" id="tcPagoSrcList">'+srcHtml+'</div>'
+            +'<div style="max-height:200px;overflow-y:auto;margin-top:6px" id="tcPagoSrcList">'+srcHtml+'</div>'
             +'<input type="hidden" id="tcPagoSource" value="libre"/>'
           +'</div>'
         +'</div>'

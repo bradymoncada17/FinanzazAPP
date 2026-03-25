@@ -840,7 +840,12 @@ body {
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
   font-weight: 600;
+  color: var(--fp-text);
 }
+.text-success { color: var(--fp-success) !important; }
+.text-danger { color: var(--fp-danger) !important; }
+.text-warning { color: var(--fp-gold) !important; }
+.text-primary { color: var(--fp-primary) !important; }
 
 /* ══════════════════════════════════════════════════════════
    DEUDA CARD
