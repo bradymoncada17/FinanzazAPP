@@ -5409,7 +5409,7 @@ function getAuthWhitelist() {
   if (stored) {
     try { return JSON.parse(stored); } catch(e) { return [AUTH_ADMIN]; }
   }
-  return [AUTH_ADMIN];
+  return [AUTH_ADMIN], "Johan.chaverra@pascualbravo.edu.co";
 }
 
 function saveAuthWhitelist(list) {
