@@ -1688,8 +1688,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="col-md-6"><label class="fp-label">Nombre / Banco *</label><input class="fp-input" type="text" id="tcNombre" placeholder="Ej: Visa Bancolombia..."/></div>
         <div class="col-md-6"><label class="fp-label">Franquicia</label><select class="fp-select" id="tcFranquicia"><option value="visa">Visa</option><option value="mastercard">Mastercard</option><option value="amex">American Express</option><option value="otro">Otro</option></select></div>
         <div class="col-md-4"><label class="fp-label">Cupo aprobado ($) *</label><input class="fp-input fp-input-mono" type="number" id="tcCupoAprobado" placeholder="Ej: 5000000" min="0" step="0.01" value="0" oninput="calcTcDisponible()"/></div>
-        <div class="col-md-4"><label class="fp-label">Saldo usado actual ($)</label><input class="fp-input fp-input-mono" type="number" id="tcCupoUsado" placeholder="0" min="0" step="0.01" value="0" oninput="calcTcDisponible()"/></div>
-        <div class="col-md-4"><label class="fp-label">Cupo disponible</label><div id="tcDisponiblePreview" style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--fp-primary)">$0</div></div>
+        <div class="col-md-4"><label class="fp-label">Cupo usado (calculado)</label><div id="tcCupoUsadoDisplay" style="background:var(--fp-danger-lt);border:1px solid rgba(220,38,38,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--fp-danger)">$0</div></div>
+        <div class="col-md-4"><label class="fp-label">Cupo disponible</label><div id="tcDisponiblePreview" style="background:var(--fp-success-lt);border:1px solid rgba(5,122,85,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--fp-success)">$0</div></div>
         <div class="col-md-4"><label class="fp-label">Tasa interés mensual (%)</label><input class="fp-input fp-input-mono" type="number" id="tcTasa" placeholder="Ej: 3.2" min="0" step="0.01" value="0"/></div>
         <div class="col-md-4"><label class="fp-label">Día de corte</label><input class="fp-input" type="number" id="tcDiaCorte" placeholder="Ej: 15" min="1" max="31"/></div>
         <div class="col-md-4"><label class="fp-label">Día de pago</label><input class="fp-input" type="number" id="tcDiaPago" placeholder="Ej: 5" min="1" max="31"/></div>
@@ -2691,13 +2691,7 @@ function saveTx(){
       } else if(srcVal.indexOf('tc_')===0){
         sourceType='tarjeta';
         sourceTarjetaId=srcVal.replace('tc_','');
-        // Actualizar el cupo usado de la tarjeta
-        var tcs=getTarjetas();
-        var tcIdx=tcs.findIndex(function(x){return x.id===sourceTarjetaId;});
-        if(tcIdx>=0){
-          tcs[tcIdx].cupoUsado=(parseFloat(tcs[tcIdx].cupoUsado)||0)+amt;
-          setTarjetas(tcs);
-        }
+        // NO actualizar cupoUsado manualmente - calcTcUsado ya lo calcula de los egresos
       }
     }
     
@@ -3381,11 +3375,12 @@ function setTarjetas(arr){
 }
 
 function calcTcUsado(tc){
-  var base=tc.cupoUsado||0;
   var txs=lsGet(KEYS.TX);
-  var gastado=txs.filter(function(t){return t.type==='expense'&&t.sourceTarjetaId===tc.id;}).reduce(function(s,t){return s+t.amount;},0);
-  var abonado=txs.filter(function(t){return t.type==='income'&&t.origin==='tarjeta_pago'&&t.tarjetaId===tc.id;}).reduce(function(s,t){return s+t.amount;},0);
-  return Math.max(0,base+gastado-abonado);
+  // Gastos con esta tarjeta (restan del cupo)
+  var gastado=txs.filter(function(t){return t.type==='expense'&&t.sourceTarjetaId===tc.id;}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+  // Pagos a esta tarjeta (agregan al cupo disponible)
+  var abonado=txs.filter(function(t){return t.type==='income'&&t.origin==='tarjeta_pago'&&t.tarjetaId===tc.id;}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+  return Math.max(0,gastado-abonado);
 }
 
 function calcTcCupoDisponible(tc){
@@ -3394,9 +3389,13 @@ function calcTcCupoDisponible(tc){
 
 function calcTcDisponible(){
   var ap=parseFloat(document.getElementById('tcCupoAprobado').value)||0;
-  var us=parseFloat(document.getElementById('tcCupoUsado').value)||0;
+  var disp=Math.max(0,ap);
+  var usadoEl=document.getElementById('tcCupoUsadoDisplay');
   var prev=document.getElementById('tcDisponiblePreview');
-  if(prev){prev.textContent=fmt(ap-us);prev.style.color=(ap-us)>=0?'var(--fp-primary)':'var(--fp-danger)';}
+  // Para el modal de nueva/editar tarjeta, mostrar 0 como usado inicial
+  // ya que todavia no hay transacciones
+  if(usadoEl){usadoEl.textContent='$0';}
+  if(prev){prev.textContent=fmt(disp);prev.style.color='var(--fp-success)';}
 }
 
 function renderTarjetas(){
@@ -3469,13 +3468,18 @@ function openTarjetaModal(editId){
   document.getElementById('tcNombre').value='';
   document.getElementById('tcFranquicia').value='visa';
   document.getElementById('tcCupoAprobado').value='0';
-  document.getElementById('tcCupoUsado').value='0';
   document.getElementById('tcTasa').value='0';
   document.getElementById('tcDiaCorte').value='';
   document.getElementById('tcDiaPago').value='';
   document.getElementById('tcDesc').value='';
-  document.getElementById('tcDisponiblePreview').textContent='$0';
   var tfi=document.getElementById('tcFechaInicio');if(tfi)tfi.value='';
+  
+  // Inicializar displays informativos
+  var usadoEl=document.getElementById('tcCupoUsadoDisplay');
+  var dispEl=document.getElementById('tcDisponiblePreview');
+  if(usadoEl) usadoEl.textContent='$0';
+  if(dispEl){ dispEl.textContent='$0'; dispEl.style.color='var(--fp-success)'; }
+  
   if(editId){
     var tc=getTarjetas().find(function(t){return t.id===editId;});
     if(tc){
@@ -3483,13 +3487,19 @@ function openTarjetaModal(editId){
       document.getElementById('tcNombre').value=tc.nombre||'';
       document.getElementById('tcFranquicia').value=tc.franquicia||'visa';
       document.getElementById('tcCupoAprobado').value=tc.cupoAprobado||0;
-      document.getElementById('tcCupoUsado').value=tc.cupoUsado||0;
+      // Mostrar el valor calculado de usado
+      var usadoCalc=calcTcUsado(tc);
+      if(usadoEl) usadoEl.textContent=fmt(usadoCalc);
+      if(dispEl){
+        var disp=Math.max(0,(tc.cupoAprobado||0)-usadoCalc);
+        dispEl.textContent=fmt(disp);
+        dispEl.style.color=disp>0?'var(--fp-success)':'var(--fp-danger)';
+      }
       document.getElementById('tcTasa').value=tc.tasa||0;
       document.getElementById('tcDiaCorte').value=tc.diaCorte||'';
       document.getElementById('tcDiaPago').value=tc.diaPago||'';
       document.getElementById('tcDesc').value=tc.descripcion||'';
       if(tfi)tfi.value=tc.fechaInicio||'';
-      calcTcDisponible();
     }
   } else {
     document.getElementById('modalTarjetaTitle').innerHTML='<i class="bi bi-credit-card-2-front-fill me-2"></i>Nueva Tarjeta';
@@ -3504,10 +3514,39 @@ function saveTarjeta(){
   if(!nombre){showToast('El nombre es obligatorio','danger');return;}
   if(cupoAp<=0){showToast('El cupo aprobado debe ser mayor a 0','danger');return;}
   var all=getTarjetas();
-  var tc={id:editId||genId(),nombre:nombre,franquicia:document.getElementById('tcFranquicia').value,cupoAprobado:cupoAp,cupoUsado:parseFloat(document.getElementById('tcCupoUsado').value)||0,tasa:parseFloat(document.getElementById('tcTasa').value)||0,diaCorte:parseInt(document.getElementById('tcDiaCorte').value)||0,diaPago:parseInt(document.getElementById('tcDiaPago').value)||0,descripcion:document.getElementById('tcDesc').value.trim(),
-fechaInicio:document.getElementById('tcFechaInicio').value||''};
-  if(editId){var idx=all.findIndex(function(t){return t.id===editId;});if(idx>=0)all[idx]=tc;else all.push(tc);}
-  else all.push(tc);
+  if(editId){
+    var idx=all.findIndex(function(t){return t.id===editId;});
+    if(idx>=0){
+      // Mantener valores existentes y actualizar solo lo que cambia
+      all[idx].nombre=nombre;
+      all[idx].franquicia=document.getElementById('tcFranquicia').value;
+      all[idx].cupoAprobado=cupoAp;
+      all[idx].tasa=parseFloat(document.getElementById('tcTasa').value)||0;
+      all[idx].diaCorte=parseInt(document.getElementById('tcDiaCorte').value)||0;
+      all[idx].diaPago=parseInt(document.getElementById('tcDiaPago').value)||0;
+      all[idx].descripcion=document.getElementById('tcDesc').value.trim();
+      all[idx].fechaInicio=document.getElementById('tcFechaInicio').value||'';
+      // NO actualizar cupoUsado - se calcula de las transacciones
+    } else {
+      all.push({
+        id:editId,nombre:nombre,franquicia:document.getElementById('tcFranquicia').value,
+        cupoAprobado:cupoAp,cupoUsado:0,tasa:parseFloat(document.getElementById('tcTasa').value)||0,
+        diaCorte:parseInt(document.getElementById('tcDiaCorte').value)||0,
+        diaPago:parseInt(document.getElementById('tcDiaPago').value)||0,
+        descripcion:document.getElementById('tcDesc').value.trim(),
+        fechaInicio:document.getElementById('tcFechaInicio').value||''
+      });
+    }
+  } else {
+    all.push({
+      id:genId(),nombre:nombre,franquicia:document.getElementById('tcFranquicia').value,
+      cupoAprobado:cupoAp,cupoUsado:0,tasa:parseFloat(document.getElementById('tcTasa').value)||0,
+      diaCorte:parseInt(document.getElementById('tcDiaCorte').value)||0,
+      diaPago:parseInt(document.getElementById('tcDiaPago').value)||0,
+      descripcion:document.getElementById('tcDesc').value.trim(),
+      fechaInicio:document.getElementById('tcFechaInicio').value||''
+    });
+  }
   setTarjetas(all);
   bootstrap.Modal.getInstance(document.getElementById('modalTarjeta')).hide();
   renderTarjetas();
