@@ -312,6 +312,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .fp-btn-ghost:hover{background:var(--fp-surface2);color:var(--fp-text)}
 .fp-btn-outline{background:transparent;color:var(--fp-primary);border:1px solid rgba(26,86,219,.3);border-radius:10px;font-weight:600;font-size:12px;padding:6px 12px;transition:all .18s;cursor:pointer}
 .fp-btn-outline:hover{background:var(--fp-primary-lt)}
+.fp-btn-outline.active,.cuota-btn.active{background:var(--fp-primary);color:#fff;border-color:var(--fp-primary)}
 .fp-btn-sm{padding:4px 10px!important;font-size:11.5px!important}
 .fp-toggle-group{display:flex;background:var(--fp-surface2);border:1px solid var(--fp-border);border-radius:10px;padding:3px;gap:3px;flex-wrap:wrap}
 .fp-toggle-btn{flex:1;min-width:60px;border:none;background:transparent;color:var(--fp-text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;padding:7px 10px;border-radius:8px;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:4px}
@@ -1373,6 +1374,57 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 </div>
     </div>
     <div class="modal-footer"><button class="btn fp-btn-ghost" data-bs-dismiss="modal">Cancelar</button><button class="btn fp-btn-primary" onclick="saveTx()"><i class="bi bi-check-lg"></i> Guardar</button></div>
+  </div></div>
+</div>
+
+<!-- MODAL CUOTAS TARJETA -->
+<div class="modal fade fp-modal" id="modalCuotasTarjeta" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="bi bi-credit-card-2-front-fill me-2"></i>Pagar en Cuotas</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cuotasTarjetaTxId"/>
+      <input type="hidden" id="cuotasTarjetaMonto"/>
+      <input type="hidden" id="cuotasTarjetaTarjetaId"/>
+      <div id="cuotasTarjetaInfo" class="mb-3" style="background:var(--fp-primary-lt);border-radius:10px;padding:15px">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span style="font-size:13px;color:var(--fp-text2)">Monto total</span>
+          <span id="cuotasTarjetaMontoDisplay" style="font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--fp-primary)">$0</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span style="font-size:13px;color:var(--fp-text2)">Tarjeta</span>
+          <span id="cuotasTarjetaNombre" style="font-size:14px;font-weight:600">—</span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="fp-label">¿En cuántas cuotas?</label>
+        <div class="d-flex gap-2 flex-wrap">
+          <button type="button" class="btn fp-btn-outline fp-btn-sm cuota-btn active" data-cuotas="1" onclick="selectCuotasTarjeta(1)">1 cuota</button>
+          <button type="button" class="btn fp-btn-outline fp-btn-sm cuota-btn" data-cuotas="3" onclick="selectCuotasTarjeta(3)">3 cuotas</button>
+          <button type="button" class="btn fp-btn-outline fp-btn-sm cuota-btn" data-cuotas="6" onclick="selectCuotasTarjeta(6)">6 cuotas</button>
+          <button type="button" class="btn fp-btn-outline fp-btn-sm cuota-btn" data-cuotas="12" onclick="selectCuotasTarjeta(12)">12 cuotas</button>
+          <button type="button" class="btn fp-btn-outline fp-btn-sm cuota-btn" data-cuotas="24" onclick="selectCuotasTarjeta(24)">24 cuotas</button>
+        </div>
+        <input type="hidden" id="cuotasTarjetaNum" value="1"/>
+      </div>
+      <div id="cuotasTarjetaPreview" style="background:var(--fp-surface2);border-radius:10px;padding:15px;display:none">
+        <div class="d-flex justify-content-between mb-2">
+          <span style="font-size:12px;color:var(--fp-text2)">Cuota mensual</span>
+          <span id="cuotasTarjetaCuotaMonto" style="font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace">$0</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span style="font-size:12px;color:var(--fp-text2)">Total intereses</span>
+          <span id="cuotasTarjetaIntereses" style="font-size:14px;font-weight:600;color:var(--fp-danger)">$0</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span style="font-size:12px;color:var(--fp-text2)">Total a pagar</span>
+          <span id="cuotasTarjetaTotal" style="font-size:14px;font-weight:700">$0</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn fp-btn-ghost" data-bs-dismiss="modal" onclick="skipCuotasTarjeta()">Sin cuotas</button>
+      <button class="btn fp-btn-primary" onclick="confirmCuotasTarjeta()"><i class="bi bi-check-lg"></i> Confirmar</button>
+    </div>
   </div></div>
 </div>
 
@@ -2469,10 +2521,10 @@ function renderAdminPanel() {
   }
 }
 
-function renderWhitelist() {
+async function renderWhitelist() {
   var container = document.getElementById('whitelistContainer');
   if (!container) return;
-  var list = getAuthWhitelist();
+  var list = await getAuthWhitelistAsync();
   container.innerHTML = list.map(function(email) {
     var isAdmin = email.toLowerCase() === AUTH_ADMIN.toLowerCase();
     return '<div class="d-flex justify-content-between align-items-center p-2" style="background:var(--fp-surface2);border-radius:8px">'
@@ -2482,24 +2534,24 @@ function renderWhitelist() {
   }).join('');
 }
 
-function addToWhitelist() {
+async function addToWhitelist() {
   var input = document.getElementById('newWhitelistEmail');
   var email = input.value.trim().toLowerCase();
   if (!email || !email.includes('@')) { showToast("Ingresa un correo válido", "danger"); return; }
-  var list = getAuthWhitelist();
+  var list = await getAuthWhitelistAsync();
   if (list.indexOf(email) >= 0) { showToast("Este correo ya está en la lista", "warning"); return; }
   list.push(email);
-  saveAuthWhitelist(list);
+  await saveAuthWhitelist(list);
   input.value = '';
   renderWhitelist();
   showToast("Usuario autorizado ✓", "success");
 }
 
-function removeFromWhitelist(email) {
+async function removeFromWhitelist(email) {
   if (!confirm("¿Eliminar a " + email + " de la lista de acceso?")) return;
-  var list = getAuthWhitelist();
+  var list = await getAuthWhitelistAsync();
   list = list.filter(function(e) { return e.toLowerCase() !== email.toLowerCase(); });
-  saveAuthWhitelist(list);
+  await saveAuthWhitelist(list);
   renderWhitelist();
   showToast("Usuario eliminado", "warning");
 }
@@ -2622,9 +2674,10 @@ function renderTransactions(){
   if(!slice.length){tbody.innerHTML='<tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>Sin transacciones</td></tr>';return;}
   tbody.innerHTML=slice.map(function(t){
     var inc=t.type==='income';
-    var ob=(t.origin==='debt_payment'||t.origin==='debt_payment_aporte'||t.origin==='debt_payment_seguro')?'<span class="fp-badge fp-badge-red" style="font-size:9.5px"><i class="bi bi-file-earmark-text-fill me-1"></i>'+(t.origin==='debt_payment_aporte'?'Aporte':t.origin==='debt_payment_seguro'?'Seguro':'Abono')+'</span>':t.origin==='debt_income'?'<span class="fp-badge fp-badge-green" style="font-size:9.5px"><i class="bi bi-cash-coin me-1"></i>Préstamo</span>':t.origin==='saving_move'?'<span class="fp-badge fp-badge-gold" style="font-size:9.5px"><i class="bi bi-piggy-bank-fill me-1"></i>Ahorro</span>':'<span class="fp-badge fp-badge-gray" style="font-size:9.5px">Manual</span>';
+    var ob=(t.origin==='debt_payment'||t.origin==='debt_payment_aporte'||t.origin==='debt_payment_seguro')?'<span class="fp-badge fp-badge-red" style="font-size:9.5px"><i class="bi bi-file-earmark-text-fill me-1"></i>'+(t.origin==='debt_payment_aporte'?'Aporte':t.origin==='debt_payment_seguro'?'Seguro':'Abono')+'</span>':t.origin==='debt_income'?'<span class="fp-badge fp-badge-green" style="font-size:9.5px"><i class="bi bi-cash-coin me-1"></i>Préstamo</span>':t.origin==='saving_move'?'<span class="fp-badge fp-badge-gold" style="font-size:9.5px"><i class="bi bi-piggy-bank-fill me-1"></i>Ahorro</span>':t.sourceType==='tarjeta'?'<span class="fp-badge fp-badge-violet" style="font-size:9.5px"><i class="bi bi-credit-card-fill me-1"></i>TC</span>':'<span class="fp-badge fp-badge-gray" style="font-size:9.5px">Manual</span>';
+    var cuotasBadge = t.planCuotas && t.planCuotas.length > 0 ? '<div style="margin-top:3px"><span class="fp-badge fp-badge-blue" style="font-size:9px"><i class="bi bi-calendar-range me-1"></i>' + t.planCuotas.filter(function(c) { return !c.pagada; }).length + '/' + t.planCuotas.length + ' cuotas</span></div>' : '';
     return '<tr><td data-label="Tipo"><span class="fp-badge '+(inc?'fp-badge-green':'fp-badge-red')+'"><i class="bi bi-arrow-'+(inc?'up':'down')+'-circle me-1"></i>'+(inc?'Ingreso':'Egreso')+'</span></td>'
-      +'<td data-label="Descripción" style="max-width:140px;word-break:break-word"><strong style="font-size:12px">'+esc(t.description)+'</strong>'+(t.concepto?'<div style="font-size:10px;color:var(--fp-text3);margin-top:1px"><i class="bi bi-tag-fill me-1"></i>'+esc(t.concepto)+'</div>':'')+'</td>'
+      +'<td data-label="Descripción" style="max-width:140px;word-break:break-word"><strong style="font-size:12px">'+esc(t.description)+'</strong>'+(t.concepto?'<div style="font-size:10px;color:var(--fp-text3);margin-top:1px"><i class="bi bi-tag-fill me-1"></i>'+esc(t.concepto)+'</div>':'')+cuotasBadge+'</td>'
       +'<td data-label="Cat."><span class="fp-badge fp-badge-gray" style="font-size:9.5px">'+esc(t.category)+'</span>'+(t.sourceCat?'<div style="font-size:9px;color:var(--fp-primary);margin-top:1px"><i class="bi bi-arrow-return-right me-1"></i>'+esc(t.sourceCat)+'</div>':'')+'</td>'
       +'<td data-label="Monto" class="amount-mono '+(inc?'text-success':'text-danger')+'">'+(inc?'+':'-')+fmt(t.amount)+'</td>'
       +'<td data-label="Origen">'+ob+'</td>'
@@ -2801,8 +2854,9 @@ function saveTx(){
       }
     }
     
+    var newTxId = genId();
     all.push({
-      id:genId(),
+      id:newTxId,
       type:type,
       description:desc,
       amount:amt,
@@ -2814,6 +2868,16 @@ function saveTx(){
       sourceTarjetaId:sourceTarjetaId
     });
     lsSet(KEYS.TX,all);
+    
+    // Si es gasto con tarjeta, preguntar por cuotas
+    if (sourceType === 'tarjeta' && sourceTarjetaId && amt > 0) {
+      showCuotasTarjetaModal(newTxId, amt, sourceTarjetaId);
+      bootstrap.Modal.getInstance(document.getElementById('modalTx')).hide();
+      renderTransactions();
+      updateChips();
+      return;
+    }
+    
     showToast('Registrada ✓','success');
   }
   bootstrap.Modal.getInstance(document.getElementById('modalTx')).hide();
@@ -2827,7 +2891,151 @@ function saveTx(){
 function editTx(id){openTxModal(id);}
 function deleteTx(id){if(!confirm('¿Eliminar?'))return;lsSet(KEYS.TX,lsGet(KEYS.TX).filter(function(t){return t.id!==id;}));renderTransactions();updateChips();showToast('Eliminada','warning');}
 
-// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  CUOTAS TARJETA DE CRÉDITO
+// ══════════════════════════════════════════════════════════
+var _currentCuotasTasa = 2.5; // Tasa mensual por defecto
+
+function showCuotasTarjetaModal(txId, monto, tarjetaId) {
+  var tc = getTarjetas().find(function(t) { return t.id === tarjetaId; });
+  if (!tc) {
+    showToast('Tarjeta no encontrada', 'danger');
+    return;
+  }
+  
+  document.getElementById('cuotasTarjetaTxId').value = txId;
+  document.getElementById('cuotasTarjetaMonto').value = monto;
+  document.getElementById('cuotasTarjetaTarjetaId').value = tarjetaId;
+  document.getElementById('cuotasTarjetaMontoDisplay').textContent = fmt(monto);
+  document.getElementById('cuotasTarjetaNombre').textContent = tc.nombre;
+  
+  _currentCuotasTasa = tc.tasa || 2.5;
+  
+  document.getElementById('cuotasTarjetaNum').value = 1;
+  document.querySelectorAll('.cuota-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.cuotas === '1');
+  });
+  
+  updateCuotasTarjetaPreview();
+  new bootstrap.Modal(document.getElementById('modalCuotasTarjeta')).show();
+}
+
+function selectCuotasTarjeta(num) {
+  document.getElementById('cuotasTarjetaNum').value = num;
+  document.querySelectorAll('.cuota-btn').forEach(function(btn) {
+    btn.classList.toggle('active', parseInt(btn.dataset.cuotas) === num);
+  });
+  updateCuotasTarjetaPreview();
+}
+
+function updateCuotasTarjetaPreview() {
+  var monto = parseFloat(document.getElementById('cuotasTarjetaMonto').value) || 0;
+  var numCuotas = parseInt(document.getElementById('cuotasTarjetaNum').value) || 1;
+  var tasa = _currentCuotasTasa || 0;
+  
+  var previewEl = document.getElementById('cuotasTarjetaPreview');
+  
+  if (numCuotas <= 1 || monto <= 0) {
+    previewEl.style.display = 'none';
+    return;
+  }
+  
+  previewEl.style.display = 'block';
+  
+  // Calcular cuota con interés simple
+  var tasaDecimal = tasa / 100;
+  var cuotaMensual = monto * (1 + tasaDecimal * numCuotas) / numCuotas;
+  var totalPagar = cuotaMensual * numCuotas;
+  var totalIntereses = totalPagar - monto;
+  
+  document.getElementById('cuotasTarjetaCuotaMonto').textContent = fmt(cuotaMensual);
+  document.getElementById('cuotasTarjetaIntereses').textContent = fmt(totalIntereses);
+  document.getElementById('cuotasTarjetaTotal').textContent = fmt(totalPagar);
+}
+
+function skipCuotasTarjeta() {
+  bootstrap.Modal.getInstance(document.getElementById('modalCuotasTarjeta')).hide();
+  renderTransactions();
+  updateChips();
+  if (State.currentView === 'dashboard') renderDashboard();
+  if (State.currentView === 'tarjetas') renderTarjetas();
+  showToast('Transacción registrada ✓', 'success');
+}
+
+async function confirmCuotasTarjeta() {
+  var txId = document.getElementById('cuotasTarjetaTxId').value;
+  var monto = parseFloat(document.getElementById('cuotasTarjetaMonto').value) || 0;
+  var tarjetaId = document.getElementById('cuotasTarjetaTarjetaId').value;
+  var numCuotas = parseInt(document.getElementById('cuotasTarjetaNum').value) || 1;
+  var tasa = _currentCuotasTasa || 0;
+  
+  if (numCuotas <= 1 || monto <= 0) {
+    skipCuotasTarjeta();
+    return;
+  }
+  
+  // Generar plan de pagos
+  var tasaDecimal = tasa / 100;
+  var cuotaMensual = monto * (1 + tasaDecimal * numCuotas) / numCuotas;
+  var planPagos = [];
+  var fechaActual = new Date();
+  
+  for (var i = 1; i <= numCuotas; i++) {
+    var fechaPago = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + i, 15);
+    var interes = monto * tasaDecimal;
+    var capital = cuotaMensual - interes;
+    var saldo = Math.max(0, monto - (capital * i));
+    
+    planPagos.push({
+      num: i,
+      fecha: fechaPago.toISOString().split('T')[0],
+      cuota: Math.round(cuotaMensual),
+      interes: Math.round(interes),
+      capital: Math.round(capital),
+      saldo: Math.round(saldo),
+      pagada: false
+    });
+  }
+  
+  // Guardar plan de pagos en la transacción
+  var allTxs = lsGet(KEYS.TX);
+  var txIndex = allTxs.findIndex(function(t) { return t.id === txId; });
+  if (txIndex >= 0) {
+    allTxs[txIndex].planCuotas = planPagos;
+    allTxs[txIndex].cuotasTotal = numCuotas;
+    allTxs[txIndex].cuotaMonto = Math.round(cuotaMensual);
+    allTxs[txIndex].tasaMensual = tasa;
+    allTxs[txIndex].fechaInicio = today();
+    lsSet(KEYS.TX, allTxs);
+    
+    // También guardar en la tarjeta para referencia
+    var todasTarjetas = getTarjetas();
+    var tcIndex = todasTarjetas.findIndex(function(t) { return t.id === tarjetaId; });
+    if (tcIndex >= 0) {
+      todasTarjetas[tcIndex].planCuotas = todasTarjetas[tcIndex].planCuotas || [];
+      planPagos.forEach(function(p) {
+        p.txId = txId;
+        todasTarjetas[tcIndex].planCuotas.push(p);
+      });
+      lsSet(KEYS_TC, todasTarjetas);
+    }
+  }
+  
+  bootstrap.Modal.getInstance(document.getElementById('modalCuotasTarjeta')).hide();
+  renderTransactions();
+  updateChips();
+  if (State.currentView === 'dashboard') renderDashboard();
+  if (State.currentView === 'tarjetas') renderTarjetas();
+  
+  showToast('Plan de ' + numCuotas + ' cuotas creado ✓', 'success');
+  
+  // Sincronizar con Firestore
+  saveToFirestore();
+}
+
+// ══════════════════════════════════════════════════════════
+//  DEUDAS
+// ══════════════════════════════════════════════════════════
 //  DEUDAS
 // ══════════════════════════════════════════════════════
 function syncTasas(origen){
@@ -3165,7 +3373,7 @@ function mostrarDetallePlan(debtId,extra,interesBase,mesesBase){
       +'<td style="padding:6px;text-align:right;font-family:monospace;color:#fca5a5">'+fmt(p.interes)+'</td>'
       +'<td style="padding:6px;text-align:right;font-family:monospace;color:#86efac">'+fmt(p.capital)+'</td>'
       +'<td style="padding:6px;text-align:right;font-family:monospace;color:#fcd34d">'+fmt(p.acumInteres)+'</td>'
-      +'<td style="padding:6px;text-align:right;font-family:monospace;color:'+(p.saldo<=0?'#86efac':'rgba(255,255,255,.7)')+'">'+fmt(p.saldo)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:var(--fp-text,#0f172a)">'+fmt(p.saldo)+'</td>'
     +'</tr>';
   });
   html+='</tbody></table></div>';
@@ -3476,7 +3684,7 @@ function actualizarPlanPagosPreview(){
       if(capital<=0)break;
       s-=capital;
       var bg=m%2===0?'rgba(255,255,255,.02)':'';
-      rows+='<tr style="background:'+bg+'"><td style="padding:5px 8px;color:rgba(255,255,255,.5)">'+m+'</td><td style="padding:5px 8px">'+fmtDate(fecha.toISOString().split('T')[0])+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace">'+fmt(plan100.cuotaTotal)+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace;color:#fca5a5">'+fmt(interes)+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace;color:#86efac">'+fmt(Math.max(0,capital))+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace;color:'+(s<=0?'#86efac':'rgba(255,255,255,.7)')+'">'+fmt(Math.max(0,s))+'</td></tr>';
+      rows+='<tr style="background:'+bg+'"><td style="padding:5px 8px;color:rgba(255,255,255,.5)">'+m+'</td><td style="padding:5px 8px">'+fmtDate(fecha.toISOString().split('T')[0])+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace">'+fmt(plan100.cuotaTotal)+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace;color:#fca5a5">'+fmt(interes)+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace;color:#86efac">'+fmt(Math.max(0,capital))+'</td><td style="padding:5px 8px;text-align:right;font-family:JetBrains Mono,monospace;color:var(--fp-text,#0f172a)">'+fmt(Math.max(0,s))+'</td></tr>';
     }
     if(plan100.meses>24)rows+='<tr><td colspan="6" style="padding:6px 8px;text-align:center;color:rgba(255,255,255,.4);font-size:10px">... y '+(plan100.meses-24)+' cuotas más</td></tr>';
     tabla.innerHTML=rows;
@@ -4457,6 +4665,84 @@ function calcTcDisponible(){
   if(prev){prev.textContent=fmt(disp);prev.style.color='var(--fp-success)';}
 }
 
+// Calcular pago mínimo por ciclos de corte
+// El pago mínimo es lo gastado en el ciclo anterior que ya pasó su fecha de pago
+function calcularPagoMinimoPorCorte(tc, now, fechaPagoProx) {
+  if (!tc.diaCorte || !tc.diaPago || tc.diaCorte === 0) {
+    // Si no tiene fechas de corte, usar lógica simple (10% del actual)
+    return Math.round(calcTcUsado(tc) * 0.1);
+  }
+  
+  var diaCorte = tc.diaCorte;
+  var diaPago = tc.diaPago;
+  var txs = lsGet(KEYS.TX);
+  
+  // Obtener el ciclo actual y el ciclo anterior correctamente
+  // Ciclo actual: desde el último corte hasta el próximo corte
+  // Ciclo anterior: desde (último corte - 1 mes) hasta el último corte
+  
+  // Determinar el último corte completado
+  var mesActual = now.getMonth();
+  var anoActual = now.getFullYear();
+  var diaActual = now.getDate();
+  
+  // Último corte completado
+  var ultimoCorte = new Date(anoActual, mesActual, diaCorte);
+  if (diaActual < diaCorte) {
+    ultimoCorte.setMonth(ultimoCorte.getMonth() - 1);
+  }
+  
+  // Determinar fecha de pago del ciclo anterior
+  // Si diaPago > diaCorte, la fecha de pago del ciclo anterior fue el mes pasado
+  // Si diaPago <= diaCorte, la fecha de pago del ciclo anterior fue este mes
+  var fechaPagoCicloAnterior;
+  if (diaPago > diaCorte) {
+    // Ejemplo: corte 13, pago 4 -> pago es el 4 del mes SIGUIENTE al corte
+    // Si el último corte fue 13 marzo, el pago fue 4 abril
+    fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth() + 1, diaPago);
+  } else {
+    // Ejemplo: corte 20, pago 15 -> pago es el 15 del MISMO mes del corte
+    // Si el último corte fue 20 marzo, el pago fue 15 abril
+    fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth(), diaPago);
+    if (fechaPagoCicloAnterior <= ultimoCorte) {
+      fechaPagoCicloAnterior.setMonth(fechaPagoCicloAnterior.getMonth() + 1);
+    }
+  }
+  
+  // Calcular gasto del ciclo anterior (entre hace 2 meses y el último corte)
+  var cicloAnteriorInicio = new Date(ultimoCorte);
+  cicloAnteriorInicio.setMonth(cicloAnteriorInicio.getMonth() - 1);
+  var cicloAnteriorFin = new Date(ultimoCorte);
+  
+  var gastoCicloAnterior = 0;
+  txs.forEach(function(tx) {
+    if (tx.type === 'expense' && tx.sourceTarjetaId === tc.id) {
+      var txDate = new Date(tx.date + 'T12:00:00');
+      if (txDate >= cicloAnteriorInicio && txDate < cicloAnteriorFin) {
+        gastoCicloAnterior += tx.amount;
+      }
+    }
+  });
+  
+  var pagoMinimo = 0;
+  
+  // Verificar si ya pasó la fecha de pago del ciclo anterior
+  var yaPasoFechaPago = now > fechaPagoCicloAnterior;
+  
+  if (yaPasoFechaPago && gastoCicloAnterior > 0) {
+    // Ya pasó la fecha de pago - debe pagar TODO lo del ciclo anterior
+    pagoMinimo = gastoCicloAnterior;
+  } else if (gastoCicloAnterior > 0) {
+    // Está en período de gracia - paga 10% del ciclo anterior
+    pagoMinimo = Math.round(gastoCicloAnterior * 0.1);
+  } else {
+    // No hay gasto del ciclo anterior, aplicar 10% del total actual
+    pagoMinimo = Math.round(calcTcUsado(tc) * 0.1);
+  }
+  
+  return pagoMinimo;
+}
+
 function renderTarjetas(){
   var tcs=getTarjetas();
   var totCupo=tcs.reduce(function(s,t){return s+(t.cupoAprobado||0);},0);
@@ -4485,22 +4771,43 @@ function renderTarjetas(){
     var franqLabel={visa:'VISA',mastercard:'MC',amex:'AMEX',otro:'TC'}[tc.franquicia||'otro']||'TC';
     var franqColor={visa:'#1a56db',mastercard:'#c81e1e',amex:'#057a55',otro:'#475569'}[tc.franquicia||'otro']||'#475569';
     // Calcular fechas de corte y pago
-    var proxCorte='';var proxPago='';var pagoMinimo=0;var diasParaPago=0;var proxFechaPago=null;
+    var proxCorte='';var proxPago='';var pagoMinimo=0;var diasParaPago=0;var proxFechaPago=null;var fechaCorteProx=null;var fechaPagoProx=null;var esPagoVencido=false;
     if(tc.diaCorte||tc.diaPago){
       var proxCorteDate=null;
       if(tc.diaCorte){
-        proxCorteDate=new Date(now.getFullYear(),now.getMonth(),tc.diaCorte);
-        if(proxCorteDate<=now)proxCorteDate=new Date(now.getFullYear(),now.getMonth()+1,tc.diaCorte);
-        var dc=Math.ceil((proxCorteDate-now)/(1000*60*60*24));
+        fechaCorteProx=new Date(now.getFullYear(),now.getMonth(),tc.diaCorte);
+        if(fechaCorteProx<=now)fechaCorteProx=new Date(now.getFullYear(),now.getMonth()+1,tc.diaCorte);
+        var dc=Math.ceil((fechaCorteProx-now)/(1000*60*60*24));
         proxCorte='Corte: '+dc+' días';
       }
       if(tc.diaPago){
-        proxFechaPago=new Date(now.getFullYear(),now.getMonth(),tc.diaPago);
-        if(proxFechaPago<=now||(proxCorteDate&&proxCorteDate<now))proxFechaPago=new Date(now.getFullYear(),now.getMonth()+1,tc.diaPago);
-        diasParaPago=Math.ceil((proxFechaPago-now)/(1000*60*60*24));
+        fechaPagoProx=new Date(now.getFullYear(),now.getMonth(),tc.diaPago);
+        if(fechaPagoProx<=now||(proxCorteDate&&proxCorteDate<now))fechaPagoProx=new Date(now.getFullYear(),now.getMonth()+1,tc.diaPago);
+        proxFechaPago=fechaPagoProx;
+        diasParaPago=Math.ceil((fechaPagoProx-now)/(1000*60*60*24));
         proxPago='Pago: '+diasParaPago+' días';
-        // Calcular pago mínimo (típicamente 5-15% del usado o min $50)
-        pagoMinimo=Math.max(50000,Math.round(usado*0.1));
+        
+        // Determinar si el pago del ciclo anterior está vencido
+        var diaCorte = tc.diaCorte;
+        var diaPago = tc.diaPago;
+        var ultimoCorte = new Date(now.getFullYear(), now.getMonth(), diaCorte);
+        if (now.getDate() < diaCorte) {
+          ultimoCorte.setMonth(ultimoCorte.getMonth() - 1);
+        }
+        var fechaPagoCicloAnterior;
+        if (diaPago > diaCorte) {
+          fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth() + 1, diaPago);
+        } else {
+          fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth(), diaPago);
+          if (fechaPagoCicloAnterior <= ultimoCorte) {
+            fechaPagoCicloAnterior.setMonth(fechaPagoCicloAnterior.getMonth() + 1);
+          }
+        }
+        esPagoVencido = now > fechaPagoCicloAnterior;
+        
+        // Calcular pago mínimo correctamente por ciclos de corte
+        // El pago mínimo es lo gastado en ciclos anteriores que ya pasaron su fecha de pago
+        pagoMinimo = calcularPagoMinimoPorCorte(tc, now, fechaPagoProx);
       }
     }
     var tid=esc(tc.id);
@@ -4532,18 +4839,26 @@ function renderTarjetas(){
           +'<div class="d-flex justify-content-between mb-1" style="font-size:11px"><span class="text-muted">Uso: '+pct+'%</span><span class="text-muted">'+fmt(usado)+' / '+fmt(tc.cupoAprobado)+'</span></div>'
           +'<div class="fp-progress mb-2" style="height:6px"><div class="fp-progress-bar '+barColor+'" style="width:'+pct+'%;animation:none"></div></div>'
           // Info de fechas y pago mínimo
-          +(pagoMinimo>0?'<div style="background:'+semaforoBg+';border:1px solid '+semaforo+'30;border-radius:8px;padding:8px 10px;margin-bottom:10px">'
-            +'<div class="d-flex justify-content-between align-items-center">'
+          +((tc.diaCorte||tc.diaPago)?'<div style="background:'+semaforoBg+';border:1px solid '+semaforo+'30;border-radius:8px;padding:8px 10px;margin-bottom:10px">'
+            +'<div class="d-flex justify-content-between align-items-center mb-2">'
               +'<div>'
-                +'<div style="font-size:10px;font-weight:600;color:'+semaforo+';text-transform:uppercase;letter-spacing:.5px">Próximo pago</div>'
-                +'<div style="font-size:12px;font-weight:700;color:var(--fp-text)">'+proxPago+' (fecha '+fmtDate(proxFechaPago?proxFechaPago.toISOString().split('T')[0]:'')+')</div>'
+                +'<div style="font-size:10px;font-weight:600;color:var(--fp-text2);text-transform:uppercase;letter-spacing:.5px">Próximo corte</div>'
+                +'<div style="font-size:12px;font-weight:700;color:var(--fp-text)">'+(fechaCorteProx?fmtDate(fechaCorteProx.toISOString().split('T')[0]):'—')+'</div>'
               +'</div>'
               +'<div class="text-end">'
-                +'<div style="font-size:10px;font-weight:600;color:var(--fp-text2);text-transform:uppercase">Pago mínimo</div>'
-                +'<div style="font-size:14px;font-weight:800;color:'+semaforo+';font-family:JetBrains Mono,monospace">'+fmt(pagoMinimo)+'</div>'
+                +'<div style="font-size:10px;font-weight:600;color:'+semaforo+';text-transform:uppercase;letter-spacing:.5px">Próximo pago</div>'
+                +'<div style="font-size:12px;font-weight:700;color:var(--fp-text)">'+(fechaPagoProx?fmtDate(fechaPagoProx.toISOString().split('T')[0]):'—')+'</div>'
               +'</div>'
             +'</div>'
-            +'<div style="font-size:10px;color:var(--fp-text2);margin-top:4px"><i class="bi bi-info-circle me-1"></i>Para evitar intereses, paga el valor usado completo</div>'
+            +(pagoMinimo>0?'<div class="d-flex justify-content-between align-items-center" style="background:rgba(239,68,68,.1);border-radius:6px;padding:6px 8px">'
+              +'<div>'
+                +'<div style="font-size:10px;font-weight:600;color:var(--fp-danger);text-transform:uppercase">Pago mínimo</div>'
+                +'<div style="font-size:11px;color:var(--fp-text2)">'+(esPagoVencido?'¡PAGO VENCIDO!':'Período de gracia')+'</div>'
+              +'</div>'
+              +'<div class="text-end">'
+                +'<div style="font-size:16px;font-weight:800;color:var(--fp-danger);font-family:JetBrains Mono,monospace">'+fmt(pagoMinimo)+'</div>'
+              +'</div>'
+            +'</div>':'')
           +'</div>':'')
           +'<div class="d-flex gap-2">'
             +'<button class="btn fp-btn-primary fp-btn-sm flex-fill" onclick="openTcPagoModal(\''+tid+'\')"><i class="bi bi-cash-coin me-1"></i> Registrar pago</button>'
@@ -4556,6 +4871,34 @@ function renderTarjetas(){
   }).join('');
 }
 
+// Función para obtener HTML de compras a cuotas
+function getCuotasTarjetaHtml(tc) {
+  var txs = lsGet(KEYS.TX);
+  var comprasCuotas = txs.filter(function(t) {
+    return t.sourceTarjetaId === tc.id && t.planCuotas && t.planCuotas.length > 0;
+  });
+  
+  if (comprasCuotas.length === 0) return '';
+  
+  var rows = '';
+  comprasCuotas.forEach(function(tx) {
+    var pendientes = tx.planCuotas.filter(function(c) { return !c.pagada; });
+    var totalPagado = tx.planCuotas.filter(function(c) { return c.pagada; }).length;
+    rows += '<div style="background:var(--fp-surface2);border-radius:8px;padding:10px;margin-bottom:8px">'
+      + '<div class="d-flex justify-content-between align-items-start">'
+      + '<div><div style="font-size:12px;font-weight:600">' + esc(tx.description) + '</div>'
+      + '<div style="font-size:11px;color:var(--fp-text2)">' + fmt(tx.amount) + ' · ' + tx.planCuotas.length + ' cuotas de ' + fmt(tx.cuotaMonto) + '</div></div>'
+      + '<div class="text-end"><div style="font-size:12px;font-weight:700;color:var(--fp-primary)">' + totalPagado + '/' + tx.planCuotas.length + '</div>'
+      + '<div style="font-size:10px;color:var(--fp-text3)">pendientes</div></div></div>'
+      + '</div>';
+  });
+  
+  return '<div style="margin-top:12px">' 
+    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:10px"><i class="bi bi-calendar-range me-1"></i>Compras a cuotas (' + comprasCuotas.length + ')</div>'
+    + rows
+    + '</div>';
+}
+
 // Función para ver detalle completo de tarjeta
 function verTcDetail(id){
   var tc=getTarjetas().find(function(t){return t.id===id;});if(!tc)return;
@@ -4563,13 +4906,39 @@ function verTcDetail(id){
   var disp=calcTcCupoDisponible(tc);
   var pct=tc.cupoAprobado>0?Math.round(usado/tc.cupoAprobado*100):0;
   var now=new Date();
-  var proxFechaPago=null;var diasPago=0;
-  if(tc.diaPago){
-    proxFechaPago=new Date(now.getFullYear(),now.getMonth(),tc.diaPago);
-    if(proxFechaPago<=now)proxFechaPago=new Date(now.getFullYear(),now.getMonth()+1,tc.diaPago);
-    diasPago=Math.ceil((proxFechaPago-now)/(1000*60*60*24));
+  
+  // Calcular fecha de corte actual y próxima
+  var fechaCorteActual=null;
+  var fechaCorteProx=null;
+  var diasParaCorte=0;
+  if(tc.diaCorte){
+    fechaCorteProx=new Date(now.getFullYear(),now.getMonth(),tc.diaCorte);
+    if(fechaCorteProx<=now){
+      fechaCorteActual=new Date(now.getFullYear(),now.getMonth()-1,tc.diaCorte);
+      fechaCorteProx=new Date(now.getFullYear(),now.getMonth()+1,tc.diaCorte);
+    }else{
+      fechaCorteActual=new Date(now.getFullYear(),now.getMonth()-1,tc.diaCorte);
+    }
+    diasParaCorte=Math.ceil((fechaCorteProx-now)/(1000*60*60*24));
   }
-  var pagoMin=Math.max(50000,Math.round(usado*0.1));
+  
+  // Calcular fecha de pago actual y próxima
+  var fechaPagoActual=null;
+  var fechaPagoProx=null;
+  var diasParaPago=0;
+  if(tc.diaPago){
+    fechaPagoProx=new Date(now.getFullYear(),now.getMonth(),tc.diaPago);
+    if(fechaPagoProx<=now||(fechaCorteProx&&fechaCorteProx<now)){
+      fechaPagoActual=new Date(now.getFullYear(),now.getMonth()-1,tc.diaPago);
+      fechaPagoProx=new Date(now.getFullYear(),now.getMonth()+1,tc.diaPago);
+    }else{
+      fechaPagoActual=new Date(now.getFullYear(),now.getMonth()-1,tc.diaPago);
+    }
+    diasParaPago=Math.ceil((fechaPagoProx-now)/(1000*60*60*24));
+  }
+  
+  // Calcular pago mínimo correctamente por ciclos de corte
+  var pagoMin = calcularPagoMinimoPorCorte(tc, now, fechaPagoProx);
   var pagoTotal=usado;
   var pago3meses=Math.round(usado/3);
   
@@ -4591,10 +4960,10 @@ function verTcDetail(id){
         
         // Sección de fechas importantes
         +'<div style="background:rgba(59,130,246,.1);border-radius:8px;padding:12px;margin-bottom:12px">'
-          +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(59,130,246,.8);margin-bottom:10px"><i class="bi bi-calendar-event me-1"></i>Fechas importantes</div>'
+          +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(59,130,246,.8);margin-bottom:10px"><i class="bi bi-calendar-event me-1"></i>Ciclo actual</div>'
           +'<div class="row g-2">'
-            +(tc.diaCorte?'<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Día de corte</div><div style="font-size:14px;font-weight:700">Día '+tc.diaCorte+' de cada mes</div></div>':'')
-            +(tc.diaPago?'<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Día de pago</div><div style="font-size:14px;font-weight:700">Día '+tc.diaPago+' de cada mes</div></div>':'')
+            +(tc.diaCorte?'<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Corte actual</div><div style="font-size:14px;font-weight:700">'+(fechaCorteActual?fechaCorteActual.toLocaleDateString('es-CO'):'—')+'</div><div style="font-size:11px;color:var(--fp-primary)">Próximo: '+diasParaCorte+' días</div></div>':'')
+            +(tc.diaPago?'<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Pago actual</div><div style="font-size:14px;font-weight:700">'+(fechaPagoActual?fechaPagoActual.toLocaleDateString('es-CO'):'—')+'</div><div style="font-size:11px;color:var(--fp-primary)">Próximo: '+diasParaPago+' días</div></div>':'')
           +'</div>'
         +'</div>'
         
@@ -4626,6 +4995,9 @@ function verTcDetail(id){
             +'<div class="text-end"><div style="font-size:11px;color:var(--fp-text2)">Monto recomendado</div><div style="font-size:18px;font-weight:800;color:var(--fp-success)">'+fmt(pagoTotal)+'</div></div>'
           +'</div>'
         +'</div>':'')
+        
+        // Compras a cuotas
+        +getCuotasTarjetaHtml(tc)
         
         +'<div class="d-flex gap-2">'
           +'<button class="btn fp-btn-primary flex-fill" onclick="document.getElementById(\'tcDetailOverlay\').remove();openTcPagoModal(\''+esc(tc.id)+'\')"><i class="bi bi-cash-coin me-1"></i>Registrar Pago</button>'
@@ -4737,7 +5109,18 @@ function deleteTarjeta(id){
 function openTcPagoModal(id){
   var tc=getTarjetas().find(function(t){return t.id===id;});if(!tc)return;
   var usado=calcTcUsado(tc);var disp=calcTcCupoDisponible(tc);
-  var pagoMin=Math.max(50000,Math.round(usado*0.1));
+  
+  // Calcular pago mínimo correctamente por ciclos de corte
+  var now = new Date();
+  var fechaPagoProx = null;
+  if (tc.diaPago) {
+    fechaPagoProx = new Date(now.getFullYear(), now.getMonth(), tc.diaPago);
+    if (fechaPagoProx <= now) {
+      fechaPagoProx = new Date(now.getFullYear(), now.getMonth() + 1, tc.diaPago);
+    }
+  }
+  var pagoMin = calcularPagoMinimoPorCorte(tc, now, fechaPagoProx);
+  
   var s=calcSaldos();var catSaldos=calcSaldosPorCat();var savs=lsGet(KEYS.SAV);
   // Construir opciones de fuente
   var srcHtml='<div class="source-opt selected" id="tcpago-src-libre" onclick="selectTcPagoSource(\'libre\',this)"><div class="source-opt-name"><i class="bi bi-wallet-fill" style="color:var(--fp-success)"></i> Dinero libre</div><span class="source-opt-bal" style="color:var(--fp-success)">'+fmt(s.saldoLibre)+'</span></div>';
@@ -5404,7 +5787,24 @@ var KEYS_GLOBAL = {
   WHITELIST: 'fp_global_whitelist'
 };
 
+var _whitelistUnsubscribe = null;
+var _cachedWhitelist = null;
+
+async function fetchWhitelistFromFirestore() {
+  if (!_db) return null;
+  try {
+    var doc = await _db.collection('admin').doc('whitelist').get();
+    if (doc.exists && doc.data().allowedUsers) {
+      return doc.data().allowedUsers;
+    }
+  } catch (e) {
+    console.warn('[Whitelist] Error fetching from Firestore:', e);
+  }
+  return null;
+}
+
 function getAuthWhitelist() {
+  if (_cachedWhitelist) return _cachedWhitelist;
   var stored = localStorage.getItem(KEYS_GLOBAL.WHITELIST);
   if (stored) {
     try { return JSON.parse(stored); } catch(e) { return [AUTH_ADMIN]; }
@@ -5412,8 +5812,74 @@ function getAuthWhitelist() {
   return [AUTH_ADMIN];
 }
 
-function saveAuthWhitelist(list) {
+async function getAuthWhitelistAsync() {
+  var firestoreList = await fetchWhitelistFromFirestore();
+  if (firestoreList && firestoreList.length > 0) {
+    _cachedWhitelist = firestoreList;
+    localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(firestoreList));
+    return firestoreList;
+  }
+  return getAuthWhitelist();
+}
+
+async function saveAuthWhitelist(list) {
   localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(list));
+  _cachedWhitelist = list;
+  
+  if (_db) {
+    try {
+      await _db.collection('admin').doc('whitelist').set({
+        allowedUsers: list,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: AUTH_ADMIN
+      });
+      console.log('[Whitelist] Saved to Firestore');
+    } catch (e) {
+      console.error('[Whitelist] Error saving to Firestore:', e);
+    }
+  }
+}
+
+function subscribeToWhitelistChanges() {
+  if (!_db || _whitelistUnsubscribe) return;
+  
+  try {
+    _whitelistUnsubscribe = _db.collection('admin').doc('whitelist')
+      .onSnapshot(function(doc) {
+        if (doc.exists && doc.data().allowedUsers) {
+          var newList = doc.data().allowedUsers;
+          _cachedWhitelist = newList;
+          localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(newList));
+          
+          var currentUserEmail = firebase.auth().currentUser ? firebase.auth().currentUser.email.toLowerCase() : null;
+          if (currentUserEmail) {
+            var isAuthorized = newList.some(function(email) {
+              return email.toLowerCase() === currentUserEmail;
+            });
+            if (!isAuthorized) {
+              showToast('Tu acceso ha sido revocado por el administrador.', 'danger');
+              firebase.auth().signOut();
+            }
+          }
+          
+          if (localStorage.getItem('fp_user_role') === 'admin') {
+            renderWhitelist();
+            showToast('Lista de usuarios actualizada desde la nube', 'info');
+          }
+        }
+      }, function(error) {
+        console.warn('[Whitelist] Snapshot error:', error);
+      });
+  } catch (e) {
+    console.warn('[Whitelist] Cannot subscribe:', e);
+  }
+}
+
+function unsubscribeFromWhitelist() {
+  if (_whitelistUnsubscribe) {
+    _whitelistUnsubscribe();
+    _whitelistUnsubscribe = null;
+  }
 }
 
 var firebaseConfig = { 
@@ -5722,7 +6188,7 @@ function setupAuthObserver() {
       if (e.code !== 'auth/no-auth-event') console.warn('[Auth] Redirect error:', e.message);
     });
 
-    firebase.auth().onAuthStateChanged(function(user) {
+    firebase.auth().onAuthStateChanged(async function(user) {
       if (user) {
         if (checkIdleSessionExpired()) {
           firebase.auth().signOut();
@@ -5730,7 +6196,9 @@ function setupAuthObserver() {
           return;
         }
         var userEmail = (user.email || "").toLowerCase();
-        var currentWhitelist = getAuthWhitelist();
+        
+        // Intentar obtener whitelist desde Firestore primero
+        var currentWhitelist = await getAuthWhitelistAsync();
         var isAuthorized = currentWhitelist.some(function(email) {
           return email.toLowerCase() === userEmail;
         });
@@ -5740,8 +6208,10 @@ function setupAuthObserver() {
           localStorage.setItem('fp_user_uid', user.uid);
           if (userEmail === AUTH_ADMIN.toLowerCase()) {
             localStorage.setItem('fp_user_role', 'admin');
+            subscribeToWhitelistChanges();
           } else {
             localStorage.removeItem('fp_user_role');
+            unsubscribeFromWhitelist();
           }
           touchSessionActivity();
           initAppSession(user);
