@@ -6068,6 +6068,13 @@ lsSet = function(k, d) {
   saveToFirestore();
 };
 
+// Detectar si está en modo PWA (pantalla de inicio)
+function isPWA() {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone === true ||
+         document.referrer.includes('android-app://');
+}
+
 function loginWithGoogle(forceSelectAccount) {
   if (typeof firebase === 'undefined' || !firebase.auth) {
     showToast("Error: Firebase no cargado. Revisa tu conexión.", "danger");
@@ -6080,27 +6087,42 @@ function loginWithGoogle(forceSelectAccount) {
     prompt: 'select_account'
   });
   
-  // Limpiar sesión de Google primero para que siempre pida credenciales
+  var isPWAMode = isPWA();
+  
+  // Limpiar sesión de Google primero
   firebase.auth().signOut().then(function() {
-    showToast("Abriendo ventana de Google...", "info");
-    firebase.auth().signInWithPopup(provider)
-      .then(function(result) {
-        showToast("Bienvenido " + (result.user.displayName || ""), "success");
-      })
-      .catch(function(e) {
-        console.error("Error en login:", e);
-        if (e.code === 'auth/popup-blocked') {
-          firebase.auth().signInWithRedirect(provider);
-        } else if (e.code === 'auth/account-exists-with-different-credential') {
-          showToast("Esta cuenta ya está vinculada con otro método. Intenta cerrar sesión primero.", "warning");
-        } else {
-          showToast("Error: " + e.message, "danger");
-        }
-      });
+    if (isPWAMode) {
+      // En PWA usar redirect (más confiable)
+      showToast("Redirigiendo a Google...", "info");
+      firebase.auth().signInWithRedirect(provider);
+    } else {
+      // En navegador normal usar popup
+      showToast("Abriendo ventana de Google...", "info");
+      firebase.auth().signInWithPopup(provider)
+        .then(function(result) {
+          showToast("Bienvenido " + (result.user.displayName || ""), "success");
+        })
+        .catch(function(e) {
+          console.error("Error en login:", e);
+          if (e.code === 'auth/popup-blocked') {
+            // Si el popup fue bloqueado, usar redirect
+            firebase.auth().signInWithRedirect(provider);
+          } else if (e.code === 'auth/account-exists-with-different-credential') {
+            showToast("Esta cuenta ya está vinculada con otro método. Intenta cerrar sesión primero.", "warning");
+          } else {
+            showToast("Error: " + e.message, "danger");
+          }
+        });
+    }
   }).catch(function(e) {
     // Si falla el signOut, intentar login de todas formas
-    showToast("Abriendo ventana de Google...", "info");
-    firebase.auth().signInWithPopup(provider);
+    if (isPWAMode) {
+      showToast("Redirigiendo a Google...", "info");
+      firebase.auth().signInWithRedirect(provider);
+    } else {
+      showToast("Abriendo ventana de Google...", "info");
+      firebase.auth().signInWithPopup(provider);
+    }
   });
 }
 
@@ -6224,13 +6246,15 @@ function initAppSession(user) {
 // Observador de estado de Auth
 function setupAuthObserver() {
   if (typeof firebase !== 'undefined' && firebase.auth) {
-    // Manejar redirect result (para mobile donde popup no funciona)
+    // Manejar redirect result (para PWA y mobile donde popup no funciona)
     firebase.auth().getRedirectResult().then(function(result) {
-      if (result.user) {
+      if (result && result.user) {
         console.log('[Auth] Login via redirect exitoso:', result.user.email);
       }
     }).catch(function(e) {
-      if (e.code !== 'auth/no-auth-event') console.warn('[Auth] Redirect error:', e.message);
+      if (e.code !== 'auth/no-auth-event' && e.code !== 'auth/user-not-found') {
+        console.warn('[Auth] Redirect error:', e.message);
+      }
     });
 
     firebase.auth().onAuthStateChanged(async function(user) {
