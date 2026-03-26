@@ -6103,17 +6103,15 @@ function isPWA() {
 
 function loginWithGoogle(forceSelectAccount) {
   if (typeof firebase === 'undefined' || !firebase.auth) {
-    alert("ERROR: Firebase no está cargado. Recarga la página.");
+    showToast("Error: Firebase no cargado. Recarga la página.", "danger");
     return;
   }
   var provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   
-  alert("Vamos a Google...");
-  firebase.auth().signInWithRedirect(provider).then(function() {
-    alert("Redirección iniciada");
-  }).catch(function(error) {
-    alert("Error: " + error.message);
+  showToast("Redirigiendo a Google...", "info");
+  firebase.auth().signInWithRedirect(provider).catch(function(error) {
+    showToast("Error: " + error.message, "danger");
   });
 }
 
@@ -6253,91 +6251,57 @@ var _waitingForRedirect = false;
 
 // Observador de estado de Auth
 function setupAuthObserver() {
-  if (typeof firebase !== 'undefined' && firebase.auth) {
-    // Escuchar cambios de estado de autenticación
-    firebase.auth().onAuthStateChanged(async function(user) {
-      alert('Cambio de estado! Usuario: ' + (user ? user.email : 'null'));
-      
+  try {
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+      document.getElementById('view-login').classList.remove('d-none');
+      document.body.classList.remove('is-loading');
+      return;
+    }
+    
+    // Verificar resultado de redirect
+    firebase.auth().getRedirectResult().then(function(result) {
+      if (result && result.user) {
+        handleAuthSuccess(result.user);
+      }
+    }).catch(function(e) {});
+    
+    // Escuchar cambios de estado
+    firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
-        if (checkIdleSessionExpired()) {
-          firebase.auth().signOut();
-          showToast('Sesión cerrada por inactividad prolongada. Vuelve a iniciar sesión.', 'info');
-          return;
-        }
-        var userEmail = (user.email || "").toLowerCase();
-        console.log('[Auth] Usuario autenticado:', userEmail);
-        
-        // Intentar obtener whitelist desde Firestore primero
-        var currentWhitelist;
-        try {
-          currentWhitelist = await getAuthWhitelistAsync();
-        } catch (e) {
-          console.warn('[Auth] Error obteniendo whitelist, usando local:', e);
-          currentWhitelist = getAuthWhitelist();
-        }
-        
-        var isAuthorized = currentWhitelist.some(function(email) {
-          return email.toLowerCase() === userEmail;
-        });
-        
-        console.log('[Auth] Whitelist:', currentWhitelist, 'Autorizado:', isAuthorized);
-
-        if (isAuthorized) {
-          localStorage.setItem('fp_user_mode', 'auth');
-          localStorage.setItem('fp_user_uid', user.uid);
-          if (userEmail === AUTH_ADMIN.toLowerCase()) {
-            localStorage.setItem('fp_user_role', 'admin');
-            subscribeToWhitelistChanges();
-          } else {
-            localStorage.removeItem('fp_user_role');
-            unsubscribeFromWhitelist();
-          }
-          touchSessionActivity();
-          
-          // Entrar a la app - FORZAR
-          document.getElementById('view-login').style.display = 'none';
-          document.getElementById('view-login').classList.add('d-none');
-          document.getElementById('mainNav').classList.remove('d-none');
-          document.getElementById('fpLayout').classList.remove('d-none');
-          document.body.classList.remove('is-loading');
-          showToast("¡Bienvenido " + (user.displayName || user.email) + "!", "success");
-        } else {
-          showToast("Acceso denegado: " + userEmail + " no está autorizado.", "danger");
-          firebase.auth().signOut();
-          localStorage.removeItem('fp_user_mode');
-          localStorage.removeItem('fp_user_uid');
-          localStorage.removeItem('fp_user_role');
-          document.getElementById('view-login').classList.remove('d-none');
-          document.body.classList.remove('is-loading');
-        }
-      } else {
-        // Si hay un usuario en localStorage, verificar si es válido
-        var savedMode = localStorage.getItem('fp_user_mode');
-        var savedUid = localStorage.getItem('fp_user_uid');
-        
-        // Si tenemos sesión guardada y es auth, mantenerla
-        if (savedMode === 'auth' && savedUid) {
-          console.log('[Auth] Sesión guardada pero sin usuario firebase, recargando...');
-          // Intentar recargar
-          return; 
-        }
-        
-        // Mostrar login
-        console.log('[Auth] Mostrando login');
-        localStorage.removeItem('fp_user_mode');
-        localStorage.removeItem('fp_user_uid');
-        localStorage.removeItem('fp_user_role');
-        var loginEl = document.getElementById('view-login');
-        if (loginEl) {
-          loginEl.style.display = 'block';
-          loginEl.classList.remove('d-none');
-        }
-        document.body.classList.remove('is-loading');
+        handleAuthSuccess(user);
       }
     });
-  } else {
-    document.getElementById('view-login').classList.remove('d-none');
-    document.body.classList.remove('is-loading');
+  } catch(e) {
+    console.error('Error en setupAuthObserver:', e);
+  }
+  
+  function handleAuthSuccess(user) {
+    try {
+      var userEmail = (user.email || "").toLowerCase();
+      var currentWhitelist = getAuthWhitelist();
+      var isAuthorized = currentWhitelist.some(function(email) {
+        return email.toLowerCase() === userEmail;
+      });
+      
+      if (isAuthorized) {
+        localStorage.setItem('fp_user_mode', 'auth');
+        localStorage.setItem('fp_user_uid', user.uid);
+        if (userEmail === AUTH_ADMIN.toLowerCase()) {
+          localStorage.setItem('fp_user_role', 'admin');
+        }
+        document.getElementById('view-login').style.display = 'none';
+        document.getElementById('view-login').classList.add('d-none');
+        document.getElementById('mainNav').classList.remove('d-none');
+        document.getElementById('fpLayout').classList.remove('d-none');
+        document.body.classList.remove('is-loading');
+        showToast("¡Bienvenido " + user.email + "!", "success");
+      } else {
+        showToast("Acceso denegado: " + userEmail, "danger");
+        firebase.auth().signOut();
+      }
+    } catch(e) {
+      console.error('Error en handleAuthSuccess:', e);
+    }
   }
 }
 
