@@ -6075,28 +6075,33 @@ function loginWithGoogle(forceSelectAccount) {
   }
   var provider = new firebase.auth.GoogleAuthProvider();
   
-  // Si forceSelectAccount es true, forzamos a seleccionar cuenta
-  if (forceSelectAccount) {
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    });
-  }
+  // SIEMPRE forzar selección de cuenta para que pida login
+  provider.setCustomParameters({
+    prompt: 'select_account'
+  });
   
-  showToast("Abriendo ventana de Google...", "info");
-  firebase.auth().signInWithPopup(provider)
-    .then(function(result) {
-      showToast("Bienvenido " + (result.user.displayName || ""), "success");
-    })
-    .catch(function(e) {
-      console.error("Error en login:", e);
-      if (e.code === 'auth/popup-blocked') {
-        firebase.auth().signInWithRedirect(provider);
-      } else if (e.code === 'auth/account-exists-with-different-credential') {
-        showToast("Esta cuenta ya está vinculada con otro método. Intenta cerrar sesión primero.", "warning");
-      } else {
-        showToast("Error: " + e.message, "danger");
-      }
-    });
+  // Limpiar sesión de Google primero para que siempre pida credenciales
+  firebase.auth().signOut().then(function() {
+    showToast("Abriendo ventana de Google...", "info");
+    firebase.auth().signInWithPopup(provider)
+      .then(function(result) {
+        showToast("Bienvenido " + (result.user.displayName || ""), "success");
+      })
+      .catch(function(e) {
+        console.error("Error en login:", e);
+        if (e.code === 'auth/popup-blocked') {
+          firebase.auth().signInWithRedirect(provider);
+        } else if (e.code === 'auth/account-exists-with-different-credential') {
+          showToast("Esta cuenta ya está vinculada con otro método. Intenta cerrar sesión primero.", "warning");
+        } else {
+          showToast("Error: " + e.message, "danger");
+        }
+      });
+  }).catch(function(e) {
+    // Si falla el signOut, intentar login de todas formas
+    showToast("Abriendo ventana de Google...", "info");
+    firebase.auth().signInWithPopup(provider);
+  });
 }
 
 function switchGoogleAccount() {
@@ -6104,9 +6109,17 @@ function switchGoogleAccount() {
     showToast("Error: Firebase no cargado.", "danger");
     return;
   }
-  // Cerrar sesión actual y forzar selección de cuenta
+  showToast("Cerrando sesión...", "info");
+  // Cerrar sesión actual
   firebase.auth().signOut().then(function() {
-    loginWithGoogle(true);
+    // Limpiar localStorage también
+    localStorage.removeItem('fp_user_mode');
+    localStorage.removeItem('fp_user_uid');
+    localStorage.removeItem('fp_user_role');
+    // Forzar nueva selección de cuenta
+    setTimeout(function() {
+      loginWithGoogle(true);
+    }, 500);
   }).catch(function(e) {
     showToast("Error al cerrar sesión: " + e.message, "danger");
   });
@@ -6122,18 +6135,27 @@ function loginGuest() {
 function logout() {
   // Desuscribir listener de Firestore si existe
   if (_firestoreListener) { _firestoreListener(); _firestoreListener = null; }
+  if (_whitelistUnsubscribe) { unsubscribeFromWhitelist(); }
   localStorage.removeItem('fp_user_mode');
   localStorage.removeItem('fp_user_uid');
   localStorage.removeItem('fp_user_role');
   localStorage.removeItem('fp_last_activity_ts');
   localStorage.removeItem('fp_hidden_since_ts');
-  try {
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-      firebase.auth().signOut().then(function() { location.reload(); }).catch(function() { location.reload(); });
-    } else {
+  
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    firebase.auth().signOut().then(function() {
+      showToast("Sesión cerrada", "info");
+      // Mostrar pantalla de login
+      document.getElementById('view-login').classList.remove('d-none');
+      document.getElementById('mainNav').classList.add('d-none');
+      document.body.classList.remove('is-loading');
+      navigateTo('dashboard');
+    }).catch(function(e) {
       location.reload();
-    }
-  } catch (e) { location.reload(); }
+    });
+  } else {
+    location.reload();
+  }
 }
 
 function initAppSession(user) {
