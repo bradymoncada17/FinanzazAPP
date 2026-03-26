@@ -5986,7 +5986,20 @@ function initFirebase() {
   }
 }
 
-window.addEventListener('load', initFirebase);
+// Ejecutar lo más pronto posible para PWA
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initFirebase);
+} else {
+  initFirebase();
+}
+
+// También intentar cuando la página esté completamente cargada
+window.addEventListener('load', function() {
+  // Solo si Firebase no se inicializó
+  if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) {
+    initFirebase();
+  }
+});
 
 // ── FIRESTORE: Guardar todos los datos del usuario ────────
 function getAllUserData() {
@@ -6106,7 +6119,12 @@ function loginWithGoogle(forceSelectAccount) {
     if (isPWAMode) {
       // En PWA usar redirect (más confiable)
       showToast("Redirigiendo a Google...", "info");
+      _waitingForRedirect = true;
       firebase.auth().signInWithRedirect(provider);
+      // Timeout de 10 segundos para resetear flag
+      setTimeout(function() {
+        _waitingForRedirect = false;
+      }, 10000);
     } else {
       // En navegador normal usar popup
       showToast("Abriendo ventana de Google...", "info");
@@ -6255,23 +6273,29 @@ function initAppSession(user) {
   }
 }
 
+var _waitingForRedirect = false;
+
 // Observador de estado de Auth
 function setupAuthObserver() {
   if (typeof firebase !== 'undefined' && firebase.auth) {
     // Manejar redirect result (para PWA y mobile donde popup no funciona)
-    firebase.auth().getRedirectResult().then(function(result) {
-      if (result && result.user) {
-        console.log('[Auth] Login via redirect exitoso:', result.user.email);
-        // En PWA, recargar la página para asegurar que todo cargue bien
-        if (isPWA()) {
-          location.reload();
+    firebase.auth().getRedirectResult()
+      .then(function(result) {
+        if (result && result.user) {
+          console.log('[Auth] Login via redirect exitoso:', result.user.email);
+          // No recargar, el onAuthStateChanged manejará el usuario
+          _waitingForRedirect = false;
         }
-      }
-    }).catch(function(e) {
-      if (e.code !== 'auth/no-auth-event' && e.code !== 'auth/user-not-found') {
-        console.warn('[Auth] Redirect error:', e.message);
-      }
-    });
+      })
+      .catch(function(e) {
+        _waitingForRedirect = false;
+        // No mostrar error si es por no haber redirect previo
+        if (e.code === 'auth/no-auth-event') {
+          console.log('[Auth] Sin redirect previo, esperando...');
+        } else if (e.code !== 'auth/user-not-found') {
+          console.warn('[Auth] Redirect error:', e.code, e.message);
+        }
+      });
 
     firebase.auth().onAuthStateChanged(async function(user) {
       if (user) {
@@ -6320,6 +6344,11 @@ function setupAuthObserver() {
           document.body.classList.remove('is-loading');
         }
       } else {
+        // Si estamos esperando un redirect, no mostrar login todavía
+        if (_waitingForRedirect) {
+          console.log('[Auth] Esperando redirect...');
+          return;
+        }
         if (localStorage.getItem('fp_user_mode') === 'guest' && localStorage.getItem('fp_user_uid') === 'local_guest') {
           initAppSession(null);
           return;
