@@ -6107,54 +6107,11 @@ function loginWithGoogle(forceSelectAccount) {
     return;
   }
   var provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
   
-  // SIEMPRE forzar selección de cuenta para que pida login
-  provider.setCustomParameters({
-    prompt: 'select_account'
-  });
-  
-  var isPWAMode = isPWA();
-  
-  // Limpiar sesión de Google primero
-  firebase.auth().signOut().then(function() {
-    if (isPWAMode) {
-      // En PWA usar redirect (más confiable)
-      showToast("Redirigiendo a Google...", "info");
-      _waitingForRedirect = true;
-      firebase.auth().signInWithRedirect(provider);
-      // Timeout de 10 segundos para resetear flag
-      setTimeout(function() {
-        _waitingForRedirect = false;
-      }, 10000);
-    } else {
-      // En navegador normal usar popup
-      showToast("Abriendo ventana de Google...", "info");
-      firebase.auth().signInWithPopup(provider)
-        .then(function(result) {
-          showToast("Bienvenido " + (result.user.displayName || ""), "success");
-        })
-        .catch(function(e) {
-          console.error("Error en login:", e);
-          if (e.code === 'auth/popup-blocked') {
-            // Si el popup fue bloqueado, usar redirect
-            firebase.auth().signInWithRedirect(provider);
-          } else if (e.code === 'auth/account-exists-with-different-credential') {
-            showToast("Esta cuenta ya está vinculada con otro método. Intenta cerrar sesión primero.", "warning");
-          } else {
-            showToast("Error: " + e.message, "danger");
-          }
-        });
-    }
-  }).catch(function(e) {
-    // Si falla el signOut, intentar login de todas formas
-    if (isPWAMode) {
-      showToast("Redirigiendo a Google...", "info");
-      firebase.auth().signInWithRedirect(provider);
-    } else {
-      showToast("Abriendo ventana de Google...", "info");
-      firebase.auth().signInWithPopup(provider);
-    }
-  });
+  // Usar redirect que funciona mejor en todos los casos
+  showToast("Redirigiendo a Google...", "info");
+  firebase.auth().signInWithRedirect(provider);
 }
 
 function switchGoogleAccount() {
@@ -6294,26 +6251,10 @@ var _waitingForRedirect = false;
 // Observador de estado de Auth
 function setupAuthObserver() {
   if (typeof firebase !== 'undefined' && firebase.auth) {
-    // Manejar redirect result (para PWA y mobile donde popup no funciona)
-    firebase.auth().getRedirectResult()
-      .then(function(result) {
-        if (result && result.user) {
-          console.log('[Auth] Login via redirect exitoso:', result.user.email);
-          // No recargar, el onAuthStateChanged manejará el usuario
-          _waitingForRedirect = false;
-        }
-      })
-      .catch(function(e) {
-        _waitingForRedirect = false;
-        // No mostrar error si es por no haber redirect previo
-        if (e.code === 'auth/no-auth-event') {
-          console.log('[Auth] Sin redirect previo, esperando...');
-        } else if (e.code !== 'auth/user-not-found') {
-          console.warn('[Auth] Redirect error:', e.code, e.message);
-        }
-      });
-
+    // Escuchar cambios de estado de autenticación
     firebase.auth().onAuthStateChanged(async function(user) {
+      console.log('[Auth] Estado cambiado, usuario:', user ? user.email : 'null');
+      
       if (user) {
         if (checkIdleSessionExpired()) {
           firebase.auth().signOut();
@@ -6339,7 +6280,6 @@ function setupAuthObserver() {
         console.log('[Auth] Whitelist:', currentWhitelist, 'Autorizado:', isAuthorized);
 
         if (isAuthorized) {
-          alert('¡Login exitoso! Email: ' + userEmail + '. Iniciando app...');
           localStorage.setItem('fp_user_mode', 'auth');
           localStorage.setItem('fp_user_uid', user.uid);
           if (userEmail === AUTH_ADMIN.toLowerCase()) {
@@ -6351,8 +6291,13 @@ function setupAuthObserver() {
           }
           touchSessionActivity();
           
-          //Siempre entrar a la app
-          initAppSession(user);
+          // Entrar a la app - FORZAR
+          document.getElementById('view-login').style.display = 'none';
+          document.getElementById('view-login').classList.add('d-none');
+          document.getElementById('mainNav').classList.remove('d-none');
+          document.getElementById('fpLayout').classList.remove('d-none');
+          document.body.classList.remove('is-loading');
+          showToast("¡Bienvenido " + (user.displayName || user.email) + "!", "success");
         } else {
           showToast("Acceso denegado: " + userEmail + " no está autorizado.", "danger");
           firebase.auth().signOut();
