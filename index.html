@@ -1253,6 +1253,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="col-lg-5">
           <div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-shield-check-fill text-success"></i> Estado</div></div><div class="fp-card-body"><div id="syncDetailStatus"><div class="empty-state">Sin configurar</div></div></div></div>
           <div class="fp-card mt-3"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-arrow-down-up"></i> Respaldo local</div></div><div class="fp-card-body"><div class="d-flex gap-2 flex-wrap"><button class="btn fp-btn-ghost fp-btn-sm" onclick="exportData()"><i class="bi bi-download me-1"></i>Exportar</button><button class="btn fp-btn-ghost fp-btn-sm" onclick="document.getElementById('importFile').click()"><i class="bi bi-upload me-1"></i>Importar</button></div></div></div>
+          <div class="fp-card mt-3"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-google"></i> Cuenta Google</div></div><div class="fp-card-body"><div class="d-flex gap-2 flex-wrap"><button class="btn fp-btn-outline fp-btn-sm" onclick="switchGoogleAccount()"><i class="bi bi-arrow-repeat me-1"></i>Cambiar cuenta</button><button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</button></div></div></div>
           
           <!-- PANEL ADMINISTRADOR (WHITELIST) -->
           <div class="fp-card mt-3 d-none" id="adminWhitelistPanel">
@@ -6067,12 +6068,20 @@ lsSet = function(k, d) {
   saveToFirestore();
 };
 
-function loginWithGoogle() {
+function loginWithGoogle(forceSelectAccount) {
   if (typeof firebase === 'undefined' || !firebase.auth) {
     showToast("Error: Firebase no cargado. Revisa tu conexión.", "danger");
     return;
   }
   var provider = new firebase.auth.GoogleAuthProvider();
+  
+  // Si forceSelectAccount es true, forzamos a seleccionar cuenta
+  if (forceSelectAccount) {
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+  }
+  
   showToast("Abriendo ventana de Google...", "info");
   firebase.auth().signInWithPopup(provider)
     .then(function(result) {
@@ -6081,12 +6090,26 @@ function loginWithGoogle() {
     .catch(function(e) {
       console.error("Error en login:", e);
       if (e.code === 'auth/popup-blocked') {
-        // Intentar redirect como fallback
         firebase.auth().signInWithRedirect(provider);
+      } else if (e.code === 'auth/account-exists-with-different-credential') {
+        showToast("Esta cuenta ya está vinculada con otro método. Intenta cerrar sesión primero.", "warning");
       } else {
         showToast("Error: " + e.message, "danger");
       }
     });
+}
+
+function switchGoogleAccount() {
+  if (typeof firebase === 'undefined' || !firebase.auth) {
+    showToast("Error: Firebase no cargado.", "danger");
+    return;
+  }
+  // Cerrar sesión actual y forzar selección de cuenta
+  firebase.auth().signOut().then(function() {
+    loginWithGoogle(true);
+  }).catch(function(e) {
+    showToast("Error al cerrar sesión: " + e.message, "danger");
+  });
 }
 
 function loginGuest() {
