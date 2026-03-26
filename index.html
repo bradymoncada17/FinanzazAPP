@@ -5814,11 +5814,23 @@ function getAuthWhitelist() {
 }
 
 async function getAuthWhitelistAsync() {
-  var firestoreList = await fetchWhitelistFromFirestore();
-  if (firestoreList && firestoreList.length > 0) {
-    _cachedWhitelist = firestoreList;
-    localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(firestoreList));
-    return firestoreList;
+  try {
+    // Timeout de 5 segundos para obtener de Firestore
+    var firestoreList = await Promise.race([
+      fetchWhitelistFromFirestore(),
+      new Promise(function(_, reject) {
+        setTimeout(function() {
+          reject(new Error('Timeout whitelist'));
+        }, 5000);
+      })
+    ]);
+    if (firestoreList && firestoreList.length > 0) {
+      _cachedWhitelist = firestoreList;
+      localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(firestoreList));
+      return firestoreList;
+    }
+  } catch (e) {
+    console.warn('[Whitelist] Timeout o error, usando local:', e.message);
   }
   return getAuthWhitelist();
 }
@@ -6250,6 +6262,10 @@ function setupAuthObserver() {
     firebase.auth().getRedirectResult().then(function(result) {
       if (result && result.user) {
         console.log('[Auth] Login via redirect exitoso:', result.user.email);
+        // En PWA, recargar la página para asegurar que todo cargue bien
+        if (isPWA()) {
+          location.reload();
+        }
       }
     }).catch(function(e) {
       if (e.code !== 'auth/no-auth-event' && e.code !== 'auth/user-not-found') {
@@ -6265,12 +6281,22 @@ function setupAuthObserver() {
           return;
         }
         var userEmail = (user.email || "").toLowerCase();
+        console.log('[Auth] Usuario autenticado:', userEmail);
         
         // Intentar obtener whitelist desde Firestore primero
-        var currentWhitelist = await getAuthWhitelistAsync();
+        var currentWhitelist;
+        try {
+          currentWhitelist = await getAuthWhitelistAsync();
+        } catch (e) {
+          console.warn('[Auth] Error obteniendo whitelist, usando local:', e);
+          currentWhitelist = getAuthWhitelist();
+        }
+        
         var isAuthorized = currentWhitelist.some(function(email) {
           return email.toLowerCase() === userEmail;
         });
+        
+        console.log('[Auth] Whitelist:', currentWhitelist, 'Autorizado:', isAuthorized);
 
         if (isAuthorized) {
           localStorage.setItem('fp_user_mode', 'auth');
