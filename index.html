@@ -6103,15 +6103,18 @@ function isPWA() {
 
 function loginWithGoogle(forceSelectAccount) {
   if (typeof firebase === 'undefined' || !firebase.auth) {
-    showToast("Error: Firebase no cargado. Revisa tu conexión.", "danger");
+    alert("ERROR: Firebase no está cargado. Recarga la página.");
     return;
   }
   var provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   
-  // Usar redirect que funciona mejor en todos los casos
-  showToast("Redirigiendo a Google...", "info");
-  firebase.auth().signInWithRedirect(provider);
+  alert("Vamos a Google...");
+  firebase.auth().signInWithRedirect(provider).then(function() {
+    alert("Redirección iniciada");
+  }).catch(function(error) {
+    alert("Error: " + error.message);
+  });
 }
 
 function switchGoogleAccount() {
@@ -6253,7 +6256,7 @@ function setupAuthObserver() {
   if (typeof firebase !== 'undefined' && firebase.auth) {
     // Escuchar cambios de estado de autenticación
     firebase.auth().onAuthStateChanged(async function(user) {
-      console.log('[Auth] Estado cambiado, usuario:', user ? user.email : 'null');
+      alert('Cambio de estado! Usuario: ' + (user ? user.email : 'null'));
       
       if (user) {
         if (checkIdleSessionExpired()) {
