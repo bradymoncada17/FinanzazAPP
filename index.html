@@ -746,7 +746,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 </head>
 <body class="is-loading">
 
-<!-- PANTALLA DE LOGIN -->
+<!-- PANTALLA DE LOGIN (siempre visible inicialmente) -->
+<div id="view-login" style="display:block">
 <div id="view-login">
   <div class="login-box">
     <div class="login-logo"><i class="bi bi-wallet2"></i></div>
@@ -6211,12 +6212,27 @@ function logout() {
 }
 
 function initAppSession(user) {
-  document.getElementById('view-login').classList.add('d-none');
-  document.getElementById('mainNav').classList.remove('d-none');
-  document.getElementById('fpLayout').classList.remove('d-none');
-  if (window.innerWidth <= 768) document.getElementById('saldoBarMobile').classList.remove('d-none');
+  console.log('[initAppSession] Ejecutando, user:', user ? user.email : 'null');
+  var loginEl = document.getElementById('view-login');
+  if (loginEl) {
+    loginEl.style.display = 'none';
+    loginEl.classList.add('d-none');
+  }
+  var navEl = document.getElementById('mainNav');
+  if (navEl) {
+    navEl.classList.remove('d-none');
+  }
+  var layoutEl = document.getElementById('fpLayout');
+  if (layoutEl) {
+    layoutEl.classList.remove('d-none');
+  }
+  if (window.innerWidth <= 768) {
+    var sbEl = document.getElementById('saldoBarMobile');
+    if (sbEl) sbEl.classList.remove('d-none');
+  }
   adjustMobileLayout();
   document.body.classList.remove('is-loading');
+  console.log('[initAppSession] Completado');
   
   var mode = localStorage.getItem('fp_user_mode');
   var userProfile = document.getElementById('userProfileNav');
@@ -6323,6 +6339,7 @@ function setupAuthObserver() {
         console.log('[Auth] Whitelist:', currentWhitelist, 'Autorizado:', isAuthorized);
 
         if (isAuthorized) {
+          alert('¡Login exitoso! Email: ' + userEmail + '. Iniciando app...');
           localStorage.setItem('fp_user_mode', 'auth');
           localStorage.setItem('fp_user_uid', user.uid);
           if (userEmail === AUTH_ADMIN.toLowerCase()) {
@@ -6333,6 +6350,8 @@ function setupAuthObserver() {
             unsubscribeFromWhitelist();
           }
           touchSessionActivity();
+          
+          //Siempre entrar a la app
           initAppSession(user);
         } else {
           showToast("Acceso denegado: " + userEmail + " no está autorizado.", "danger");
@@ -6344,19 +6363,27 @@ function setupAuthObserver() {
           document.body.classList.remove('is-loading');
         }
       } else {
-        // Si estamos esperando un redirect, no mostrar login todavía
-        if (_waitingForRedirect) {
-          console.log('[Auth] Esperando redirect...');
-          return;
+        // Si hay un usuario en localStorage, verificar si es válido
+        var savedMode = localStorage.getItem('fp_user_mode');
+        var savedUid = localStorage.getItem('fp_user_uid');
+        
+        // Si tenemos sesión guardada y es auth, mantenerla
+        if (savedMode === 'auth' && savedUid) {
+          console.log('[Auth] Sesión guardada pero sin usuario firebase, recargando...');
+          // Intentar recargar
+          return; 
         }
-        if (localStorage.getItem('fp_user_mode') === 'guest' && localStorage.getItem('fp_user_uid') === 'local_guest') {
-          initAppSession(null);
-          return;
-        }
+        
+        // Mostrar login
+        console.log('[Auth] Mostrando login');
         localStorage.removeItem('fp_user_mode');
         localStorage.removeItem('fp_user_uid');
         localStorage.removeItem('fp_user_role');
-        document.getElementById('view-login').classList.remove('d-none');
+        var loginEl = document.getElementById('view-login');
+        if (loginEl) {
+          loginEl.style.display = 'block';
+          loginEl.classList.remove('d-none');
+        }
         document.body.classList.remove('is-loading');
       }
     });
