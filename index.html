@@ -4600,129 +4600,44 @@ function calcTcDisponible(){
   if(prev){prev.textContent=fmt(disp);prev.style.color='var(--fp-success)';}
 }
 
-// Calcular pago mínimo por ciclos de corte
-// El pago mínimo es lo gastado en el ciclo anterior que ya pasó su fecha de pago
+// Calcular pago mínimo de tarjeta de crédito
+// Simple: obtener las transacciones del período de facturación actual
 function calcularPagoMinimoPorCorte(tc, now, fechaPagoProx) {
   if (!tc.diaCorte || !tc.diaPago || tc.diaCorte === 0) {
-    var usado = calcTcUsado(tc);
-    return usado; // Sin fecha de corte, pagar todo lo usado
+    return calcTcUsado(tc);
   }
   
   var diaCorte = tc.diaCorte;
-  var diaPago = tc.diaPago;
-  var diaActual = now.getDate();
   var txs = lsGet(KEYS.TX);
   
-  // Determinar el último corte completado
-  // Si hoy es 15-16 de marzo y diaCorte = 13, el último corte fue 13 de febrero (hace un mes)
+  // Obtener la fecha del último corte que ya pasó
   var ultimoCorte = new Date(now.getFullYear(), now.getMonth(), diaCorte);
-  if (diaActual < diaCorte) {
+  if (now.getDate() < diaCorte) {
+    // Si hoy es antes del día de corte, el último corte fue el mes pasado
     ultimoCorte.setMonth(ultimoCorte.getMonth() - 1);
   }
   
-  // fechaCorteAnterior es el corte del mes pasado (hace 2 meses)
-  // Solo la usamos si estamos en los primeros días del mes y el corte aún no ha pasado
-  var fechaCorteAnterior = new Date(ultimoCorte);
-  fechaCorteAnterior.setMonth(fechaCorteAnterior.getMonth() - 1);
+  // Calcular total de compras y pagos desde el último corte
+  var gastoPeriodo = 0;
+  var pagosPeriodo = 0;
   
-  // Calcular gasto desde el último corte completado hasta ahora (ciclo actual)
-  var gastoDesdeUltimoCorte = 0;
   txs.forEach(function(tx) {
-    if (tx.type === 'expense' && tx.sourceTarjetaId === tc.id) {
-      var txDate = new Date(tx.date + 'T12:00:00');
-      if (txDate > ultimoCorte) {
-        gastoDesdeUltimoCorte += tx.amount;
+    var txDate = new Date(tx.date + 'T12:00:00');
+    // Solo contar transacciones desde el último corte
+    if (txDate >= ultimoCorte) {
+      if (tx.type === 'expense' && tx.sourceTarjetaId === tc.id) {
+        gastoPeriodo += tx.amount;
+      }
+      if ((tx.origin === 'tarjeta_pago' || tx.origin === 'tarjeta_pago_egreso') && tx.tarjetaId === tc.id) {
+        pagosPeriodo += tx.amount;
       }
     }
   });
   
-  // Calcular pagos realizados en el ciclo actual (desde el último corte hasta ahora)
-  var pagosCicloActual = 0;
-  txs.forEach(function(tx) {
-    if ((tx.origin === 'tarjeta_pago' || tx.origin === 'tarjeta_pago_egreso') && tx.tarjetaId === tc.id) {
-      var txDate = new Date(tx.date + 'T12:00:00');
-      if (txDate > ultimoCorte) {
-        pagosCicloActual += tx.amount;
-      }
-    }
-  });
+  // El pago mínimo es lo que debes del período actual
+  var saldoPendiente = gastoPeriodo - pagosPeriodo;
   
-  // Calcular gasto desde el corte anterior hasta el último corte (ciclo anterior)
-  var gastoCicloAnterior = 0;
-  txs.forEach(function(tx) {
-    if (tx.type === 'expense' && tx.sourceTarjetaId === tc.id) {
-      var txDate = new Date(tx.date + 'T12:00:00');
-      if (txDate > fechaCorteAnterior && txDate <= ultimoCorte) {
-        gastoCicloAnterior += tx.amount;
-      }
-    }
-  });
-  
-  // Calcular pagos del ciclo anterior (desde fechaCorteAnterior hasta ultimoCorte)
-  var pagosCicloAnterior = 0;
-  txs.forEach(function(tx) {
-    if ((tx.origin === 'tarjeta_pago' || tx.origin === 'tarjeta_pago_egreso') && tx.tarjetaId === tc.id) {
-      var txDate = new Date(tx.date + 'T12:00:00');
-      if (txDate > fechaCorteAnterior && txDate <= ultimoCorte) {
-        pagosCicloAnterior += tx.amount;
-      }
-    }
-  });
-  
-  var pagoMinimo = 0;
-  
-  // Determinar fecha de pago del ciclo anterior
-  var fechaPagoCicloAnterior;
-  if (diaPago > diaCorte) {
-    fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth() + 1, diaPago);
-  } else {
-    fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth(), diaPago);
-    if (fechaPagoCicloAnterior <= ultimoCorte) {
-      fechaPagoCicloAnterior.setMonth(fechaPagoCicloAnterior.getMonth() + 1);
-    }
-  }
-  
-  var yaPasoFechaPago = now > fechaPagoCicloAnterior;
-  
-  // El pago mínimo es el total gastado en el ciclo actual (período de facturación)
-  // Si ya pasó la fecha de pago del ciclo anterior, debe pagar lo del ciclo anterior
-  // Si ya pagaron el ciclo anterior, el pago mínimo es 0
-  
-  if (yaPasoFechaPago && gastoCicloAnterior > 0) {
-    // Ya pasó la fecha de pago del ciclo anterior
-    var saldoCicloAnterior = gastoCicloAnterior - pagosCicloAnterior;
-    if (saldoCicloAnterior <= 0) {
-      // Ya pagó todo lo del ciclo anterior, verificar si hay gasto del ciclo actual
-      pagoMinimo = gastoDesdeUltimoCorte - pagosCicloActual;
-    } else {
-      // Debe pagar lo que falta del ciclo anterior
-      pagoMinimo = saldoCicloAnterior;
-    }
-  } else if (gastoCicloAnterior > 0) {
-    // Está en período de gracia del ciclo anterior
-    var saldoCicloAnterior = gastoCicloAnterior - pagosCicloAnterior;
-    if (saldoCicloAnterior <= 0) {
-      // Ya pagó todo lo del ciclo anterior
-      pagoMinimo = 0;
-    } else {
-      // Debe pagar el total del ciclo anterior (período de gracia = pagar todo)
-      pagoMinimo = saldoCicloAnterior;
-    }
-  } else if (gastoDesdeUltimoCorte > 0 && diaActual < diaCorte) {
-    // Está en el período entre el corte y ahora (aún no ha pasado la fecha de corte)
-    // El gasto desde el último corte es lo que se facturará en este ciclo - TOTAL
-    var saldoCicloActual = gastoDesdeUltimoCorte - pagosCicloActual;
-    pagoMinimo = Math.max(0, saldoCicloActual);
-  } else if (gastoDesdeUltimoCorte > 0) {
-    // Ya pasó el corte, el gasto del ciclo actual es el pago mínimo
-    var saldoCicloActual = gastoDesdeUltimoCorte - pagosCicloActual;
-    pagoMinimo = Math.max(0, saldoCicloActual);
-  } else {
-    // No hay gasto, pago mínimo es 0
-    pagoMinimo = 0;
-  }
-  
-  return pagoMinimo;
+  return Math.max(0, saldoPendiente);
 }
 
 function renderTarjetas(){
