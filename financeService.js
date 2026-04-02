@@ -324,7 +324,7 @@ const FinanceService = (() => {
     currentMonthTotals() {
       const now = new Date();
       const txs = this.getByMonth(now.getFullYear(), now.getMonth());
-      const income = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+      const income = txs.filter(t => t.type === 'income' && t.origin !== 'tarjeta_pago').reduce((s, t) => s + t.amount, 0);
       const expense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
       return { income, expense, net: income - expense };
     },

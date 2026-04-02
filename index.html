@@ -2527,7 +2527,7 @@ function renderDashboard(){
     var d=new Date(t.date + 'T12:00:00');
     return d.getFullYear()===FilterMonth.year&&d.getMonth()===FilterMonth.month;
   });
-  var income=month.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);
+  var income=month.filter(function(t){return t.type==='income'&&t.origin!=='tarjeta_pago';}).reduce(function(s,t){return s+t.amount;},0);
   var expense=month.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
   var s=calcSaldos();
   animVal('kpiIngresos',income);animVal('kpiEgresos',expense);animVal('kpiAhorros',s.totalSav);animVal('kpiSaldoLibre',s.saldoLibre);
@@ -2558,7 +2558,7 @@ function renderLineChart(){
   var ctx=document.getElementById('chartLine');if(!ctx)return;
   if(window._dashLine){window._dashLine.destroy();window._dashLine=null;}
   var txs=lsGet(KEYS.TX),now=new Date(),data=[];
-  for(var i=5;i>=0;i--){var d=new Date(now.getFullYear(),now.getMonth()-i,1);var m=txs.filter(function(t){var td=new Date(t.date);return td.getFullYear()===d.getFullYear()&&td.getMonth()===d.getMonth();});data.push({label:d.toLocaleString('es-CO',{month:'short',year:'2-digit'}),income:m.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0),expense:m.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0)});}
+  for(var i=5;i>=0;i--){var d=new Date(now.getFullYear(),now.getMonth()-i,1);var m=txs.filter(function(t){var td=new Date(t.date);return td.getFullYear()===d.getFullYear()&&td.getMonth()===d.getMonth();});data.push({label:d.toLocaleString('es-CO',{month:'short',year:'2-digit'}),income:m.filter(function(t){return t.type==='income'&&t.origin!=='tarjeta_pago';}).reduce(function(s,t){return s+t.amount;},0),expense:m.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0)});}
   window._dashLine=new Chart(ctx,{type:'line',data:{labels:data.map(function(d){return d.label;}),datasets:[{label:'Ingresos',data:data.map(function(d){return d.income;}),borderColor:'#059669',backgroundColor:'rgba(5,150,105,.07)',tension:.4,fill:true,borderWidth:2,pointBackgroundColor:'#059669',pointRadius:3,pointHoverRadius:6},{label:'Egresos',data:data.map(function(d){return d.expense;}),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.06)',tension:.4,fill:true,borderWidth:2,pointBackgroundColor:'#dc2626',pointRadius:3,pointHoverRadius:6}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:700},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:12,font:{family:"'Plus Jakarta Sans',sans-serif",size:11}}},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fmt(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{callback:function(v){return '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'k');},font:{size:10}}}}}});
 }
 function renderDashDebts(){
@@ -2611,7 +2611,7 @@ function renderTransactions(){
   }
   renderTxDistChart(s);
   var type=(document.getElementById('filterTxType')||{}).value||'';var cat=(document.getElementById('filterTxCat')||{}).value||'';var from=(document.getElementById('filterFrom')||{}).value||'';var to=(document.getElementById('filterTo')||{}).value||'';
-  var all=lsGet(KEYS.TX).filter(function(t){if(type&&t.type!==type)return false;if(cat&&t.category!==cat)return false;if(from&&t.date<from)return false;if(to&&t.date>to)return false;return true;}).sort(function(a,b){return b.date.localeCompare(a.date);});
+  var all=lsGet(KEYS.TX).filter(function(t){if(type&&t.type!==type)return false;if(cat&&t.category!==cat)return false;if(from&&t.date<from)return false;if(to&&t.date>to)return false;if(t.origin==='tarjeta_pago')return false;return true;}).sort(function(a,b){return b.date.localeCompare(a.date);});
   State.txFiltered=all;
   var total=all.length,pages=Math.max(1,Math.ceil(total/State.txPageSize));if(State.txPage>pages)State.txPage=1;
   var start=(State.txPage-1)*State.txPageSize,slice=all.slice(start,start+State.txPageSize);
