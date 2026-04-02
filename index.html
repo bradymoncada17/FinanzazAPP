@@ -4602,56 +4602,43 @@ function calcTcDisponible(){
 // El pago mínimo es lo gastado en el ciclo anterior que ya pasó su fecha de pago
 function calcularPagoMinimoPorCorte(tc, now, fechaPagoProx) {
   if (!tc.diaCorte || !tc.diaPago || tc.diaCorte === 0) {
-    // Si no tiene fechas de corte, usar lógica simple (10% del actual)
     return Math.round(calcTcUsado(tc) * 0.1);
   }
   
   var diaCorte = tc.diaCorte;
   var diaPago = tc.diaPago;
+  var diaActual = now.getDate();
   var txs = lsGet(KEYS.TX);
   
-  // Obtener el ciclo actual y el ciclo anterior correctamente
-  // Ciclo actual: desde el último corte hasta el próximo corte
-  // Ciclo anterior: desde (último corte - 1 mes) hasta el último corte
-  
   // Determinar el último corte completado
-  var mesActual = now.getMonth();
-  var anoActual = now.getFullYear();
-  var diaActual = now.getDate();
-  
-  // Último corte completado
-  var ultimoCorte = new Date(anoActual, mesActual, diaCorte);
+  // Si hoy es 15-16 de marzo y diaCorte = 13, el último corte fue 13 de febrero (hace un mes)
+  var ultimoCorte = new Date(now.getFullYear(), now.getMonth(), diaCorte);
   if (diaActual < diaCorte) {
     ultimoCorte.setMonth(ultimoCorte.getMonth() - 1);
   }
   
-  // Determinar fecha de pago del ciclo anterior
-  // Si diaPago > diaCorte, la fecha de pago del ciclo anterior fue el mes pasado
-  // Si diaPago <= diaCorte, la fecha de pago del ciclo anterior fue este mes
-  var fechaPagoCicloAnterior;
-  if (diaPago > diaCorte) {
-    // Ejemplo: corte 13, pago 4 -> pago es el 4 del mes SIGUIENTE al corte
-    // Si el último corte fue 13 marzo, el pago fue 4 abril
-    fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth() + 1, diaPago);
-  } else {
-    // Ejemplo: corte 20, pago 15 -> pago es el 15 del MISMO mes del corte
-    // Si el último corte fue 20 marzo, el pago fue 15 abril
-    fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth(), diaPago);
-    if (fechaPagoCicloAnterior <= ultimoCorte) {
-      fechaPagoCicloAnterior.setMonth(fechaPagoCicloAnterior.getMonth() + 1);
+  // fechaCorteAnterior es el corte del mes pasado (hace 2 meses)
+  // Solo la usamos si estamos en los primeros días del mes y el corte aún no ha pasado
+  var fechaCorteAnterior = new Date(ultimoCorte);
+  fechaCorteAnterior.setMonth(fechaCorteAnterior.getMonth() - 1);
+  
+  // Calcular gasto desde el último corte completado hasta ahora (ciclo actual)
+  var gastoDesdeUltimoCorte = 0;
+  txs.forEach(function(tx) {
+    if (tx.type === 'expense' && tx.sourceTarjetaId === tc.id) {
+      var txDate = new Date(tx.date + 'T12:00:00');
+      if (txDate > ultimoCorte) {
+        gastoDesdeUltimoCorte += tx.amount;
+      }
     }
-  }
+  });
   
-  // Calcular gasto del ciclo anterior (entre hace 2 meses y el último corte)
-  var cicloAnteriorInicio = new Date(ultimoCorte);
-  cicloAnteriorInicio.setMonth(cicloAnteriorInicio.getMonth() - 1);
-  var cicloAnteriorFin = new Date(ultimoCorte);
-  
+  // Calcular gasto desde el corte anterior hasta el último corte (ciclo anterior)
   var gastoCicloAnterior = 0;
   txs.forEach(function(tx) {
     if (tx.type === 'expense' && tx.sourceTarjetaId === tc.id) {
       var txDate = new Date(tx.date + 'T12:00:00');
-      if (txDate >= cicloAnteriorInicio && txDate < cicloAnteriorFin) {
+      if (txDate > fechaCorteAnterior && txDate <= ultimoCorte) {
         gastoCicloAnterior += tx.amount;
       }
     }
@@ -4659,15 +4646,29 @@ function calcularPagoMinimoPorCorte(tc, now, fechaPagoProx) {
   
   var pagoMinimo = 0;
   
-  // Verificar si ya pasó la fecha de pago del ciclo anterior
+  // Determinar fecha de pago del ciclo anterior
+  var fechaPagoCicloAnterior;
+  if (diaPago > diaCorte) {
+    fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth() + 1, diaPago);
+  } else {
+    fechaPagoCicloAnterior = new Date(ultimoCorte.getFullYear(), ultimoCorte.getMonth(), diaPago);
+    if (fechaPagoCicloAnterior <= ultimoCorte) {
+      fechaPagoCicloAnterior.setMonth(fechaPagoCicloAnterior.getMonth() + 1);
+    }
+  }
+  
   var yaPasoFechaPago = now > fechaPagoCicloAnterior;
   
   if (yaPasoFechaPago && gastoCicloAnterior > 0) {
-    // Ya pasó la fecha de pago - debe pagar TODO lo del ciclo anterior
+    // Ya pasó la fecha de pago del ciclo anterior - debe pagar TODO lo del ciclo anterior
     pagoMinimo = gastoCicloAnterior;
   } else if (gastoCicloAnterior > 0) {
-    // Está en período de gracia - paga 10% del ciclo anterior
+    // Está en período de gracia del ciclo anterior - paga 10% del ciclo anterior
     pagoMinimo = Math.round(gastoCicloAnterior * 0.1);
+  } else if (gastoDesdeUltimoCorte > 0 && diaActual < diaCorte) {
+    // Está en el período entre el corte y ahora (aún no ha pasado la fecha de corte)
+    // El gasto desde el último corte es lo que se facturará en este ciclo
+    pagoMinimo = 0; // No hay pago mínimo hasta que pase el corte
   } else {
     // No hay gasto del ciclo anterior, aplicar 10% del total actual
     pagoMinimo = Math.round(calcTcUsado(tc) * 0.1);
@@ -4804,6 +4805,156 @@ function renderTarjetas(){
   }).join('');
 }
 
+// Función para ver plan de pagos de la tarjeta de crédito
+function verPlanPagosTc(id) {
+  var tc = getTarjetas().find(function(t) { return t.id === id; });
+  if (!tc) {
+    showToast('Tarjeta no encontrada', 'danger');
+    return;
+  }
+  
+  var txs = lsGet(KEYS.TX);
+  var comprasCuotas = txs.filter(function(t) {
+    return t.sourceTarjetaId === tc.id && t.planCuotas && t.planCuotas.length > 0;
+  });
+  
+  var usado = calcTcUsado(tc);
+  var now = new Date();
+  
+  // Calcular fechas de corte y pago
+  var fechaCorteActual = null;
+  var fechaCorteProx = null;
+  var fechaPagoProx = null;
+  var diasParaCorte = 0;
+  var diasParaPago = 0;
+  
+  if (tc.diaCorte) {
+    fechaCorteProx = new Date(now.getFullYear(), now.getMonth(), tc.diaCorte);
+    if (fechaCorteProx <= now) {
+      fechaCorteActual = new Date(now.getFullYear(), now.getMonth() - 1, tc.diaCorte);
+      fechaCorteProx = new Date(now.getFullYear(), now.getMonth() + 1, tc.diaCorte);
+    } else {
+      fechaCorteActual = new Date(now.getFullYear(), now.getMonth() - 1, tc.diaCorte);
+    }
+    diasParaCorte = Math.ceil((fechaCorteProx - now) / (1000 * 60 * 60 * 24));
+  }
+  
+  if (tc.diaPago) {
+    fechaPagoProx = new Date(now.getFullYear(), now.getMonth(), tc.diaPago);
+    if (fechaPagoProx <= now || (fechaCorteProx && fechaCorteProx < now)) {
+      fechaPagoProx = new Date(now.getFullYear(), now.getMonth() + 1, tc.diaPago);
+    }
+    diasParaPago = Math.ceil((fechaPagoProx - now) / (1000 * 60 * 60 * 24));
+  }
+  
+  // Calcular gasto hasta la fecha de corte (para pago mínimo)
+  var gastoHastaCorte = 0;
+  if (fechaCorteActual) {
+    txs.forEach(function(tx) {
+      if (tx.type === 'expense' && tx.sourceTarjetaId === tc.id) {
+        var txDate = new Date(tx.date + 'T12:00:00');
+        if (txDate <= fechaCorteActual) {
+          gastoHastaCorte += tx.amount;
+        }
+      }
+    });
+  }
+  
+  // Calcular gasto después del corte
+  var gastoDespuesCorte = 0;
+  if (fechaCorteActual) {
+    txs.forEach(function(tx) {
+      if (tx.type === 'expense' && tx.sourceTarjetaId === tc.id) {
+        var txDate = new Date(tx.date + 'T12:00:00');
+        if (txDate > fechaCorteActual) {
+          gastoDespuesCorte += tx.amount;
+        }
+      }
+    });
+  }
+  
+  var html = '<div class="debt-detail-overlay" id="planPagosTcOverlay" onclick="if(event.target===this)document.getElementById(\'planPagosTcOverlay\').remove()">'
+    + '<div class="debt-detail-box" style="max-width:800px;max-height:90vh;display:flex;flex-direction:column">'
+      + '<div class="debt-detail-header">'
+        + '<div class="d-flex justify-content-between align-items-start">'
+          + '<div><h3 style="font-size:18px;font-weight:800;color:#fff;margin:0"><i class="bi bi-calendar-range me-2"></i>Plan de Pagos</h3><div style="font-size:12px;color:rgba(255,255,255,0.6)">' + esc(tc.nombre) + '</div></div>'
+          + '<button onclick="document.getElementById(\'planPagosTcOverlay\').remove()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:32px;height:32px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="bi bi-x-lg"></i></button>'
+        + '</div>'
+      + '</div>'
+      + '<div class="debt-detail-body" style="overflow-y:auto;flex:1;padding-bottom:10px">';
+  
+  // Resumen de gastos
+  html += '<div style="background:rgba(59,130,246,.1);border-radius:10px;padding:12px;margin-bottom:12px">'
+    + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(59,130,246,.8);margin-bottom:8px"><i class="bi bi-calendar-event me-1"></i>Ciclo de Facturación</div>'
+    + '<div class="row g-2">'
+      + '<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Corte</div><div style="font-size:13px;font-weight:700">' + (fechaCorteActual ? fmtDate(fechaCorteActual.toISOString().split('T')[0]) : '—') + '</div></div>'
+      + '<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Próximo corte</div><div style="font-size:13px;font-weight:700">' + (fechaCorteProx ? fmtDate(fechaCorteProx.toISOString().split('T')[0]) : '—') + ' (' + diasParaCorte + ' días)</div></div>'
+    + '</div>'
+  + '</div>';
+  
+  // Gastos separados por período
+  html += '<div style="background:rgba(239,68,68,.1);border-radius:10px;padding:12px;margin-bottom:12px">'
+    + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-danger);margin-bottom:8px"><i class="bi bi-receipt me-1"></i>Gastos por Período</div>'
+    + '<div class="row g-2">'
+      + '<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Hasta corte (' + (fechaCorteActual ? fmtDate(fechaCorteActual.toISOString().split('T')[0]) : '—') + ')</div><div style="font-size:16px;font-weight:800;color:var(--fp-danger)">' + fmt(gastoHastaCorte) + '</div></div>'
+      + '<div class="col-6"><div style="font-size:10px;color:var(--fp-text2)">Después del corte</div><div style="font-size:16px;font-weight:800;color:var(--fp-primary)">' + fmt(gastoDespuesCorte) + '</div></div>'
+    + '</div>'
+  + '</div>';
+  
+  // Opciones de pago
+  var pagoMin = gastoHastaCorte > 0 ? gastoHastaCorte : Math.round(usado * 0.1);
+  html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:8px"><i class="bi bi-wallet2 me-1"></i>Opciones de Pago</div>'
+    + '<div class="row g-2 mb-3">'
+      + '<div class="col-md-4"><div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px;text-align:center">'
+        + '<div style="font-size:10px;color:var(--fp-danger);font-weight:600;margin-bottom:4px">PAGO MÍNIMO</div>'
+        + '<div style="font-size:18px;font-weight:800;color:var(--fp-danger);font-family:JetBrains Mono,monospace">' + fmt(pagoMin) + '</div>'
+        + '<div style="font-size:9px;color:var(--fp-text2);margin-top:4px">Lo facturado hasta el corte</div>'
+      + '</div></div>'
+      + '<div class="col-md-4"><div style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:10px;text-align:center">'
+        + '<div style="font-size:10px;color:var(--fp-orange);font-weight:600;margin-bottom:4px">PAGO PARCIAL</div>'
+        + '<div style="font-size:18px;font-weight:800;color:var(--fp-orange);font-family:JetBrains Mono,monospace">' + fmt(gastoHastaCorte + gastoDespuesCorte) + '</div>'
+        + '<div style="font-size:9px;color:var(--fp-text2);margin-top:4px">Total usado actual</div>'
+      + '</div></div>'
+      + '<div class="col-md-4"><div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:10px;text-align:center">'
+        + '<div style="font-size:10px;color:var(--fp-success);font-weight:600;margin-bottom:4px">PAGO TOTAL</div>'
+        + '<div style="font-size:18px;font-weight:800;color:var(--fp-success);font-family:JetBrains Mono,monospace">' + fmt(usado) + '</div>'
+        + '<div style="font-size:9px;color:var(--fp-success);margin-top:4px">¡Sin intereses!</div>'
+      + '</div></div>'
+    + '</div>';
+  
+  // Compras a cuotas
+  if (comprasCuotas.length > 0) {
+    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:8px"><i class="bi bi-calendar-range me-1"></i>Compras a Cuotas (' + comprasCuotas.length + ')</div>';
+    comprasCuotas.forEach(function(tx) {
+      var pendientes = tx.planCuotas.filter(function(c) { return !c.pagada; });
+      var totalPagado = tx.planCuotas.filter(function(c) { return c.pagada; }).length;
+      html += '<div style="background:var(--fp-surface2);border-radius:8px;padding:10px;margin-bottom:8px">'
+        + '<div class="d-flex justify-content-between align-items-start">'
+        + '<div><div style="font-size:12px;font-weight:600">' + esc(tx.description) + '</div>'
+        + '<div style="font-size:11px;color:var(--fp-text2)">' + fmt(tx.amount) + ' · ' + tx.planCuotas.length + ' cuotas de ' + fmt(tx.cuotaMonto) + '</div></div>'
+        + '<div class="text-end"><div style="font-size:12px;font-weight:700;color:var(--fp-primary)">' + totalPagado + '/' + tx.planCuotas.length + '</div>'
+        + '<div style="font-size:10px;color:var(--fp-text3)">pagadas</div></div></div>'
+        + '</div>';
+    });
+  } else {
+    html += '<div style="background:var(--fp-surface2);border-radius:8px;padding:12px;text-align:center;color:var(--fp-text2);font-size:12px;margin-bottom:12px">'
+      + '<i class="bi bi-info-circle me-1"></i>No hay compras a cuotas'
+    + '</div>';
+  }
+  
+  // Botón registrar pago
+  html += '<div class="d-flex gap-2 mt-3">'
+    + '<button class="btn fp-btn-primary flex-fill" onclick="document.getElementById(\'planPagosTcOverlay\').remove();openTcPagoModal(\'' + esc(tc.id) + '\')"><i class="bi bi-cash-coin me-1"></i>Registrar Pago</button>'
+    + '<button class="btn fp-btn-ghost" onclick="document.getElementById(\'planPagosTcOverlay\').remove()"><i class="bi bi-x me-1"></i>Cerrar</button>'
+  + '</div>';
+  
+  html += '</div></div></div>';
+  
+  var ex = document.getElementById('planPagosTcOverlay');
+  if (ex) ex.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
 // Función para obtener HTML de compras a cuotas
 function getCuotasTarjetaHtml(tc) {
   var txs = lsGet(KEYS.TX);
@@ -4928,6 +5079,9 @@ function verTcDetail(id){
             +'<div class="text-end"><div style="font-size:11px;color:var(--fp-text2)">Monto recomendado</div><div style="font-size:18px;font-weight:800;color:var(--fp-success)">'+fmt(pagoTotal)+'</div></div>'
           +'</div>'
         +'</div>':'')
+
+        // Botón Plan de Pagos
+        +'<button class="btn fp-btn-outline w-100 mb-3" onclick="verPlanPagosTc(\''+esc(tc.id)+'\')" style="border-color:var(--fp-primary);color:var(--fp-primary)"><i class="bi bi-calendar-range me-2"></i>Ver Plan de Pagos</button>'
         
         // Compras a cuotas
         +getCuotasTarjetaHtml(tc)
