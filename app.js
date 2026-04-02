@@ -663,6 +663,9 @@ function renderDebts() {
             <button class="btn fp-btn-primary flex-fill" onclick="openPaymentModal('${d.id}')">
               <i class="bi bi-cash-coin me-1"></i> Registrar Abono
             </button>
+            <button class="btn fp-btn-ghost" onclick="openDebtDetail('${d.id}')" title="Ver movimientos">
+              <i class="bi bi-clock-history"></i>
+            </button>
           </div>
         </div>
       </div>

@@ -407,6 +407,56 @@ const FinanceService = (() => {
         totalRemaining: active.reduce((s, d) => s + d.remainingBalance, 0),
         count: active.length
       };
+    },
+    calculatePayment(debtId, amount) {
+      const debt = this.getAll().find(d => d.id === debtId);
+      if (!debt) throw new Error('Deuda no encontrada');
+
+      const balance = debt.remainingBalance || 0;
+      const rate = (debt.interestRate || 0) / 100;
+      const interestAmount = Math.round(balance * rate);
+      const capitalAmount = Math.max(0, amount - interestAmount);
+      const newBalance = Math.max(0, balance - capitalAmount);
+      const capitalPercent = amount > 0 ? Math.round((capitalAmount / amount) * 100) : 0;
+
+      return {
+        interestAmount,
+        capitalAmount,
+        newBalance,
+        capitalPercent
+      };
+    },
+    registerPayment(debtId, amount, date) {
+      const debt = this.getAll().find(d => d.id === debtId);
+      if (!debt) throw new Error('Deuda no encontrada');
+
+      const calc = this.calculatePayment(debtId, amount);
+
+      const seguro = debt.hasSeguro ? (debt.seguroBase || 0) : 0;
+      const aporte = debt.hasAporte ? (debt.aporteBase || 0) : 0;
+      const totalPagado = amount + seguro + aporte;
+
+      this.addPayment(debtId, {
+        date: date || today(),
+        amount: totalPagado,
+        interest: calc.interestAmount,
+        capital: calc.capitalAmount,
+        aporte: aporte,
+        seguro: seguro,
+        source: 'manual'
+      });
+
+      Transactions.add({
+        type: 'expense',
+        description: `Pago cuota ${debt.creditor}`,
+        amount: totalPagado,
+        date: date || today(),
+        category: 'Deudas',
+        origin: 'debt_payment',
+        debtId: debtId
+      });
+
+      return { calc, totalPagado, seguro, aporte };
     }
   };
 
