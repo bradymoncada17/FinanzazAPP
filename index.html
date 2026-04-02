@@ -2516,7 +2516,11 @@ function renderAdminPanel() {
   var role = localStorage.getItem('fp_user_role');
   if (role === 'admin') {
     panel.classList.remove('d-none');
+    // Forzar carga fresca desde Firestore
+    _cachedWhitelist = null;
     renderWhitelist();
+    // Suscribirse a cambios en tiempo real
+    subscribeToWhitelistChanges();
   } else {
     panel.classList.add('d-none');
   }
