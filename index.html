@@ -5805,7 +5805,6 @@ async function fetchWhitelistFromFirestore() {
 }
 
 function getAuthWhitelist() {
-  if (_cachedWhitelist) return _cachedWhitelist;
   var stored = localStorage.getItem(KEYS_GLOBAL.WHITELIST);
   if (stored) {
     try { return JSON.parse(stored); } catch(e) { return [AUTH_ADMIN]; }
@@ -5820,7 +5819,9 @@ async function getAuthWhitelistAsync() {
     localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(firestoreList));
     return firestoreList;
   }
-  return getAuthWhitelist();
+  var localList = getAuthWhitelist();
+  _cachedWhitelist = localList;
+  return localList;
 }
 
 async function saveAuthWhitelist(list) {
@@ -6104,11 +6105,26 @@ function switchGoogleAccount() {
     showToast("Error: Firebase no cargado.", "danger");
     return;
   }
-  // Cerrar sesión actual y forzar selección de cuenta
-  firebase.auth().signOut().then(function() {
+  var auth = firebase.auth();
+  
+  // Limpiar estados locales primero
+  localStorage.removeItem('fp_user_mode');
+  localStorage.removeItem('fp_user_uid');
+  localStorage.removeItem('fp_user_role');
+  localStorage.removeItem('fp_last_activity_ts');
+  localStorage.removeItem('fp_hidden_since_ts');
+  
+  // Desuscribir listeners
+  if (_firestoreListener) { _firestoreListener(); _firestoreListener = null; }
+  unsubscribeFromWhitelist();
+  
+  // Cerrar sesión y forzar selección de cuenta
+  auth.signOut().then(function() {
+    // Forzar selección de cuenta con prompt
     loginWithGoogle(true);
   }).catch(function(e) {
-    showToast("Error al cerrar sesión: " + e.message, "danger");
+    // Si falla el signOut, intentar directamente el login con force
+    loginWithGoogle(true);
   });
 }
 
@@ -6122,6 +6138,8 @@ function loginGuest() {
 function logout() {
   // Desuscribir listener de Firestore si existe
   if (_firestoreListener) { _firestoreListener(); _firestoreListener = null; }
+  unsubscribeFromWhitelist();
+  _cachedWhitelist = null;
   localStorage.removeItem('fp_user_mode');
   localStorage.removeItem('fp_user_uid');
   localStorage.removeItem('fp_user_role');
@@ -6239,6 +6257,8 @@ function setupAuthObserver() {
           touchSessionActivity();
           initAppSession(user);
         } else {
+          // Limpiar caché para forzar nueva consulta en próximo intento
+          _cachedWhitelist = null;
           showToast("Acceso denegado: " + userEmail + " no está autorizado.", "danger");
           firebase.auth().signOut();
           localStorage.removeItem('fp_user_mode');
