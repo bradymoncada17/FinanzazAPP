@@ -2110,7 +2110,8 @@ function calcSaldosPorCat(){
   for(var i=0; i<txs.length; i++){
     var t=txs[i];
     var type=(t.type||'').toString().toLowerCase().trim();
-    if(type==='income'){
+    var origin=(t.origin||'').toString().toLowerCase().trim();
+    if(type==='income' && origin!=='tarjeta_pago'){
       var amt=parseFloat(t.amount)||0;
       var cat=(t.category||'Otro').toString().trim();
       incByCat[cat]=(incByCat[cat]||0)+amt;
