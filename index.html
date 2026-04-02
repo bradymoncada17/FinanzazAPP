@@ -746,8 +746,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 </head>
 <body class="is-loading">
 
-<!-- PANTALLA DE LOGIN (siempre visible inicialmente) -->
-<div id="view-login" style="display:block">
+<!-- PANTALLA DE LOGIN -->
 <div id="view-login">
   <div class="login-box">
     <div class="login-logo"><i class="bi bi-wallet2"></i></div>
@@ -5815,23 +5814,11 @@ function getAuthWhitelist() {
 }
 
 async function getAuthWhitelistAsync() {
-  try {
-    // Timeout de 5 segundos para obtener de Firestore
-    var firestoreList = await Promise.race([
-      fetchWhitelistFromFirestore(),
-      new Promise(function(_, reject) {
-        setTimeout(function() {
-          reject(new Error('Timeout whitelist'));
-        }, 5000);
-      })
-    ]);
-    if (firestoreList && firestoreList.length > 0) {
-      _cachedWhitelist = firestoreList;
-      localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(firestoreList));
-      return firestoreList;
-    }
-  } catch (e) {
-    console.warn('[Whitelist] Timeout o error, usando local:', e.message);
+  var firestoreList = await fetchWhitelistFromFirestore();
+  if (firestoreList && firestoreList.length > 0) {
+    _cachedWhitelist = firestoreList;
+    localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(firestoreList));
+    return firestoreList;
   }
   return getAuthWhitelist();
 }
@@ -5987,20 +5974,7 @@ function initFirebase() {
   }
 }
 
-// Ejecutar lo más pronto posible para PWA
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initFirebase);
-} else {
-  initFirebase();
-}
-
-// También intentar cuando la página esté completamente cargada
-window.addEventListener('load', function() {
-  // Solo si Firebase no se inicializó
-  if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) {
-    initFirebase();
-  }
-});
+window.addEventListener('load', initFirebase);
 
 // ── FIRESTORE: Guardar todos los datos del usuario ────────
 function getAllUserData() {
@@ -6094,25 +6068,35 @@ lsSet = function(k, d) {
   saveToFirestore();
 };
 
-// Detectar si está en modo PWA (pantalla de inicio)
-function isPWA() {
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         window.navigator.standalone === true ||
-         document.referrer.includes('android-app://');
-}
-
 function loginWithGoogle(forceSelectAccount) {
   if (typeof firebase === 'undefined' || !firebase.auth) {
-    showToast("Error: Firebase no cargado. Recarga la página.", "danger");
+    showToast("Error: Firebase no cargado. Revisa tu conexión.", "danger");
     return;
   }
   var provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
   
-  showToast("Redirigiendo a Google...", "info");
-  firebase.auth().signInWithRedirect(provider).catch(function(error) {
-    showToast("Error: " + error.message, "danger");
-  });
+  // Si forceSelectAccount es true, forzamos a seleccionar cuenta
+  if (forceSelectAccount) {
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+  }
+  
+  showToast("Abriendo ventana de Google...", "info");
+  firebase.auth().signInWithPopup(provider)
+    .then(function(result) {
+      showToast("Bienvenido " + (result.user.displayName || ""), "success");
+    })
+    .catch(function(e) {
+      console.error("Error en login:", e);
+      if (e.code === 'auth/popup-blocked') {
+        firebase.auth().signInWithRedirect(provider);
+      } else if (e.code === 'auth/account-exists-with-different-credential') {
+        showToast("Esta cuenta ya está vinculada con otro método. Intenta cerrar sesión primero.", "warning");
+      } else {
+        showToast("Error: " + e.message, "danger");
+      }
+    });
 }
 
 function switchGoogleAccount() {
@@ -6120,17 +6104,9 @@ function switchGoogleAccount() {
     showToast("Error: Firebase no cargado.", "danger");
     return;
   }
-  showToast("Cerrando sesión...", "info");
-  // Cerrar sesión actual
+  // Cerrar sesión actual y forzar selección de cuenta
   firebase.auth().signOut().then(function() {
-    // Limpiar localStorage también
-    localStorage.removeItem('fp_user_mode');
-    localStorage.removeItem('fp_user_uid');
-    localStorage.removeItem('fp_user_role');
-    // Forzar nueva selección de cuenta
-    setTimeout(function() {
-      loginWithGoogle(true);
-    }, 500);
+    loginWithGoogle(true);
   }).catch(function(e) {
     showToast("Error al cerrar sesión: " + e.message, "danger");
   });
@@ -6146,51 +6122,27 @@ function loginGuest() {
 function logout() {
   // Desuscribir listener de Firestore si existe
   if (_firestoreListener) { _firestoreListener(); _firestoreListener = null; }
-  if (_whitelistUnsubscribe) { unsubscribeFromWhitelist(); }
   localStorage.removeItem('fp_user_mode');
   localStorage.removeItem('fp_user_uid');
   localStorage.removeItem('fp_user_role');
   localStorage.removeItem('fp_last_activity_ts');
   localStorage.removeItem('fp_hidden_since_ts');
-  
-  if (typeof firebase !== 'undefined' && firebase.auth) {
-    firebase.auth().signOut().then(function() {
-      showToast("Sesión cerrada", "info");
-      // Mostrar pantalla de login
-      document.getElementById('view-login').classList.remove('d-none');
-      document.getElementById('mainNav').classList.add('d-none');
-      document.body.classList.remove('is-loading');
-      navigateTo('dashboard');
-    }).catch(function(e) {
+  try {
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      firebase.auth().signOut().then(function() { location.reload(); }).catch(function() { location.reload(); });
+    } else {
       location.reload();
-    });
-  } else {
-    location.reload();
-  }
+    }
+  } catch (e) { location.reload(); }
 }
 
 function initAppSession(user) {
-  console.log('[initAppSession] Ejecutando, user:', user ? user.email : 'null');
-  var loginEl = document.getElementById('view-login');
-  if (loginEl) {
-    loginEl.style.display = 'none';
-    loginEl.classList.add('d-none');
-  }
-  var navEl = document.getElementById('mainNav');
-  if (navEl) {
-    navEl.classList.remove('d-none');
-  }
-  var layoutEl = document.getElementById('fpLayout');
-  if (layoutEl) {
-    layoutEl.classList.remove('d-none');
-  }
-  if (window.innerWidth <= 768) {
-    var sbEl = document.getElementById('saldoBarMobile');
-    if (sbEl) sbEl.classList.remove('d-none');
-  }
+  document.getElementById('view-login').classList.add('d-none');
+  document.getElementById('mainNav').classList.remove('d-none');
+  document.getElementById('fpLayout').classList.remove('d-none');
+  if (window.innerWidth <= 768) document.getElementById('saldoBarMobile').classList.remove('d-none');
   adjustMobileLayout();
   document.body.classList.remove('is-loading');
-  console.log('[initAppSession] Completado');
   
   var mode = localStorage.getItem('fp_user_mode');
   var userProfile = document.getElementById('userProfileNav');
@@ -6247,61 +6199,69 @@ function initAppSession(user) {
   }
 }
 
-var _waitingForRedirect = false;
-
 // Observador de estado de Auth
 function setupAuthObserver() {
-  try {
-    if (typeof firebase === 'undefined' || !firebase.auth) {
-      document.getElementById('view-login').classList.remove('d-none');
-      document.body.classList.remove('is-loading');
-      return;
-    }
-    
-    // Verificar resultado de redirect
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    // Manejar redirect result (para mobile donde popup no funciona)
     firebase.auth().getRedirectResult().then(function(result) {
-      if (result && result.user) {
-        handleAuthSuccess(result.user);
+      if (result.user) {
+        console.log('[Auth] Login via redirect exitoso:', result.user.email);
       }
-    }).catch(function(e) {});
-    
-    // Escuchar cambios de estado
-    firebase.auth().onAuthStateChanged(function(user) {
+    }).catch(function(e) {
+      if (e.code !== 'auth/no-auth-event') console.warn('[Auth] Redirect error:', e.message);
+    });
+
+    firebase.auth().onAuthStateChanged(async function(user) {
       if (user) {
-        handleAuthSuccess(user);
+        if (checkIdleSessionExpired()) {
+          firebase.auth().signOut();
+          showToast('Sesión cerrada por inactividad prolongada. Vuelve a iniciar sesión.', 'info');
+          return;
+        }
+        var userEmail = (user.email || "").toLowerCase();
+        
+        // Intentar obtener whitelist desde Firestore primero
+        var currentWhitelist = await getAuthWhitelistAsync();
+        var isAuthorized = currentWhitelist.some(function(email) {
+          return email.toLowerCase() === userEmail;
+        });
+
+        if (isAuthorized) {
+          localStorage.setItem('fp_user_mode', 'auth');
+          localStorage.setItem('fp_user_uid', user.uid);
+          if (userEmail === AUTH_ADMIN.toLowerCase()) {
+            localStorage.setItem('fp_user_role', 'admin');
+            subscribeToWhitelistChanges();
+          } else {
+            localStorage.removeItem('fp_user_role');
+            unsubscribeFromWhitelist();
+          }
+          touchSessionActivity();
+          initAppSession(user);
+        } else {
+          showToast("Acceso denegado: " + userEmail + " no está autorizado.", "danger");
+          firebase.auth().signOut();
+          localStorage.removeItem('fp_user_mode');
+          localStorage.removeItem('fp_user_uid');
+          localStorage.removeItem('fp_user_role');
+          document.getElementById('view-login').classList.remove('d-none');
+          document.body.classList.remove('is-loading');
+        }
+      } else {
+        if (localStorage.getItem('fp_user_mode') === 'guest' && localStorage.getItem('fp_user_uid') === 'local_guest') {
+          initAppSession(null);
+          return;
+        }
+        localStorage.removeItem('fp_user_mode');
+        localStorage.removeItem('fp_user_uid');
+        localStorage.removeItem('fp_user_role');
+        document.getElementById('view-login').classList.remove('d-none');
+        document.body.classList.remove('is-loading');
       }
     });
-  } catch(e) {
-    console.error('Error en setupAuthObserver:', e);
-  }
-  
-  function handleAuthSuccess(user) {
-    try {
-      var userEmail = (user.email || "").toLowerCase();
-      var currentWhitelist = getAuthWhitelist();
-      var isAuthorized = currentWhitelist.some(function(email) {
-        return email.toLowerCase() === userEmail;
-      });
-      
-      if (isAuthorized) {
-        localStorage.setItem('fp_user_mode', 'auth');
-        localStorage.setItem('fp_user_uid', user.uid);
-        if (userEmail === AUTH_ADMIN.toLowerCase()) {
-          localStorage.setItem('fp_user_role', 'admin');
-        }
-        document.getElementById('view-login').style.display = 'none';
-        document.getElementById('view-login').classList.add('d-none');
-        document.getElementById('mainNav').classList.remove('d-none');
-        document.getElementById('fpLayout').classList.remove('d-none');
-        document.body.classList.remove('is-loading');
-        showToast("¡Bienvenido " + user.email + "!", "success");
-      } else {
-        showToast("Acceso denegado: " + userEmail, "danger");
-        firebase.auth().signOut();
-      }
-    } catch(e) {
-      console.error('Error en handleAuthSuccess:', e);
-    }
+  } else {
+    document.getElementById('view-login').classList.remove('d-none');
+    document.body.classList.remove('is-loading');
   }
 }
 
