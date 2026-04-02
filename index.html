@@ -23,7 +23,7 @@
 
 <style>
 :root{
-  --fp-primary:#1a56db;--fp-primary-dk:#1242b4;--fp-primary-lt:#1e3a5f;
+  --fp-primary:#1a56db;--fp-primary-dk:#1242b4;--fp-primary-lt:#e8effd;
   --fp-success:#057a55;--fp-success-lt:#def7ec;
   --fp-danger:#c81e1e;--fp-danger-lt:#fde8e8;
   --fp-gold:#b45309;--fp-gold-lt:#fef3c7;
@@ -290,7 +290,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   box-shadow:0 26px 55px -18px rgba(0,0,0,.5),0 12px 30px -10px rgba(0,0,0,.35);
 }
 .fp-badge{font-size:11px;font-weight:800;padding:4px 12px;border-radius:10px;letter-spacing:0.5px}
-.fp-badge-blue  {background:var(--fp-primary-lt);color:#fff}
+.fp-badge-blue  {background:var(--fp-primary-lt);color:var(--fp-primary)}
 .fp-badge-green {background:var(--fp-success-lt);color:var(--fp-success)}
 .fp-badge-red   {background:var(--fp-danger-lt);color:var(--fp-danger)}
 .fp-badge-gold  {background:var(--fp-gold-lt);color:var(--fp-gold)}
@@ -1038,7 +1038,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
           <div class="orbit-container d-none d-md-flex" style="width:80px;height:80px">
             <div class="orbit-ring-1" style="border-top-color:var(--fp-primary)"></div><div class="orbit-ring-2" style="border-bottom-color:var(--fp-primary)"></div><div class="orbit-ring-3"></div>
             <div class="orbit-dot orbit-dot-1" style="background:var(--fp-primary);box-shadow:0 0 5px var(--fp-primary)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
-            <div class="orbit-center" style="background:var(--fp-primary-lt);color:#fff"><i class="bi bi-credit-card-2-front-fill"></i></div>
+            <div class="orbit-center" style="background:var(--fp-primary-lt);color:var(--fp-primary)"><i class="bi bi-credit-card-2-front-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-credit-card-2-front-fill"></i> Gestión</div><h1 class="page-title">Mis <span style="color:var(--fp-primary)">Tarjetas</span></h1><p class="page-sub">Administra tus tarjetas y cupo disponible</p></div>
         </div>
@@ -1227,7 +1227,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
           <div class="orbit-container d-none d-md-flex" style="width:80px;height:80px">
             <div class="orbit-ring-1" style="border-top-color:var(--fp-primary)"></div><div class="orbit-ring-2" style="border-bottom-color:var(--fp-primary)"></div><div class="orbit-ring-3"></div>
             <div class="orbit-dot orbit-dot-1" style="background:var(--fp-primary);box-shadow:0 0 5px var(--fp-primary)"></div><div class="orbit-dot orbit-dot-2"></div><div class="orbit-dot orbit-dot-3"></div>
-            <div class="orbit-center" style="background:var(--fp-primary-lt);color:#fff"><i class="bi bi-gear-fill"></i></div>
+            <div class="orbit-center" style="background:var(--fp-primary-lt);color:var(--fp-primary)"><i class="bi bi-gear-fill"></i></div>
           </div>
           <div><div class="page-eyebrow"><i class="bi bi-gear-fill"></i> Ajustes</div><h1 class="page-title">Configuración <span class="title-accent">General</span></h1></div>
         </div>
@@ -1436,7 +1436,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="col-md-3"><label class="fp-label">Tasa mensual (%)</label><input class="fp-input fp-input-mono" type="number" id="debtRate" placeholder="Ej: 2.1" min="0" step="0.01" value="0" oninput="syncTasas('mensual');previewCuota();actualizarPlanPagosPreview()"/></div>
         <div class="col-md-3"><label class="fp-label">Tasa anual (%)</label><input class="fp-input fp-input-mono" type="number" id="debtRateAnual" placeholder="Ej: 25.2" min="0" step="0.01" value="0" oninput="syncTasas('anual');previewCuota();actualizarPlanPagosPreview()"/></div>
         <div class="col-md-3"><label class="fp-label">Plazo (meses)</label><input class="fp-input fp-input-mono" type="number" id="debtMonths" placeholder="Ej: 48" min="1" step="1" value="12" oninput="previewCuota();actualizarPlanPagosPreview()"/></div>
-        <div class="col-md-3"><label class="fp-label">Cuota calculada</label><div id="cuotaPreview" style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:#fff">$0</div></div>
+        <div class="col-md-3"><label class="fp-label">Cuota calculada</label><div id="cuotaPreview" style="background:var(--fp-primary-lt);border:1px solid rgba(26,86,219,.2);border-radius:9px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--fp-primary)">$0</div></div>
         <!-- CUOTA MANUAL -->
         <div class="col-12">
           <div style="background:var(--fp-success-lt);border:1px solid rgba(5,122,85,.15);border-radius:10px;padding:12px">
@@ -4774,7 +4774,7 @@ function renderTarjetas(){
             +'</div>'
           +'</div>'
           +'<div class="row g-2 mb-2">'
-            +'<div class="col-4"><div style="background:var(--fp-primary-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#fff;font-weight:700;margin-bottom:2px">Cupo</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:#fff">'+fmt(tc.cupoAprobado)+'</div></div></div>'
+            +'<div class="col-4"><div style="background:var(--fp-primary-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-primary);font-weight:700;margin-bottom:2px">Cupo</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:var(--fp-primary)">'+fmt(tc.cupoAprobado)+'</div></div></div>'
             +'<div class="col-4"><div style="background:var(--fp-danger-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-danger);font-weight:700;margin-bottom:2px">Usado</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:var(--fp-danger)">'+fmt(usado)+'</div></div></div>'
             +'<div class="col-4"><div style="background:var(--fp-success-lt);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-success);font-weight:700;margin-bottom:2px">Disponible</div><div style="font-family:JetBrains Mono,monospace;font-weight:700;font-size:13px;color:var(--fp-success)">'+fmt(disp)+'</div></div></div>'
           +'</div>'
@@ -4805,7 +4805,7 @@ function renderTarjetas(){
           +'<div class="d-flex gap-2">'
             +'<button class="btn fp-btn-primary fp-btn-sm flex-fill" onclick="openTcPagoModal(\''+tid+'\')"><i class="bi bi-cash-coin me-1"></i> Registrar pago</button>'
             +'<button class="btn fp-btn-ghost fp-btn-sm flex-fill" onclick="verMovsTarjeta(\''+tid+'\')"><i class="bi bi-list-ul me-1"></i> Movs</button>'
-            +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="verTcDetail(\''+tid+'\')" style="background:var(--fp-primary-lt)"><i class="bi bi-graph-up" style="color:#fff"></i></button>'
+            +'<button class="btn fp-btn-ghost fp-btn-sm" onclick="verTcDetail(\''+tid+'\')" style="background:var(--fp-primary-lt)"><i class="bi bi-graph-up" style="color:var(--fp-primary)"></i></button>'
           +'</div>'
         +'</div>'
       +'</div>'
@@ -5044,7 +5044,7 @@ function verTcDetail(id){
       +'</div>'
       +'<div class="debt-detail-body">'
         +'<div class="row g-3 mb-3">'
-          +'<div class="col-md-3"><div style="background:var(--fp-primary-lt);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:#fff;font-weight:600">Cupo Total</div><div style="font-size:18px;font-weight:800;color:#fff;font-family:JetBrains Mono,monospace">'+fmt(tc.cupoAprobado)+'</div></div></div>'
+          +'<div class="col-md-3"><div style="background:var(--fp-primary-lt);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-primary);font-weight:600">Cupo Total</div><div style="font-size:18px;font-weight:800;color:var(--fp-primary);font-family:JetBrains Mono,monospace">'+fmt(tc.cupoAprobado)+'</div></div></div>'
           +'<div class="col-md-3"><div style="background:var(--fp-danger-lt);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-danger);font-weight:600">Usado</div><div style="font-size:18px;font-weight:800;color:var(--fp-danger);font-family:JetBrains Mono,monospace">'+fmt(usado)+'</div></div></div>'
           +'<div class="col-md-3"><div style="background:var(--fp-success-lt);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-success);font-weight:600">Disponible</div><div style="font-size:18px;font-weight:800;color:var(--fp-success);font-family:JetBrains Mono,monospace">'+fmt(disp)+'</div></div></div>'
           +'<div class="col-md-3"><div style="background:var(--fp-gold-lt);border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;text-transform:uppercase;color:var(--fp-gold);font-weight:600">Uso</div><div style="font-size:18px;font-weight:800;color:var(--fp-gold)">'+pct+'%</div></div></div>'
@@ -5445,7 +5445,7 @@ function renderClientes(){
           +(cli.direccion?'<div style="font-size:11.5px;color:var(--fp-text2);margin-bottom:8px"><i class="bi bi-geo-alt-fill me-1" style="color:var(--fp-violet)"></i>'+esc(cli.direccion)+'</div>':'')
           +'<div class="row g-2 mb-3">'
             +'<div class="col-4"><div style="background:var(--fp-teal-lt);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--fp-teal);font-weight:700">Préstamos</div><div style="font-size:16px;font-weight:800;color:var(--fp-teal)">'+ptsCli.length+'</div></div></div>'
-            +'<div class="col-4"><div style="background:var(--fp-primary-lt);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:#fff;font-weight:700">Prestado</div><div style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:800;color:#fff">'+fmt(totalPrestado)+'</div></div></div>'
+            +'<div class="col-4"><div style="background:var(--fp-primary-lt);border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--fp-primary);font-weight:700">Prestado</div><div style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:800;color:var(--fp-primary)">'+fmt(totalPrestado)+'</div></div></div>'
             +'<div class="col-4"><div style="background:'+(totalSaldo>0?'var(--fp-danger-lt)':'var(--fp-success-lt)')+';border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:'+(totalSaldo>0?'var(--fp-danger)':'var(--fp-success)')+';font-weight:700">Saldo</div><div style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:800;color:'+(totalSaldo>0?'var(--fp-danger)':'var(--fp-success)')+'">'+fmt(totalSaldo)+'</div></div></div>'
           +'</div>'
           +'<div class="d-flex gap-2 flex-wrap">'
