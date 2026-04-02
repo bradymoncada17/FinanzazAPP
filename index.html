@@ -1254,24 +1254,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
           <div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-shield-check-fill text-success"></i> Estado</div></div><div class="fp-card-body"><div id="syncDetailStatus"><div class="empty-state">Sin configurar</div></div></div></div>
           <div class="fp-card mt-3"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-arrow-down-up"></i> Respaldo local</div></div><div class="fp-card-body"><div class="d-flex gap-2 flex-wrap"><button class="btn fp-btn-ghost fp-btn-sm" onclick="exportData()"><i class="bi bi-download me-1"></i>Exportar</button><button class="btn fp-btn-ghost fp-btn-sm" onclick="document.getElementById('importFile').click()"><i class="bi bi-upload me-1"></i>Importar</button></div></div></div>
           <div class="fp-card mt-3"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-google"></i> Cuenta Google</div></div><div class="fp-card-body"><div class="d-flex gap-2 flex-wrap"><button class="btn fp-btn-outline fp-btn-sm" onclick="switchGoogleAccount()"><i class="bi bi-arrow-repeat me-1"></i>Cambiar cuenta</button><button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</button></div></div></div>
-          
-          <!-- PANEL ADMINISTRADOR (WHITELIST) -->
-          <div class="fp-card mt-3 d-none" id="adminWhitelistPanel">
-            <div class="fp-card-header">
-              <div class="fp-card-title"><i class="bi bi-shield-lock-fill text-primary"></i> Gestión de Usuarios</div>
-              <span class="fp-badge fp-badge-blue">Admin</span>
-            </div>
-            <div class="fp-card-body">
-              <p class="small text-muted mb-3">Como administrador, puedes gestionar quién tiene acceso a la aplicación.</p>
-              <div class="d-flex gap-2 mb-3">
-                <input type="email" class="fp-input" id="newWhitelistEmail" placeholder="correo@gmail.com"/>
-                <button class="btn fp-btn-primary btn-sm" onclick="addToWhitelist()"><i class="bi bi-plus-lg"></i></button>
-              </div>
-              <div id="whitelistContainer" class="d-flex flex-column gap-2">
-                <!-- Lista de correos -->
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -2503,62 +2485,8 @@ function navigateTo(view){
   if(view==='savings')renderSavings();
   if(view==='historial')initHistorial();
   if(view==='categorias')renderCategorias();
-  if(view==='config') {
-    loadGistConfigToUI();
-    renderAdminPanel();
-  }
+  if(view==='config') loadGistConfigToUI();
   if(view==='about')renderAbout();
-}
-
-function renderAdminPanel() {
-  var panel = document.getElementById('adminWhitelistPanel');
-  if (!panel) return;
-  var role = localStorage.getItem('fp_user_role');
-  if (role === 'admin') {
-    panel.classList.remove('d-none');
-    // Forzar carga fresca desde Firestore
-    _cachedWhitelist = null;
-    renderWhitelist();
-    // Suscribirse a cambios en tiempo real
-    subscribeToWhitelistChanges();
-  } else {
-    panel.classList.add('d-none');
-  }
-}
-
-async function renderWhitelist() {
-  var container = document.getElementById('whitelistContainer');
-  if (!container) return;
-  var list = await getAuthWhitelistAsync();
-  container.innerHTML = list.map(function(email) {
-    var isAdmin = email.toLowerCase() === AUTH_ADMIN.toLowerCase();
-    return '<div class="d-flex justify-content-between align-items-center p-2" style="background:var(--fp-surface2);border-radius:8px">'
-      +'<span style="font-size:12.5px;'+(isAdmin?'font-weight:700;color:var(--fp-primary)':'')+'">'+esc(email)+(isAdmin?' <i class="bi bi-patch-check-fill"></i>':'')+'</span>'
-      +(isAdmin ? '' : '<button class="btn btn-link text-danger p-0" onclick="removeFromWhitelist(\''+email+'\')"><i class="bi bi-trash3"></i></button>')
-      +'</div>';
-  }).join('');
-}
-
-async function addToWhitelist() {
-  var input = document.getElementById('newWhitelistEmail');
-  var email = input.value.trim().toLowerCase();
-  if (!email || !email.includes('@')) { showToast("Ingresa un correo válido", "danger"); return; }
-  var list = await getAuthWhitelistAsync();
-  if (list.indexOf(email) >= 0) { showToast("Este correo ya está en la lista", "warning"); return; }
-  list.push(email);
-  await saveAuthWhitelist(list);
-  input.value = '';
-  renderWhitelist();
-  showToast("Usuario autorizado ✓", "success");
-}
-
-async function removeFromWhitelist(email) {
-  if (!confirm("¿Eliminar a " + email + " de la lista de acceso?")) return;
-  var list = await getAuthWhitelistAsync();
-  list = list.filter(function(e) { return e.toLowerCase() !== email.toLowerCase(); });
-  await saveAuthWhitelist(list);
-  renderWhitelist();
-  showToast("Usuario eliminado", "warning");
 }
 
 function renderAbout(){
@@ -5788,105 +5716,6 @@ function imprimirPlanPagos(id){
 //  FIREBASE & AUTH + FIRESTORE SYNC
 // ══════════════════════════════════════════════════════
 var AUTH_ADMIN = "bradymoncada17@gmail.com";
-var KEYS_GLOBAL = {
-  WHITELIST: 'fp_global_whitelist'
-};
-
-var _whitelistUnsubscribe = null;
-var _cachedWhitelist = null;
-
-async function fetchWhitelistFromFirestore() {
-  if (!_db) return null;
-  try {
-    var doc = await _db.collection('admin').doc('whitelist').get();
-    if (doc.exists && doc.data().allowedUsers) {
-      return doc.data().allowedUsers;
-    }
-  } catch (e) {
-    console.warn('[Whitelist] Error fetching from Firestore:', e);
-  }
-  return null;
-}
-
-function getAuthWhitelist() {
-  var stored = localStorage.getItem(KEYS_GLOBAL.WHITELIST);
-  if (stored) {
-    try { return JSON.parse(stored); } catch(e) { return [AUTH_ADMIN]; }
-  }
-  return [AUTH_ADMIN];
-}
-
-async function getAuthWhitelistAsync() {
-  var firestoreList = await fetchWhitelistFromFirestore();
-  if (firestoreList && firestoreList.length > 0) {
-    _cachedWhitelist = firestoreList;
-    localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(firestoreList));
-    return firestoreList;
-  }
-  var localList = getAuthWhitelist();
-  _cachedWhitelist = localList;
-  return localList;
-}
-
-async function saveAuthWhitelist(list) {
-  localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(list));
-  _cachedWhitelist = list;
-  
-  if (_db) {
-    try {
-      await _db.collection('admin').doc('whitelist').set({
-        allowedUsers: list,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedBy: AUTH_ADMIN
-      });
-      console.log('[Whitelist] Saved to Firestore');
-    } catch (e) {
-      console.error('[Whitelist] Error saving to Firestore:', e);
-    }
-  }
-}
-
-function subscribeToWhitelistChanges() {
-  if (!_db || _whitelistUnsubscribe) return;
-  
-  try {
-    _whitelistUnsubscribe = _db.collection('admin').doc('whitelist')
-      .onSnapshot(function(doc) {
-        if (doc.exists && doc.data().allowedUsers) {
-          var newList = doc.data().allowedUsers;
-          _cachedWhitelist = newList;
-          localStorage.setItem(KEYS_GLOBAL.WHITELIST, JSON.stringify(newList));
-          
-          var currentUserEmail = firebase.auth().currentUser ? firebase.auth().currentUser.email.toLowerCase() : null;
-          if (currentUserEmail) {
-            var isAuthorized = newList.some(function(email) {
-              return email.toLowerCase() === currentUserEmail;
-            });
-            if (!isAuthorized) {
-              showToast('Tu acceso ha sido revocado por el administrador.', 'danger');
-              firebase.auth().signOut();
-            }
-          }
-          
-          if (localStorage.getItem('fp_user_role') === 'admin') {
-            renderWhitelist();
-            showToast('Lista de usuarios actualizada desde la nube', 'info');
-          }
-        }
-      }, function(error) {
-        console.warn('[Whitelist] Snapshot error:', error);
-      });
-  } catch (e) {
-    console.warn('[Whitelist] Cannot subscribe:', e);
-  }
-}
-
-function unsubscribeFromWhitelist() {
-  if (_whitelistUnsubscribe) {
-    _whitelistUnsubscribe();
-    _whitelistUnsubscribe = null;
-  }
-}
 
 var firebaseConfig = { 
    apiKey: "AIzaSyCe-v-njKfLTu2UtIlQvYNCEHKULURJ43g", 
@@ -6118,10 +5947,6 @@ function switchGoogleAccount() {
   localStorage.removeItem('fp_last_activity_ts');
   localStorage.removeItem('fp_hidden_since_ts');
   
-  // Desuscribir listeners
-  if (_firestoreListener) { _firestoreListener(); _firestoreListener = null; }
-  unsubscribeFromWhitelist();
-  
   // Cerrar sesión y forzar selección de cuenta
   auth.signOut().then(function() {
     // Forzar selección de cuenta con prompt
@@ -6142,8 +5967,6 @@ function loginGuest() {
 function logout() {
   // Desuscribir listener de Firestore si existe
   if (_firestoreListener) { _firestoreListener(); _firestoreListener = null; }
-  unsubscribeFromWhitelist();
-  _cachedWhitelist = null;
   localStorage.removeItem('fp_user_mode');
   localStorage.removeItem('fp_user_uid');
   localStorage.removeItem('fp_user_role');
@@ -6242,35 +6065,19 @@ function setupAuthObserver() {
         }
         var userEmail = (user.email || "").toLowerCase();
         
-        // Intentar obtener whitelist desde Firestore primero
-        var currentWhitelist = await getAuthWhitelistAsync();
-        var isAuthorized = currentWhitelist.some(function(email) {
-          return email.toLowerCase() === userEmail;
-        });
-
-        if (isAuthorized) {
-          localStorage.setItem('fp_user_mode', 'auth');
-          localStorage.setItem('fp_user_uid', user.uid);
-          if (userEmail === AUTH_ADMIN.toLowerCase()) {
-            localStorage.setItem('fp_user_role', 'admin');
-            subscribeToWhitelistChanges();
-          } else {
-            localStorage.removeItem('fp_user_role');
-            unsubscribeFromWhitelist();
-          }
-          touchSessionActivity();
-          initAppSession(user);
+        // Permitir cualquier usuario con cuenta Google autenticada
+        localStorage.setItem('fp_user_mode', 'auth');
+        localStorage.setItem('fp_user_uid', user.uid);
+        
+        // Solo el admin principal tiene rol de admin
+        if (userEmail === AUTH_ADMIN.toLowerCase()) {
+          localStorage.setItem('fp_user_role', 'admin');
         } else {
-          // Limpiar caché para forzar nueva consulta en próximo intento
-          _cachedWhitelist = null;
-          showToast("Acceso denegado: " + userEmail + " no está autorizado.", "danger");
-          firebase.auth().signOut();
-          localStorage.removeItem('fp_user_mode');
-          localStorage.removeItem('fp_user_uid');
           localStorage.removeItem('fp_user_role');
-          document.getElementById('view-login').classList.remove('d-none');
-          document.body.classList.remove('is-loading');
         }
+        
+        touchSessionActivity();
+        initAppSession(user);
       } else {
         if (localStorage.getItem('fp_user_mode') === 'guest' && localStorage.getItem('fp_user_uid') === 'local_guest') {
           initAppSession(null);
