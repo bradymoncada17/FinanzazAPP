@@ -4602,7 +4602,7 @@ function calcTcDisponible(){
 // El pago mínimo es lo gastado en el ciclo anterior que ya pasó su fecha de pago
 function calcularPagoMinimoPorCorte(tc, now, fechaPagoProx) {
   if (!tc.diaCorte || !tc.diaPago || tc.diaCorte === 0) {
-    return Math.round(calcTcUsado(tc) * 0.1);
+    return calcTcUsado(tc); // Sin fecha de corte, pagar todo lo usado
   }
   
   var diaCorte = tc.diaCorte;
@@ -4659,19 +4659,25 @@ function calcularPagoMinimoPorCorte(tc, now, fechaPagoProx) {
   
   var yaPasoFechaPago = now > fechaPagoCicloAnterior;
   
+  // El pago mínimo es el total gastado en el ciclo actual (período de facturación)
+  // Si ya pasó la fecha de pago del ciclo anterior, debe pagar lo del ciclo anterior
+  
   if (yaPasoFechaPago && gastoCicloAnterior > 0) {
     // Ya pasó la fecha de pago del ciclo anterior - debe pagar TODO lo del ciclo anterior
     pagoMinimo = gastoCicloAnterior;
   } else if (gastoCicloAnterior > 0) {
-    // Está en período de gracia del ciclo anterior - paga 10% del ciclo anterior
-    pagoMinimo = Math.round(gastoCicloAnterior * 0.1);
+    // Está en período de gracia del ciclo anterior - paga el total del ciclo anterior
+    pagoMinimo = gastoCicloAnterior;
   } else if (gastoDesdeUltimoCorte > 0 && diaActual < diaCorte) {
     // Está en el período entre el corte y ahora (aún no ha pasado la fecha de corte)
-    // El gasto desde el último corte es lo que se facturará en este ciclo
-    pagoMinimo = 0; // No hay pago mínimo hasta que pase el corte
+    // El gasto desde el último corte es lo que se facturará en este ciclo - TOTAL
+    pagoMinimo = gastoDesdeUltimoCorte;
+  } else if (gastoDesdeUltimoCorte > 0) {
+    // Ya pasó el corte, el gasto del ciclo actual es el pago mínimo
+    pagoMinimo = gastoDesdeUltimoCorte;
   } else {
-    // No hay gasto del ciclo anterior, aplicar 10% del total actual
-    pagoMinimo = Math.round(calcTcUsado(tc) * 0.1);
+    // No hay gasto, pago mínimo es 0
+    pagoMinimo = 0;
   }
   
   return pagoMinimo;
