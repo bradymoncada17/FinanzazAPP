@@ -373,14 +373,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
 .debt-main-amount{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--fp-danger)}
 .debt-detail-overlay{position:fixed;inset:0;background:rgba(15,23,42,.75);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fdIn .2s ease;padding:12px;box-sizing:border-box}
 @keyframes fdIn{from{opacity:0}to{opacity:1}}
-.debt-detail-box{background:var(--fp-surface);border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.2);width:100%;max-width:800px;max-height:92vh;overflow-y:auto;overflow-x:hidden;margin:0;animation:bxIn .25s cubic-bezier(.4,0,.2,1);-webkit-overflow-scrolling:touch}
+.debt-detail-box{background:var(--fp-surface);border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.15);width:100%;max-width:800px;max-height:92vh;overflow-y:auto;overflow-x:hidden;margin:0;animation:bxIn .25s cubic-bezier(.4,0,.2,1);-webkit-overflow-scrolling:touch;border:1px solid var(--fp-border)}
 .plan-option{transition:all .2s}
 .plan-option:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .plan-option-rec{border-color:rgba(34,197,94,.5)!important}
 @keyframes bxIn{from{opacity:0;transform:scale(.97) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.debt-detail-header{background:linear-gradient(135deg,#0f172a,#1e293b);padding:16px 20px;border-radius:20px 20px 0 0;position:relative}
+.debt-detail-header{background:linear-gradient(135deg,var(--fp-primary),#6366f1);padding:16px 20px;border-radius:20px 20px 0 0;position:relative}
 .debt-detail-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#dc2626,#f97316,#dc2626)}
-.debt-detail-body{padding:16px 20px}
+.debt-detail-body{padding:16px 20px;background:var(--fp-bg)}
 @media(max-width:576px){
   .debt-detail-box{margin:0;border-radius:16px 16px 12px 12px;max-height:90vh}
   .debt-detail-overlay{align-items:center;padding:16px;justify-content:center}
@@ -3218,7 +3218,7 @@ function verPlanPagos(id){
         
         +'<div style="background:rgba(239,68,68,.1);border-radius:10px;padding:12px;margin-bottom:12px;overflow:hidden">'
           +'<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">'
-            +'<div><div style="font-size:10px;font-weight:700;color:var(--fp-danger);text-transform:uppercase">Saldo pendiente</div><div style="font-size:20px;font-weight:800;color:#fff;word-break:break-all;line-height:1.2">'+fmt(saldo)+'</div></div>'
+            +'<div><div style="font-size:10px;font-weight:700;color:var(--fp-danger);text-transform:uppercase">Saldo pendiente</div><div style="font-size:20px;font-weight:800;color:var(--fp-text);word-break:break-all;line-height:1.2">'+fmt(saldo)+'</div></div>'
             +'<div class="text-end"><div style="font-size:10px;color:var(--fp-text2)">Tasa: '+tasa+'%</div><div style="font-size:13px;font-weight:600;color:var(--fp-danger)">Int: '+fmt(interesMensual)+'</div></div>'
           +'</div>'
         +'</div>'
@@ -3231,9 +3231,10 @@ function verPlanPagos(id){
     var tiempoAhorro=planBase.meses-pl.meses;
     var bg=o.rec?'rgba(34,197,94,.2)':'rgba(255,255,255,.05)';
     var border=o.rec?'2px solid rgba(34,197,94,.5)':'1px solid rgba(255,255,255,.1)';
+    var textColor=o.rec?'var(--fp-text)':'#fff';
     html+='<div class="plan-option'+(o.rec?' plan-option-rec':'')+'" onclick="mostrarDetallePlan(\''+d.id+'\','+o.extra+','+planBase.totalInteres+','+planBase.meses+')" style="background:'+bg+';border:'+border+';border-radius:10px;padding:10px;cursor:pointer;min-width:120px;flex:1;flex-shrink:0;max-width:180px">'
       +'<div style="font-size:10px;color:'+o.color+';font-weight:700;margin-bottom:4px">'+(o.rec?'★ ':'')+o.label+'</div>'
-      +'<div style="font-size:14px;font-weight:700;color:#fff;word-break:break-all">'+fmt(pl.pagos.length>0?pl.pagos[0].cuota:cuotaTotal)+'</div>'
+      +'<div style="font-size:14px;font-weight:700;color:'+textColor+';word-break:break-all">'+fmt(pl.pagos.length>0?pl.pagos[0].cuota:cuotaTotal)+'</div>'
       +'<div style="font-size:10px;color:var(--fp-text2);margin-top:4px"><i class="bi bi-calendar me-1"></i>'+pl.meses+' meses</div>'
       +'<div style="font-size:10px;color:var(--fp-success);margin-top:2px"><i class="bi bi-piggy-bank me-1"></i>'+fmt(ahorro)+'</div>'
     +'</div>';
@@ -3283,30 +3284,30 @@ function mostrarDetallePlan(debtId,extra,interesBase,mesesBase){
   +'</div>'
   
   +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fp-text2);margin-bottom:8px"><i class="bi bi-calendar-check me-1"></i>Calendario de pagos</div>'
-  +'<div style="max-height:300px;overflow-y:auto;border-radius:8px;border:1px solid rgba(255,255,255,.1);margin-bottom:12px">'
+  +'<div style="max-height:300px;overflow-y:auto;border-radius:8px;border:1px solid var(--fp-border);margin-bottom:12px">'
     +'<table style="width:100%;font-size:11px;border-collapse:collapse">'
-      +'<thead style="position:sticky;top:0;background:rgba(26,86,219,.3);z-index:1">'
+      +'<thead style="position:sticky;top:0;background:var(--fp-surface2);z-index:1">'
         +'<tr>'
-          +'<th style="padding:8px 6px;text-align:center;color:rgba(255,255,255,.7)">#</th>'
-          +'<th style="padding:8px 6px;text-align:left;color:rgba(255,255,255,.7)">Fecha</th>'
-          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Cuota</th>'
-          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Interés</th>'
-          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Capital</th>'
-          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Acum Int.</th>'
-          +'<th style="padding:8px 6px;text-align:right;color:rgba(255,255,255,.7)">Saldo</th>'
+          +'<th style="padding:8px 6px;text-align:center;color:var(--fp-text2)">#</th>'
+          +'<th style="padding:8px 6px;text-align:left;color:var(--fp-text2)">Fecha</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:var(--fp-text2)">Cuota</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:var(--fp-text2)">Interés</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:var(--fp-text2)">Capital</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:var(--fp-text2)">Acum Int.</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:var(--fp-text2)">Saldo</th>'
         +'</tr>'
       +'</thead>'
       +'<tbody>';
   plan.pagos.forEach(function(p,i){
-    var bg=i%2===0?'rgba(255,255,255,.02)':'';
+    var bg=i%2===0?'var(--fp-surface)':'';
     html+='<tr style="background:'+bg+'">'
-      +'<td style="padding:6px;text-align:center;color:rgba(255,255,255,.5)">'+p.num+'</td>'
-      +'<td style="padding:6px">'+fmtDate(p.fecha)+'</td>'
-      +'<td style="padding:6px;text-align:right;font-family:monospace">'+fmt(p.cuota)+'</td>'
-      +'<td style="padding:6px;text-align:right;font-family:monospace;color:#fca5a5">'+fmt(p.interes)+'</td>'
-      +'<td style="padding:6px;text-align:right;font-family:monospace;color:#86efac">'+fmt(p.capital)+'</td>'
-      +'<td style="padding:6px;text-align:right;font-family:monospace;color:#fcd34d">'+fmt(p.acumInteres)+'</td>'
-      +'<td style="padding:6px;text-align:right;font-family:monospace;color:var(--fp-text,#0f172a)">'+fmt(p.saldo)+'</td>'
+      +'<td style="padding:6px;text-align:center;color:var(--fp-text3)">'+p.num+'</td>'
+      +'<td style="padding:6px;color:var(--fp-text)">'+fmtDate(p.fecha)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:var(--fp-text)">'+fmt(p.cuota)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:var(--fp-danger)">'+fmt(p.interes)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:var(--fp-success)">'+fmt(p.capital)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:var(--fp-gold)">'+fmt(p.acumInteres)+'</td>'
+      +'<td style="padding:6px;text-align:right;font-family:monospace;color:var(--fp-text)">'+fmt(p.saldo)+'</td>'
     +'</tr>';
   });
   html+='</tbody></table></div>';
@@ -3498,12 +3499,12 @@ function verAnalisisCompleto(){
     var plan=generarPlanPagos(d);
     html+='<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:12px;margin-bottom:8px;overflow:hidden">'
       +'<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">'
-        +'<div><div style="font-size:13px;font-weight:700;color:#fff">'+esc(d.creditor)+'</div><div style="font-size:11px;color:rgba(255,255,255,0.7)">'+fmt(d.remainingBalance)+' · '+d.interestRate+'% mensual</div></div>'
+        +'<div><div style="font-size:13px;font-weight:700;color:var(--fp-text);word-break:break-all">'+esc(d.creditor)+'</div><div style="font-size:11px;color:rgba(255,255,255,0.7)">'+fmt(d.remainingBalance)+' · '+d.interestRate+'% mensual</div></div>'
         +'<button class="btn fp-btn-sm" style="background:var(--fp-primary);color:#fff;flex-shrink:0" onclick="document.getElementById(\'analisisOverlay\').remove();verPlanPagos(\''+d.id+'\')"><i class="bi bi-graph-up me-1"></i>Ver plan</button>'
       +'</div>'
       +'<div class="row g-2" style="font-size:11px;overflow:hidden">'
-        +'<div class="col-4"><div style="color:var(--fp-text2)">Cuota:</div><div style="font-size:13px;font-weight:700;color:#fff;word-break:break-all">'+fmt(plan.cuotaActual)+'</div></div>'
-        +'<div class="col-4"><div style="color:var(--fp-text2)">Tiempo:</div><div style="font-size:13px;font-weight:700;color:#fff">'+(plan.mesesActual===Infinity?'600+':plan.mesesActual+' meses')+'</div></div>'
+        +'<div class="col-4"><div style="color:var(--fp-text2)">Cuota:</div><div style="font-size:13px;font-weight:700;color:var(--fp-text);word-break:break-all">'+fmt(plan.cuotaActual)+'</div></div>'
+        +'<div class="col-4"><div style="color:var(--fp-text2)">Tiempo:</div><div style="font-size:13px;font-weight:700;color:var(--fp-text)">'+(plan.mesesActual===Infinity?'600+':plan.mesesActual+' meses')+'</div></div>'
         +'<div class="col-4"><div style="color:var(--fp-text2)">Ahorro extra:</div><div style="font-size:13px;font-weight:700;color:var(--fp-success);word-break:break-all">'+fmt(Math.max(0,plan.interesAhorrado))+'</div></div>'
       +'</div>'
     +'</div>';
@@ -3745,20 +3746,20 @@ function openDebtDetail(id){
     +'<div class="debt-detail-box">'
       +'<div class="debt-detail-header">'
         +'<div class="d-flex justify-content-between align-items-start">'
-          +'<div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(220,38,38,.8);margin-bottom:4px"><i class="bi bi-file-earmark-text-fill me-1"></i>Deuda · '+(esEfectivo?'Efectivo':'Virtual/Crédito')+'</div><h3 style="font-size:20px;font-weight:800;color:#fff;margin:0">'+esc(d.creditor)+'</h3>'+(d.description?'<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px">'+esc(d.description)+'</div>':'')+'</div>'
+          +'<div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(220,38,38,.8);margin-bottom:4px"><i class="bi bi-file-earmark-text-fill me-1"></i>Deuda · '+(esEfectivo?'Efectivo':'Virtual/Crédito')+'</div><h3 style="font-size:20px;font-weight:800;color:var(--fp-text);margin:0">'+esc(d.creditor)+'</h3>'+(d.description?'<div style="font-size:12px;color:var(--fp-text2);margin-top:2px">'+esc(d.description)+'</div>':'')+'</div>'
           +'<button onclick="closeDebtDetail()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:34px;height:34px;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px"><i class="bi bi-x-lg"></i></button>'
         +'</div>'
         +'<div class="row g-2 mt-2">'
-          +'<div class="col-6 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);margin-bottom:2px">Saldo</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#fca5a5">'+fmt(d.remainingBalance)+'</div></div></div>'
-          +'<div class="col-6 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);margin-bottom:2px">Cuota</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#6ee7b7">'+fmt(cuota)+'</div></div></div>'
-          +(aporte>0?'<div class="col-6 col-md-2"><div style="background:rgba(124,58,237,.15);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(167,139,250,.7);margin-bottom:2px">Aporte</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#c4b5fd">'+fmt(aporte)+'</div></div></div>':'')
-          +(seguro>0?'<div class="col-6 col-md-2"><div style="background:rgba(8,145,178,.15);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(103,232,249,.7);margin-bottom:2px">Seguro</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#67e8f9">'+fmt(seguro)+'</div></div></div>':'')
-          +'<div class="col-6 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);margin-bottom:2px">Tasa</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#fff">'+d.interestRate+'%</div></div></div>'
-          +'<div class="col-6 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);margin-bottom:2px">Int./mes</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#fcd34d">'+fmt(intEst)+'</div></div></div>'
-          +'<div class="col-6 col-md-2"><div style="background:rgba(255,255,255,.06);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);margin-bottom:2px">~Meses</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#fff">'+mesesRest+'</div></div></div>'
-          +(esEfectivo?'<div class="col-6 col-md-2"><div style="background:rgba(26,86,219,.2);border-radius:8px;padding:9px 10px;border:1px solid rgba(59,130,246,.2)"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(147,197,253,.7);margin-bottom:2px">Disponible</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:#93c5fd">'+fmt(disponible)+'</div></div></div>':'')
+          +'<div class="col-6 col-md-2"><div style="background:var(--fp-surface);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-text3);margin-bottom:2px">Saldo</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--fp-danger)">'+fmt(d.remainingBalance)+'</div></div></div>'
+          +'<div class="col-6 col-md-2"><div style="background:var(--fp-surface);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-text3);margin-bottom:2px">Cuota</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--fp-success)">'+fmt(cuota)+'</div></div></div>'
+          +(aporte>0?'<div class="col-6 col-md-2"><div style="background:rgba(124,58,237,.15);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-violet);margin-bottom:2px">Aporte</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--fp-violet)">'+fmt(aporte)+'</div></div></div>':'')
+          +(seguro>0?'<div class="col-6 col-md-2"><div style="background:rgba(8,145,178,.15);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-teal);margin-bottom:2px">Seguro</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--fp-teal)">'+fmt(seguro)+'</div></div></div>':'')
+          +'<div class="col-6 col-md-2"><div style="background:var(--fp-surface);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-text3);margin-bottom:2px">Tasa</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--fp-text)">'+d.interestRate+'%</div></div></div>'
+          +'<div class="col-6 col-md-2"><div style="background:var(--fp-surface);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-text3);margin-bottom:2px">Int./mes</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--fp-gold)">'+fmt(intEst)+'</div></div></div>'
+          +'<div class="col-6 col-md-2"><div style="background:var(--fp-surface);border-radius:8px;padding:9px 10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-text3);margin-bottom:2px">~Meses</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--fp-text)">'+mesesRest+'</div></div></div>'
+          +(esEfectivo?'<div class="col-6 col-md-2"><div style="background:var(--fp-primary-lt);border-radius:8px;padding:9px 10px;border:1px solid rgba(59,130,246,.2)"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--fp-primary);margin-bottom:2px">Disponible</div><div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800;color:var(--fp-primary)">'+fmt(disponible)+'</div></div></div>':'')
         +'</div>'
-        +'<div class="mt-3"><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px"><span>Progreso '+pct+'%</span><span>'+fmt(d.totalAmount-d.remainingBalance)+' pagado</span></div><div class="fp-progress" style="height:5px"><div class="fp-progress-bar'+(pct<20?' bar-danger':'')+'" style="width:'+pct+'%"></div></div></div>'
+        +'<div class="mt-3"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--fp-text2);margin-bottom:4px"><span>Progreso '+pct+'%</span><span>'+fmt(d.totalAmount-d.remainingBalance)+' pagado</span></div><div class="fp-progress" style="height:5px"><div class="fp-progress-bar'+(pct<20?' bar-danger':'')+'" style="width:'+pct+'%"></div></div></div>'
       +'</div>'
       +'<div class="debt-detail-body">'
         +'<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">'
@@ -4323,7 +4324,7 @@ function verResumenAhorros(){
     var plan=calcularPlanAhorro(a.goal-a.currentBalance,new Date(Date.now()+365*24*60*60*1000).toISOString().split('T')[0]);
     html+='<div style="background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);border-radius:8px;padding:12px;margin-bottom:8px">'
       +'<div class="d-flex justify-content-between align-items-center mb-2">'
-        +'<div><div style="font-size:13px;font-weight:700;color:#fff">'+esc(a.name)+'</div><div style="font-size:11px;color:var(--fp-text2)">'+fmt(a.currentBalance)+' / '+fmt(a.goal)+'</div></div>'
+        +'<div><div style="font-size:13px;font-weight:700;color:var(--fp-text)">'+esc(a.name)+'</div><div style="font-size:11px;color:var(--fp-text2)">'+fmt(a.currentBalance)+' / '+fmt(a.goal)+'</div></div>'
         +'<button class="btn fp-btn-sm" style="background:var(--fp-gold);color:#fff" onclick="document.getElementById(\'resumenAhorroOverlay\').remove();verPlanAhorro(\''+a.id+'\')"><i class="bi bi-graph-up me-1"></i>Ver plan</button>'
       +'</div>'
       +'<div class="row g-2" style="font-size:11px">'
