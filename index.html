@@ -2105,16 +2105,35 @@ function calcSaldos(){
 }
 function calcSaldosPorCat(){
   var txs=lsGet(KEYS.TX)||[];
+  var savs=lsGet(KEYS.SAV)||[];
   var incByCat={};
   
+  // Primer paso: calcular ingresos normales por categoría
   for(var i=0; i<txs.length; i++){
     var t=txs[i];
     var type=(t.type||'').toString().toLowerCase().trim();
     var origin=(t.origin||'').toString().toLowerCase().trim();
-    if(type==='income' && origin!=='tarjeta_pago'){
+    if(type==='income' && origin!=='tarjeta_pago' && origin!=='saving_reincorp'){
       var amt=parseFloat(t.amount)||0;
       var cat=(t.category||'Otro').toString().trim();
       incByCat[cat]=(incByCat[cat]||0)+amt;
+    }
+  }
+  
+  // Segundo paso: agregar reincorporaciones desde ahorros a cada categoría
+  // (estos no cuentan como ingreso pero sí como parte del saldo disponible)
+  for(var j=0; j<savs.length; j++){
+    var acc=savs[j];
+    var movs=acc.transactions||[];
+    for(var k=0; k<movs.length; k++){
+      var m=movs[k];
+      if(m.type==='reincorporate' && m.reincorpTarget && m.reincorpTarget.indexOf('cat_')===0){
+        var catName=m.reincorpTarget.replace('cat_','');
+        var amt=parseFloat(m.amount)||0;
+        // Agregar a la categoría como "libre" (disponible para gastar)
+        // Esto hace que el saldo de esa categoría refleje la reincorporación
+        incByCat[catName]=(incByCat[catName]||0)+amt;
+      }
     }
   }
   
@@ -2528,7 +2547,7 @@ function renderDashboard(){
     var d=new Date(t.date + 'T12:00:00');
     return d.getFullYear()===FilterMonth.year&&d.getMonth()===FilterMonth.month;
   });
-  var income=month.filter(function(t){return t.type==='income'&&t.origin!=='tarjeta_pago';}).reduce(function(s,t){return s+t.amount;},0);
+  var income=month.filter(function(t){return t.type==='income'&&t.origin!=='tarjeta_pago'&&t.origin!=='saving_reincorp';}).reduce(function(s,t){return s+t.amount;},0);
   var expense=month.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
   var s=calcSaldos();
   animVal('kpiIngresos',income);animVal('kpiEgresos',expense);animVal('kpiAhorros',s.totalSav);animVal('kpiSaldoLibre',s.saldoLibre);
@@ -2559,7 +2578,7 @@ function renderLineChart(){
   var ctx=document.getElementById('chartLine');if(!ctx)return;
   if(window._dashLine){window._dashLine.destroy();window._dashLine=null;}
   var txs=lsGet(KEYS.TX),now=new Date(),data=[];
-  for(var i=5;i>=0;i--){var d=new Date(now.getFullYear(),now.getMonth()-i,1);var m=txs.filter(function(t){var td=new Date(t.date);return td.getFullYear()===d.getFullYear()&&td.getMonth()===d.getMonth();});data.push({label:d.toLocaleString('es-CO',{month:'short',year:'2-digit'}),income:m.filter(function(t){return t.type==='income'&&t.origin!=='tarjeta_pago';}).reduce(function(s,t){return s+t.amount;},0),expense:m.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0)});}
+  for(var i=5;i>=0;i--){var d=new Date(now.getFullYear(),now.getMonth()-i,1);var m=txs.filter(function(t){var td=new Date(t.date);return td.getFullYear()===d.getFullYear()&&td.getMonth()===d.getMonth();});data.push({label:d.toLocaleString('es-CO',{month:'short',year:'2-digit'}),income:m.filter(function(t){return t.type==='income'&&t.origin!=='tarjeta_pago'&&t.origin!=='saving_reincorp';}).reduce(function(s,t){return s+t.amount;},0),expense:m.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0)});}
   window._dashLine=new Chart(ctx,{type:'line',data:{labels:data.map(function(d){return d.label;}),datasets:[{label:'Ingresos',data:data.map(function(d){return d.income;}),borderColor:'#059669',backgroundColor:'rgba(5,150,105,.07)',tension:.4,fill:true,borderWidth:2,pointBackgroundColor:'#059669',pointRadius:3,pointHoverRadius:6},{label:'Egresos',data:data.map(function(d){return d.expense;}),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.06)',tension:.4,fill:true,borderWidth:2,pointBackgroundColor:'#dc2626',pointRadius:3,pointHoverRadius:6}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:700},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:12,font:{family:"'Plus Jakarta Sans',sans-serif",size:11}}},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+fmt(c.raw);}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{callback:function(v){return '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'k');},font:{size:10}}}}}});
 }
 function renderDashDebts(){
@@ -2612,7 +2631,7 @@ function renderTransactions(){
   }
   renderTxDistChart(s);
   var type=(document.getElementById('filterTxType')||{}).value||'';var cat=(document.getElementById('filterTxCat')||{}).value||'';var from=(document.getElementById('filterFrom')||{}).value||'';var to=(document.getElementById('filterTo')||{}).value||'';
-  var all=lsGet(KEYS.TX).filter(function(t){if(type&&t.type!==type)return false;if(cat&&t.category!==cat)return false;if(from&&t.date<from)return false;if(to&&t.date>to)return false;if(t.origin==='tarjeta_pago')return false;return true;}).sort(function(a,b){return b.date.localeCompare(a.date);});
+  var all=lsGet(KEYS.TX).filter(function(t){if(type&&t.type!==type)return false;if(cat&&t.category!==cat)return false;if(from&&t.date<from)return false;if(to&&t.date>to)return false;if(t.origin==='tarjeta_pago'||t.origin==='saving_reincorp')return false;return true;}).sort(function(a,b){return b.date.localeCompare(a.date);});
   State.txFiltered=all;
   var total=all.length,pages=Math.max(1,Math.ceil(total/State.txPageSize));if(State.txPage>pages)State.txPage=1;
   var start=(State.txPage-1)*State.txPageSize,slice=all.slice(start,start+State.txPageSize);
@@ -4616,13 +4635,22 @@ function saveSavingMove(){
     txAll.push({id:genId(),type:'expense',description:(type==='use'?'Gasto':'Retiro')+' ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date,category:type==='use'?'Ahorros-Gasto':'Ahorros-Retiro',origin:'saving_move',savingId:id,sourceType:'saving'});
     showToast((type==='use'?'Gasto':'Retiro')+' de '+fmt(amt)+' registrado como egreso ✓','success');
   } else if(type==='reincorporate'){
-    // RETIRAR PARA REINCORPORAR: vuelve al saldo libre. NO es egreso.
-    // El saldo libre sube porque totalSav baja (fórmula: libre = inc - exp - sav)
+    // RETIRAR PARA REINCORPORAR: puede ser a saldo libre o a una categoría de ingreso
+    // Se usa un origen especial para no contar como ingreso (ya que es plata que ya existía)
     acc.currentBalance-=amt;
     acc.transactions.push({id:genId(),type:'reincorporate',amount:amt,description:desc||'Retiro — reincorporado al saldo',date:date,reincorpTarget:reincorpTarget});
-    // Solo informativo en TX (ambos excluidos del cálculo)
-    txAll.push({id:genId(),type:'expense',description:'Retiro ahorro (reincorporado): '+acc.name+(desc?' — '+desc:''),amount:amt,date:date,category:'Ahorros-Retiro',origin:'saving_reincorp_egreso',savingId:id,sourceType:'saving'});
-    showToast('Retiro de '+fmt(amt)+' reincorporado al saldo libre ✓','success');
+    
+    if(reincorpTarget && reincorpTarget !== 'libre'){
+      // Reincorporar a una categoría específica: actualizar saldo sin crear transacción de ingreso
+      var catName=reincorpTarget.replace('cat_','');
+      // No se crea transacción, solo se guarda la referencia para mostrar en el historial de la categoría
+      txAll.push({id:genId(),type:'income',description:'Reincorporación desde ahorro: '+acc.name+(desc?' — '+desc:''),amount:amt,date:date,category:catName,origin:'saving_reincorp',savingId:id,sourceType:'saving'});
+      showToast('Retiro de '+fmt(amt)+' reincorporado a '+catName+' ✓','success');
+    } else {
+      // Reincorporar al saldo libre
+      txAll.push({id:genId(),type:'expense',description:'Retiro ahorro (reincorporado): '+acc.name+(desc?' — '+desc:''),amount:amt,date:date,category:'Ahorros-Retiro',origin:'saving_reincorp_egreso',savingId:id,sourceType:'saving'});
+      showToast('Retiro de '+fmt(amt)+' reincorporado al saldo libre ✓','success');
+    }
   }
   lsSet(KEYS.TX,txAll);
   all[idx]=acc;lsSet(KEYS.SAV,all);
