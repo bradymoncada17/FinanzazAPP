@@ -6,11 +6,21 @@
   <img src="https://img.shields.io/badge/Platform-PWA-orange?style=for-the-badge" alt="PWA">
 </p>
 
+<p align="center">
+  <a href="https://bradymoncada17.github.io/FinanzazAPP/" target="_blank">
+    <img src="https://img.shields.io/badge/🚀_Ver_Online-2563eb?style=for-the-badge&logo=google-chrome" alt="Ver Online">
+  </a>
+</p>
+
 ---
 
 ## Descripción
 
 **FinanzApp Pro** es una aplicación web progresiva (PWA) de gestión financiera personal diseñada para el mercado latinoamericano. Permite controlar ingresos, egresos, deudas, ahorros, tarjetas de crédito y préstamos grupales con una interfaz moderna, fluida y completamente offline-first.
+
+### 🚀 Demo en Vivo
+
+👉 **https://bradymoncada17.github.io/FinanzazAPP/**
 
 ### Características Principales
 
@@ -27,6 +37,22 @@
 ---
 
 ## Tecnologías
+
+<p align="center">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5">
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript">
+  <img src="https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap 5">
+  <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chart.js&logoColor=white" alt="Chart.js">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase">
+  <img src="https://img.shields.io/badge/Firestore-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firestore">
+  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+  <img src="https://img.shields.io/badge/Google_Fonts-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google Fonts">
+  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA">
+</p>
 
 | Categoría | Tecnología |
 |-----------|-------------|
@@ -205,14 +231,45 @@ FinanzApp Pro/
 
 ---
 
-## Cómo Instalar y Usar
+## Cómo Usar
 
-### Opción 1: Usar Online (Recomendado)
+### 🌐 Acceder Online (Recomendado)
 
-Simplemente abre el archivo `index.html` en tu navegador o serve la carpeta:
+La app está desplegada y lista para usar:
+
+**👉 https://bradymoncada17.github.io/FinanzazAPP/**
+
+Simplemente abre el enlace en tu navegador y commencer a usar la app.
+
+### 📱 Agregar a Pantalla de Inicio (PWA)
+
+Para una experiencia como app nativa, puedes instalar la app en tu dispositivo:
+
+**En Chrome/Edge (Android, Windows, Mac):**
+1. Abre **https://bradymoncada17.github.io/FinanzazAPP/** en el navegador
+2. Verás el icono de instalación (📥) en la barra de direcciones o en el menú inferior
+3. Haz clic en "Instalar FinanzApp Pro" o "Instalar app"
+4. ¡Listo! La app aparecerá en tu launcher como una aplicación nativa
+
+**En Safari (iOS/iPadOS):**
+1. Abre **https://bradymoncada17.github.io/FinanzazAPP/** en Safari
+2. Toca el botón de **Compartir** (⬆) en la barra de herramientas
+3. Desplázate y selecciona **"Añadir a pantalla de inicio"**
+4. Nombra la app y toca "Añadir"
+5. La app aparecerá como acceso directo en tu pantalla de inicio
+
+### 💻 Ejecutar Localmente (Desarrollo)
+
+Si deseas modificar o desarrollar la app:
 
 ```bash
-# Con Python (ya incluido en Windows/Mac)
+# Clona el repositorio
+git clone https://github.com/bradymoncada17/FinanzazAPP.git
+
+# Entra a la carpeta
+cd FinanzazAPP
+
+# Ejecuta con Python
 python -m http.server 8000
 
 # O con Node.js
@@ -221,27 +278,12 @@ npx serve .
 
 Luego accede a: `http://localhost:8000`
 
-### Opción 2: Agregar a Pantalla de Inicio (PWA)
+### 📦 Descargar Código Fuente
 
-La app está configurada como PWA. Para instalarla:
-
-**En Chrome/Edge (Android, Windows, Mac):**
-1. Abre la app en el navegador
-2. Verás el icono de instalación en la barra de direcciones (📥) o en el menú
-3. Haz clic en "Instalar FinanzApp Pro"
-4. ¡Listo! Aparecerá como app nativa en tu launcher
-
-**En Safari (iOS/Mac):**
-1. Abre la app en Safari
-2. Toca el botón "Compartir" (⬆)
-3. Selecciona "Añadir a pantalla de inicio"
-4. La app aparecerá como acceso directo
-
-### Opción 3: Descargar como Archivo
-
-1. Descarga/clona este repositorio
-2. Abre `index.html` directamente o usa un servidor local
-3. Para máxima compatibilidad, usa una extensión como "Web Server for Chrome" o "Live Server" en VS Code
+1. Ve al repositorio: **https://github.com/bradymoncada17/FinanzazAPP**
+2. Haz clic en el botón **"Code"** (verde)
+3. Selecciona **"Download ZIP"** o clona con Git
+4. Descomprime y abre `index.html` en tu navegador
 
 ---
 
@@ -259,7 +301,7 @@ La app está configurada como PWA. Para instalarla:
 
 ### Sincronización con GitHub Gist
 
-Para usuarios guest que querem backup en la nube:
+Para usuarios guest que quieren backup en la nube:
 1. Genera un token de GitHub en: `Settings > Developer settings > Personal access tokens`
 2. Selecciona alcance `gist`
 3. En FinanzApp: Configuración > Sincronización Gist > Pegar token
@@ -274,7 +316,7 @@ La interfaz incluye:
 - Dashboard con KPIs animados y gráficos Chart.js
 - Sidebar flotante con animaciones y badges
 - Vista transacciones con filtros y paginación
-- Gestión de deudas con进度 y cálculo de intereses
+- Gestión de deudas con progreso y cálculo de intereses
 - Sistema de ahorros con progress circular
 - Diseño mobile-first con safe-area y notch support
 
@@ -303,8 +345,14 @@ MIT License - Feel free to use, modify and distribute.
 
 ## Créditos
 
-- **Framework UI**: Bootstrap 5.3
-- **Iconos**: Bootstrap Icons
-- **Gráficos**: Chart.js
-- **Fuentes**: Google Fonts (Plus Jakarta Sans, JetBrains Mono)
-- **Backend**: Firebase, GitHub API
+- **Framework UI**: <img src="https://img.shields.io/badge/Bootstrap-7952B3?style=flat&logo=bootstrap" height="16"> Bootstrap 5.3
+- **Iconos**: <img src="https://img.shields.io/badge/Bootstrap_Icons-7952B3?style=flat" height="16"> Bootstrap Icons
+- **Gráficos**: <img src="https://img.shields.io/badge/Chart.js-FF6384?style=flat&logo=chart.js" height="16"> Chart.js
+- **Fuentes**: <img src="https://img.shields.io/badge/Google_Fonts-4285F4?style=flat&logo=google" height="16"> Plus Jakarta Sans, JetBrains Mono
+- **Backend**: <img src="https://img.shields.io/badge/Firebase-FFCA28?style=flat&logo=firebase" height="16"> Firebase, <img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github" height="16"> GitHub API
+
+---
+
+<p align="center">
+  <sub>Desarrollado con ❤️ por Brady Moncada</sub>
+</p>
