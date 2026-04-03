@@ -4031,11 +4031,13 @@ function calcPaymentPreview(){
 }
 function savePayment(){
   var id=document.getElementById('payDebtId').value;var editId=document.getElementById('payEditId').value;var amt=parseFloat(document.getElementById('payAmount').value);var date=document.getElementById('payDate').value;var srcVal=document.getElementById('paySourceSelected').value||'libre';
-  var payApEl=document.getElementById('payAporte');var aporteVal=payApEl?parseFloat(payApEl.value)||0:0;
-  var paySeEl=document.getElementById('paySeguro');var seguroVal=paySeEl?parseFloat(paySeEl.value)||0:0;
-  if(!amt||amt<=0){showToast('Ingresa un monto válido','danger');return;}
   var allDebts=lsGet(KEYS.DEBTS);var idx=allDebts.findIndex(function(d){return d.id===id;});if(idx<0)return;
-  var d=allDebts[idx];var intAmt=d.remainingBalance*(d.interestRate/100);var pInt=Math.min(amt,intAmt);var pCap=Math.max(0,amt-pInt);var newBal=Math.max(0,d.remainingBalance-pCap);
+  var d=allDebts[idx];
+  // Solo usar aporte/seguro si la deuda tiene estos conceptos habilitados
+  var payApEl=document.getElementById('payAporte');var aporteVal=(d.hasAporte&&d.aporteBase>0&&payApEl)?parseFloat(payApEl.value)||0:0;
+  var paySeEl=document.getElementById('paySeguro');var seguroVal=(d.hasSeguro&&d.seguroBase>0&&paySeEl)?parseFloat(paySeEl.value)||0:0;
+  if(!amt||amt<=0){showToast('Ingresa un monto válido','danger');return;}
+  var intAmt=d.remainingBalance*(d.interestRate/100);var pInt=Math.min(amt,intAmt);var pCap=Math.max(0,amt-pInt);var newBal=Math.max(0,d.remainingBalance-pCap);
   var sourceName='libre';var sourceLabel='Dinero libre';
   if(srcVal.indexOf('sav_')===0){
     var sid=srcVal.replace('sav_','');var allSav=lsGet(KEYS.SAV);var sidx=allSav.findIndex(function(s){return s.id===sid;});
