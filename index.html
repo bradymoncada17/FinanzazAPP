@@ -6068,6 +6068,10 @@ var firebaseConfig = {
 var _db = null; // Firestore instance
 var _firestoreListener = null; // Para desuscribir listener
 var _lastCloudPullTs = 0;
+/** Marca de tiempo (ms) del último dato de Firestore que este dispositivo conoce.
+ *  Se usa para detectar si otro dispositivo guardó algo más reciente antes de
+ *  que este intente sobrescribir el documento entero. */
+var _lastKnownServerModified = null;
 /** Sin actividad: pedir login tras 14 días (ajustable) */
 var FP_IDLE_MS = 14 * 24 * 60 * 60 * 1000;
 /** Segundo plano: cerrar sesión si pasan 72 h fuera de la app */
@@ -6160,7 +6164,12 @@ function getAllUserData() {
     clientes: getClientes(),
     prestamos: getPrestamos(),
     conceptos: (function(){try{var c=localStorage.getItem(getK(KEYS.CONCEPTOS));if(!c)c=localStorage.getItem('fp_conceptos');return c?JSON.parse(c):{};}catch(e){return{};}}()),
-    savedAt: new Date().toISOString()
+    savedAt: new Date().toISOString(),
+    // Hora del servidor: Firestore la rellena al confirmar la escritura.
+    // Es la fuente de verdad para saber qué dispositivo guardó más reciente.
+    lastModified: (typeof firebase !== 'undefined' && firebase.firestore)
+      ? firebase.firestore.FieldValue.serverTimestamp()
+      : Date.now()
   };
 }
 
@@ -6175,6 +6184,21 @@ function applyAllUserData(data) {
   if (data.prestamos) localStorage.setItem(getK(KEYS_PT), JSON.stringify(data.prestamos));
   if (data.conceptos) localStorage.setItem(getK(KEYS.CONCEPTOS), JSON.stringify(data.conceptos));
   localStorage.setItem(getK(KEYS.INIT), 'true');
+}
+
+// ── Aviso de conflicto entre dispositivos ──────────────────
+// Se dispara cuando este dispositivo está a punto de guardar pero detecta
+// que OTRO dispositivo ya guardó algo más nuevo. En vez de sobrescribirlo
+// a ciegas (que es lo que causaba la pérdida de datos), avisamos y
+// bloqueamos ese guardado puntual hasta que el usuario recargue.
+var _conflictWarned = false;
+function showSyncConflictWarning() {
+  var el = document.getElementById('syncStatusMini');
+  if (el) el.innerHTML = '<i class="bi bi-circle-fill" style="color:#ef4444;font-size:7px"></i><span>⚠ Otro dispositivo guardó cambios más nuevos</span>';
+  if (_conflictWarned) return; // no saturar con toasts repetidos
+  _conflictWarned = true;
+  showToast('⚠️ Hay cambios más recientes guardados desde otro dispositivo. Para no perderlos, recarga esta página (⟳) ANTES de seguir editando.', 'danger');
+  setTimeout(function(){ _conflictWarned = false; }, 60000);
 }
 
 // Guardar en Firestore o Gist (throttle 3s para no saturar)
@@ -6192,12 +6216,47 @@ function saveToFirestore() {
   if (!uid) return;
   clearTimeout(_saveThrottle);
   _saveThrottle = setTimeout(function() {
-    var data = getAllUserData();
-    _db.collection('users').doc(uid).set(data, {merge: false}).then(function(){
-      var el = document.getElementById('syncStatusMini');
-      if (el) el.innerHTML = '<i class="bi bi-circle-fill" style="color:#68d391;font-size:7px"></i><span>Sync: ' + new Date().toLocaleTimeString('es-CO') + '</span>';
+    var docRef = _db.collection('users').doc(uid);
+    // 1) Verificar primero si otro dispositivo ya escribió algo más
+    //    reciente que lo último que este dispositivo conoce.
+    docRef.get({ source: 'server' }).then(function(remoteDoc) {
+      var remoteMs = 0;
+      if (remoteDoc.exists) {
+        var rd = remoteDoc.data();
+        if (rd.lastModified && typeof rd.lastModified.toMillis === 'function') {
+          remoteMs = rd.lastModified.toMillis();
+        }
+      }
+      if (_lastKnownServerModified && remoteMs > _lastKnownServerModified + 1500) {
+        // Conflicto real: hay una escritura ajena más nueva que la nuestra.
+        // No sobrescribimos — avisamos y salimos.
+        showSyncConflictWarning();
+        return;
+      }
+      var data = getAllUserData();
+      docRef.set(data, { merge: true }).then(function(){
+        // Releer para fijar con precisión el timestamp que quedó confirmado
+        // (evita falsos conflictos por desfase de reloj entre cliente/servidor)
+        return docRef.get({ source: 'server' });
+      }).then(function(freshDoc){
+        if (freshDoc.exists && freshDoc.data().lastModified && typeof freshDoc.data().lastModified.toMillis === 'function') {
+          _lastKnownServerModified = freshDoc.data().lastModified.toMillis();
+        } else {
+          _lastKnownServerModified = Date.now();
+        }
+        var el = document.getElementById('syncStatusMini');
+        if (el) el.innerHTML = '<i class="bi bi-circle-fill" style="color:#68d391;font-size:7px"></i><span>Sync: ' + new Date().toLocaleTimeString('es-CO') + '</span>';
+      }).catch(function(e){
+        console.warn('Error guardando en Firestore:', e.message);
+      });
     }).catch(function(e){
-      console.warn('Error guardando en Firestore:', e.message);
+      // Si la verificación falla (ej. offline momentáneo), no bloqueamos
+      // el trabajo del usuario: guardamos igual con merge:true.
+      console.warn('No se pudo verificar conflicto antes de guardar:', e.message);
+      var data = getAllUserData();
+      docRef.set(data, { merge: true }).catch(function(e2){
+        console.warn('Error guardando en Firestore:', e2.message);
+      });
     });
   }, 3000);
 }
@@ -6210,7 +6269,10 @@ function flushSaveToFirestore() {
     clearTimeout(_saveThrottle);
     _saveThrottle = null;
     var data = getAllUserData();
-    _db.collection('users').doc(uid).set(data, { merge: false });
+    // En pagehide no hay tiempo de verificar conflicto de forma async con
+    // garantías; usamos merge:true para al menos no borrar campos que este
+    // dispositivo no conoce, en vez de reemplazar el documento entero.
+    _db.collection('users').doc(uid).set(data, { merge: true });
   } catch (e) {}
 }
 window.addEventListener('pagehide', flushSaveToFirestore);
@@ -6218,9 +6280,15 @@ window.addEventListener('pagehide', flushSaveToFirestore);
 // Cargar desde Firestore
 function loadFromFirestore(uid, callback) {
   if (!_db) { if(callback) callback(false); return; }
-  _db.collection('users').doc(uid).get().then(function(doc) {
+  _db.collection('users').doc(uid).get({ source: 'server' }).then(function(doc) {
     if (doc.exists) {
-      applyAllUserData(doc.data());
+      var data = doc.data();
+      if (data.lastModified && typeof data.lastModified.toMillis === 'function') {
+        _lastKnownServerModified = data.lastModified.toMillis();
+      } else {
+        _lastKnownServerModified = Date.now();
+      }
+      applyAllUserData(data);
       console.log('[Firestore] Datos cargados desde la nube ✓');
       if (callback) callback(true);
     } else {
