@@ -1,358 +1,209 @@
 # FinanzApp Pro
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Version-1.2.4-blue?style=for-the-badge&logo=data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%234f46e5'/><stop offset='100%25' stop-color='%232563eb'/></linearGradient></defs><rect width='32' height='32' rx='10' fill='url(%23g)'/><path d='M9 16l5 5 9-9' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>" alt="Version">
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Platform-PWA-orange?style=for-the-badge" alt="PWA">
-</p>
+Aplicación web de finanzas personales con dashboard, ingresos y egresos, deudas, ahorros, tarjetas, préstamos grupales, categorías, importación/exportación y experiencia PWA responsive.
 
-<p align="center">
-  <a href="https://bradymoncada17.github.io/FinanzazAPP/" target="_blank">
-    <img src="https://img.shields.io/badge/🚀_Ver_Online-2563eb?style=for-the-badge&logo=google-chrome" alt="Ver Online">
-  </a>
-</p>
+## Dos modos de acceso
 
----
+Al abrir la app puedes elegir cómo continuar:
 
-## Descripción
+| Modo | Dónde funciona | Inicio de sesión | Dónde se guardan/sincronizan los datos |
+|---|---|---|---|
+| **Local · SQL Server** | Laboratorio Docker ejecutado en tu PC | Cuenta local con correo y contraseña; puedes registrarte desde la pantalla de acceso | API Node.js + Microsoft SQL Server del laboratorio, en el volumen Docker `sqlserver_data` |
+| **En línea · Google** | GitHub Pages y también Docker | Inicio habitual con Google/Firebase Authentication | Firestore, asociado a la cuenta Google |
+| **Invitado** | GitHub Pages | Sin cuenta | En el almacenamiento local del navegador; sin sincronización automática |
 
-**FinanzApp Pro** es una aplicación web progresiva (PWA) de gestión financiera personal diseñada para el mercado latinoamericano. Permite controlar ingresos, egresos, deudas, ahorros, tarjetas de crédito y préstamos grupales con una interfaz moderna, fluida y completamente offline-first.
+Las cuentas locales y las cuentas Google son independientes. **Los datos del modo SQL no se copian automáticamente a Firestore ni al contrario.** GitHub Pages es estático: conserva el modo Google/Firebase y no puede conectarse al SQL Server que está dentro de tu PC. La opción SQL se desactiva allí y la pantalla explica que requiere Docker.
 
-### 🚀 Demo en Vivo
+Las contraseñas locales se guardan con derivación PBKDF2 y las sesiones usan una cookie HttpOnly. Esto es una implementación para laboratorio local; no expongas el puerto ni publiques el contenedor en Internet.
 
-👉 **https://bradymoncada17.github.io/FinanzazAPP/**
+## Qué contiene el laboratorio
 
-### Características Principales
-
-- **Dashboard Inteligente**: KPIs visuales con animación, gráficos donut y líneas de flujo de caja
-- **Gestión de Transacciones**: CRUD completo con filtros avanzados y paginación
-- **Control de Deudas**: Seguimiento de préstamos con cálculo de intereses en tiempo real
-- **Sistema de Ahorros**: Metas de ahorro con progress circular y lineal
-- **Tarjetas de Crédito**: Control de cupos, movimientos y ciclos de facturación
-- **Préstamos Grupales**: Gestión de clientes y préstamos entre particulares
-- **Export/Import**: Backup en JSON y sincronización con GitHub Gist
-- **PWA Nativo**: Agregar a pantalla de inicio, funciona sin conexión
-- **Diseño Responsive**: Optimizado para móvil, tablet y escritorio
-
----
-
-## Tecnologías
-
-<p align="center">
-  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5">
-  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3">
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript">
-  <img src="https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap 5">
-  <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chart.js&logoColor=white" alt="Chart.js">
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase">
-  <img src="https://img.shields.io/badge/Firestore-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firestore">
-  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
-  <img src="https://img.shields.io/badge/Google_Fonts-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google Fonts">
-  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA">
-</p>
-
-| Categoría | Tecnología |
-|-----------|-------------|
-| **Frontend** | HTML5, CSS3 (CSS Variables, Flexbox, Grid), Vanilla JavaScript |
-| **Framework UI** | Bootstrap 5.3 |
-| **Gráficos** | Chart.js 4.x |
-| **Iconos** | Bootstrap Icons 1.11 |
-| **Fuentes** | Plus Jakarta Sans (UI), JetBrains Mono (números) |
-| **Backend/Auth** | Firebase Authentication (Google, Apple) |
-| **Base de Datos** | Firebase Firestore |
-| **Sincronización** | GitHub Gist API |
-| **PWA** | Service Worker, Web App Manifest |
-| **Almacenamiento** | LocalStorage + sincronización cloud |
-
----
-
-## Arquitectura de la Aplicación
-
-```
-FinanzApp Pro/
-├── index.html          # Punto de entrada SPA
-├── app.js              # Lógica de UI, enrutamiento, render, charts
-├── financeService.js   # Capa de datos: CRUD, storage, sync
-├── styles.css          # Design system completo
-├── sw.js               # Service Worker para PWA offline
-├── manifest.json       # Web App Manifest (PWA)
-└── .git/               # Control de versiones
+```text
+Navegador (http://localhost:8080)
+        │
+        ▼
+web — Nginx: sirve la SPA y reenvía /api/ al servicio API
+        │
+        ▼
+api — Node.js: autenticación local y operaciones de datos
+        │
+        ▼
+sqlserver — Microsoft SQL Server 2022: usuarios, sesiones y snapshots
+        └── volumen Docker persistente: sqlserver_data
 ```
 
-### Flujo de Datos
+`init-db` es un servicio de ejecución única que espera SQL Server, crea la base `FinanzApp` y ejecuta `database/init.sql` de forma idempotente antes de iniciar la API. SQL Server se publica para SSMS sólo en `127.0.0.1:14330`; la API Node no se publica directamente al host. La web está vinculada a localhost en el puerto `8080` de forma predeterminada.
 
-```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────┐
-│   UI Layer  │────▶│  FinanceService  │────▶│  Storage    │
-│   (app.js)  │◀────│  (Logic Layer)   │◀────│ (Local + DB)│
-└─────────────┘     └──────────────────┘     └─────────────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │   Sync      │
-                    │ (Firebase/  │
-                    │   Gist)     │
-                    └─────────────┘
-```
+## Ejecutarlo en Windows 11 (paso a paso)
 
----
+### 1. Instala Docker Desktop
 
-## Esquema de Base de Datos
+1. Descarga Docker Desktop desde el sitio oficial de Docker e instálalo para Windows.
+2. Durante la instalación, usa el backend recomendado **WSL 2** si el instalador lo ofrece. Si Windows pide reiniciar, reinicia.
+3. Abre **Docker Desktop** desde el menú Inicio y espera a que indique que Docker está iniciado/funcionando. Déjalo abierto mientras uses FinanzApp.
+4. Abre **PowerShell**. Comprueba que Docker responde:
 
-### LocalStorage Keys (por usuario)
+   ```powershell
+   docker --version
+   docker compose version
+   ```
 
-| Key | Descripción | Estructura |
-|-----|-------------|------------|
-| `{uid}_transactions` | Ingresos y egresos | `Array<Transaction>` |
-| `{uid}_debts` | Deudas y préstamos | `Array<Debt>` |
-| `{uid}_savings` | Cuentas de ahorro | `Array<Saving>` |
-| `{uid}_tarjetas` | Tarjetas de crédito | `Array<Tarjeta>` |
-| `{uid}_prestamos` | Préstamos grupales | `Array<Prestamo>` |
-| `{uid}_clientes` | Clientes (prestamista) | `Array<Cliente>` |
-| `{uid}_categories` | Categorías personalizadas | `Array<Category>` |
+   Si Windows dice que no reconoce `docker`, Docker Desktop todavía no terminó de instalarse o no está iniciado. Ábrelo, espera y vuelve a probar.
 
-### Modelos de Datos
+### 2. Extrae el ZIP completo
 
-#### Transaction (Transacción)
-```javascript
-{
-  id: "fp_1700000000_abc123",    // ID único generado
-  type: "income" | "expense",    // Tipo de transacción
-  description: "Salario mensual", // Descripción
-  amount: 4500000,               // Monto (COP)
-  date: "2024-01-15",            // Fecha ISO
-  category: "Salario",           // Categoría
-  origin: "tarjeta_pago" | "debt_payment" | "saving_reincorp", // Origen (opcional)
-  debtId: "fp_xxx"              // ID deuda asociada (opcional)
-}
+1. Descarga el ZIP de FinanzApp Pro y guárdalo, por ejemplo, en **Descargas**.
+2. En el Explorador de archivos, clic derecho en el ZIP y selecciona **Extraer todo…**.
+3. Elige una carpeta sencilla, por ejemplo `C:\Users\TU_USUARIO\Desktop\FinanzAppPro`, y pulsa **Extraer**.
+4. Abre esa carpeta. La carpeta correcta es la que contiene directamente `docker-compose.yml`, `Dockerfile`, `index.html`, `.env.example` y `api`.
+5. No ejecutes los comandos desde la carpeta interior equivocada. Para verificar el lugar, usa PowerShell con `Get-ChildItem -Force` y confirma que aparece `docker-compose.yml`.
+
+### 3. Crea o comprueba `.env`
+
+El archivo `.env` debe quedar **en la misma carpeta que `docker-compose.yml`**. El punto forma parte del nombre. No lo pongas dentro de `api`, `database` ni en el Escritorio por separado.
+
+En PowerShell, después de entrar a la carpeta del proyecto:
+
+```powershell
+Set-Location "$HOME\Desktop\FinanzAppPro"
+Get-ChildItem -Force
 ```
 
-#### Debt (Deuda)
-```javascript
-{
-  id: "fp_1700000000_abc123",
-  creditor: "Cooperativa Financiera",
-  description: "Crédito libre inversión",
-  debtType: "efectivo" | "virtual",
-  totalAmount: 13000000,
-  interestRate: 2.1,        // Tasa mensual %
-  months: 48,
-  cuota: 440990,
-  hasSeguro: false,
-  seguroBase: 0,
-  hasAporte: true,
-  aporteBase: 13103,
-  startDate: "2024-01-01",
-  remainingBalance: 11800000,
-  gastado: 0,
-  payments: [
-    {
-      id: "fp_xxx",
-      date: "2024-02-01",
-      amount: 440990,
-      interest: 298000,
-      capital: 142990,
-      aporte: 13103,
-      source: "libre"
-    }
-  ]
-}
+Si todavía no tienes `.env`, créalo desde la plantilla:
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
 ```
 
-#### Saving (Cuenta de Ahorro)
-```javascript
-{
-  id: "fp_1700000000_abc123",
-  name: "Fondo de Emergencias",
-  description: "3 meses de gastos",
-  goal: 5000000,
-  currentBalance: 2200000,
-  transactions: [
-    {
-      id: "fp_xxx",
-      type: "deposit" | "withdraw" | "use",
-      amount: 500000,
-      date: "2024-01-15",
-      description: "Aporte mensual"
-    }
-  ]
-}
+El archivo tendrá este formato:
+
+```dotenv
+MSSQL_SA_PASSWORD=Lab_Finanzas_2026!
+FINANZAPP_PORT=8080
+FINANZAPP_SQL_PORT=14330
 ```
 
-#### Tarjeta (Tarjeta de Crédito)
-```javascript
-{
-  id: "fp_xxx",
-  nombre: "Banco Colombia",
-  franquicia: "mastercard" | "visa" | "amex" | "otro",
-  cupoAprobado: 10000000,
-  cupoUsado: 3500000,
-  tasa: 2.5,        // Tasa mensual %
-  diaCorte: 15,
-  diaPago: 5,
-  descripcion: "Tarjeta principal",
-  fechaInicio: "2023-06-01",
-  movements: []
-}
+No escribas comillas ni espacios alrededor de `=`. Si ya tenías una carpeta de laboratorio y un volumen `sqlserver_data` con información, conserva exactamente la contraseña `MSSQL_SA_PASSWORD` que usaste cuando se inicializó ese volumen; SQL Server no cambia la contraseña del usuario `sa` sólo porque modifiques `.env`. Si empiezas desde cero, reemplaza el valor de ejemplo por una contraseña propia que cumpla la política de SQL Server y guarda el archivo. No compartas `.env` ni lo subas a GitHub.
+
+### 4. Inicia los contenedores
+
+Asegúrate de que PowerShell sigue situado en la carpeta raíz del proyecto y que Docker Desktop está iniciado. Primero valida la configuración y luego construye/inicia el laboratorio:
+
+```powershell
+docker compose config
+docker compose up -d --build
 ```
 
-#### Cliente (Préstamos Grupales)
-```javascript
-{
-  id: "fp_xxx",
-  nombre: "Juan Pérez",
-  telefono: "+573001234567",
-  email: "juan@email.com",
-  documento: "12345678",
-  direccion: "Carrera 10 #20-30",
-  notas: "Cliente frecuente",
-  fechaCreacion: "2023-01-01"
-}
+La primera ejecución descarga las imágenes y puede tardar varios minutos. Espera hasta que termine el comando. Después revisa los servicios:
+
+```powershell
+docker compose ps
 ```
 
-#### Prestamo (Préstamo Grupal)
-```javascript
-{
-  id: "fp_xxx",
-  clienteId: "fp_client_xxx",
-  monto: 5000000,
-  tasa: 3.0,
-  cuotas: 12,
-  frecuencia: "mensual" | "quincenal" | "semanal",
-  fecha: "2024-01-01",
-  descripcion: "Préstamo personal",
-  payments: [],
-  totalPagado: 0
-}
+Deben aparecer `sqlserver`, `init-db`, `api` y `web`. `init-db` es un trabajo de una sola vez: es normal que figure como `Exited (0)` cuando terminó correctamente. Los otros servicios deben figurar activos.
+
+También puedes verlos en **Docker Desktop → Containers**. Ahí se observa el estado de cada contenedor y sus registros (logs). El navegador no se conecta directamente a SQL Server: se conecta a Nginx y Nginx reenvía las solicitudes `/api/` a Node.
+
+### 5. Comprueba la base y abre la aplicación
+
+Cuando `api` figure activo, comprueba que la base y las tablas están listas:
+
+```powershell
+docker compose exec api npm run db:check
 ```
 
----
+La salida debe mostrar la base `FinanzApp`, las tablas de snapshots y las tablas `app_users` y `app_sessions`.
 
-## Cómo Usar
+Abre esta dirección en Edge o Chrome:
 
-### 🌐 Acceder Online (Recomendado)
-
-La app está desplegada y lista para usar:
-
-**👉 https://bradymoncada17.github.io/FinanzazAPP/**
-
-Simplemente abre el enlace en tu navegador y commencer a usar la app.
-
-### 📱 Agregar a Pantalla de Inicio (PWA)
-
-Para una experiencia como app nativa, puedes instalar la app en tu dispositivo:
-
-**En Chrome/Edge (Android, Windows, Mac):**
-1. Abre **https://bradymoncada17.github.io/FinanzazAPP/** en el navegador
-2. Verás el icono de instalación (📥) en la barra de direcciones o en el menú inferior
-3. Haz clic en "Instalar FinanzApp Pro" o "Instalar app"
-4. ¡Listo! La app aparecerá en tu launcher como una aplicación nativa
-
-**En Safari (iOS/iPadOS):**
-1. Abre **https://bradymoncada17.github.io/FinanzazAPP/** en Safari
-2. Toca el botón de **Compartir** (⬆) en la barra de herramientas
-3. Desplázate y selecciona **"Añadir a pantalla de inicio"**
-4. Nombra la app y toca "Añadir"
-5. La app aparecerá como acceso directo en tu pantalla de inicio
-
-### 💻 Ejecutar Localmente (Desarrollo)
-
-Si deseas modificar o desarrollar la app:
-
-```bash
-# Clona el repositorio
-git clone https://github.com/bradymoncada17/FinanzazAPP.git
-
-# Entra a la carpeta
-cd FinanzazAPP
-
-# Ejecuta con Python
-python -m http.server 8000
-
-# O con Node.js
-npx serve .
+```text
+http://localhost:8080
 ```
 
-Luego accede a: `http://localhost:8000`
+Selecciona **Cuenta local · SQL Server** y luego **Crear una cuenta**. Usa un correo válido y una contraseña de al menos 10 caracteres. La cuenta local sólo pertenece a este laboratorio. Después puedes cerrar sesión y volver a entrar con el mismo correo y contraseña. Para usar Firestore, elige **Continuar con Google** en lugar de la cuenta local.
 
-### 📦 Descargar Código Fuente
+### 6. Ver la base desde SQL Server Management Studio (SSMS)
 
-1. Ve al repositorio: **https://github.com/bradymoncada17/FinanzazAPP**
-2. Haz clic en el botón **"Code"** (verde)
-3. Selecciona **"Download ZIP"** o clona con Git
-4. Descomprime y abre `index.html` en tu navegador
+El SQL Server de Docker es otra instancia, separada de la instancia de Windows que ya puedas tener, por ejemplo `PCBRADY`. No reemplaza ni modifica `PCBRADY`.
 
----
+1. Abre **SQL Server Management Studio (SSMS)** y selecciona **Conectar → Motor de base de datos**.
+2. En **Nombre del servidor**, escribe exactamente `127.0.0.1,14330` (coma y puerto incluidos). También puedes usar `localhost,14330`.
+3. En **Autenticación**, selecciona **Autenticación de SQL Server**.
+4. En **Inicio de sesión**, escribe `sa`.
+5. En **Contraseña**, escribe el valor de `MSSQL_SA_PASSWORD` que aparece en tu archivo `.env`.
+6. Si SSMS muestra una opción de cifrado/certificado, marca **Confiar en el certificado del servidor** (Trust server certificate) para este laboratorio local.
+7. Pulsa **Conectar**. En el panel **Explorador de objetos**, expande **Bases de datos → FinanzApp → Tablas**.
 
-## Modos de Uso
+Consultas de inspección que puedes ejecutar en una ventana nueva de SSMS:
 
-### Modo Invitado (Guest)
-- Todos los datos se almacenan en LocalStorage
-- Sincronización opcional con GitHub Gist (backup manual)
-- Ideal para pruebas rápidas
+```sql
+USE FinanzApp;
+SELECT name AS tabla FROM sys.tables ORDER BY name;
+SELECT email, display_name, created_at FROM dbo.app_users;
+SELECT user_id, data_key, updated_at FROM dbo.financial_snapshots;
+```
 
-### Modo Registrado (Firebase)
-- Autenticación con Google o Apple
-- Sincronización automática con Firestore
-- Acceso desde múltiples dispositivos
+La contraseña de la cuenta local de FinanzApp no es la contraseña `sa`: son credenciales distintas. `sa` es la cuenta administrativa del motor SQL que se usa aquí para el laboratorio y para SSMS.
 
-### Sincronización con GitHub Gist
+### 7. Detener, volver a iniciar y conservar datos
 
-Para usuarios guest que quieren backup en la nube:
-1. Genera un token de GitHub en: `Settings > Developer settings > Personal access tokens`
-2. Selecciona alcance `gist`
-3. En FinanzApp: Configuración > Sincronización Gist > Pegar token
-4. Los datos se respaldarán automáticamente
+Desde PowerShell, dentro de la misma carpeta del proyecto:
 
----
+```powershell
+# Detiene y elimina los contenedores; conserva el volumen con la base de datos
+docker compose down
 
-## Capturas de Pantalla
+# Vuelve a iniciar el laboratorio
+docker compose up -d
+```
 
-La interfaz incluye:
-- Login con degrade oscuro y botones sociales
-- Dashboard con KPIs animados y gráficos Chart.js
-- Sidebar flotante con animaciones y badges
-- Vista transacciones con filtros y paginación
-- Gestión de deudas con progreso y cálculo de intereses
-- Sistema de ahorros con progress circular
-- Diseño mobile-first con safe-area y notch support
+Para seguir usando el mismo laboratorio otro día, abre Docker Desktop y ejecuta `docker compose up -d` desde la carpeta del proyecto. Para reconstruir la web/API después de actualizar archivos usa `docker compose up -d --build`.
 
----
+**No ejecutes `docker compose down -v` si quieres conservar tus datos.** La opción `-v` elimina el volumen `sqlserver_data`, incluyendo usuarios, sesiones y snapshots financieros. Es un reinicio destructivo.
 
-## Actualizaciones y Mejoras
+## Diagnóstico de problemas frecuentes
 
-### Versión 1.2.4 (Actual)
-- Animaciones avanzadas (orbits, typewriter, shimmer)
-- Mejoras en experiencia mobile
-- Optimización de rendimiento
+### `service "api" is not running`
 
-### Próximas Funciones
-- [ ] Reportes PDF exportables
-- [ ] Modo oscuro completo
-- [ ] Notificaciones push
-- [ ] Integración con bancos (mock API)
+Ese mensaje al ejecutar `docker compose exec api npm run db:check` significa que Docker no encuentra el contenedor API en ejecución; el comando de comprobación no lo inicia por sí mismo. Comprueba primero:
 
----
+```powershell
+docker compose ps -a
+docker compose logs --tail 100 sqlserver init-db api
+```
 
-## Licencia
+Busca el primer error. Si `sqlserver` no arrancó, revisa la contraseña de `.env` y que Docker Desktop tenga recursos suficientes. Si `init-db` falló, la API no se inicia porque depende de que la inicialización SQL termine correctamente. Si el error indica que la contraseña no es correcta y ya existía un volumen, restaura en `.env` la contraseña original usada para ese volumen. Corrige el problema y vuelve a ejecutar:
 
-MIT License - Feel free to use, modify and distribute.
+```powershell
+docker compose up -d --build
+docker compose ps
+docker compose exec api npm run db:check
+```
 
----
+### No abre `http://localhost:8080`
 
-## Créditos
+Confirma que `web` aparece activo con `docker compose ps`. Si el puerto 8080 ya lo ocupa otra aplicación, cambia `FINANZAPP_PORT` en `.env`, por ejemplo a `8081`, vuelve a ejecutar `docker compose up -d` y abre `http://localhost:8081`.
 
-- **Framework UI**: <img src="https://img.shields.io/badge/Bootstrap-7952B3?style=flat&logo=bootstrap" height="16"> Bootstrap 5.3
-- **Iconos**: <img src="https://img.shields.io/badge/Bootstrap_Icons-7952B3?style=flat" height="16"> Bootstrap Icons
-- **Gráficos**: <img src="https://img.shields.io/badge/Chart.js-FF6384?style=flat&logo=chart.js" height="16"> Chart.js
-- **Fuentes**: <img src="https://img.shields.io/badge/Google_Fonts-4285F4?style=flat&logo=google" height="16"> Plus Jakarta Sans, JetBrains Mono
-- **Backend**: <img src="https://img.shields.io/badge/Firebase-FFCA28?style=flat&logo=firebase" height="16"> Firebase, <img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github" height="16"> GitHub API
+### SSMS no conecta al puerto 14330
 
----
+Asegúrate de que `sqlserver` esté activo y que `FINANZAPP_SQL_PORT=14330` esté en `.env`. Si el puerto está ocupado, cambia a `14331`, vuelve a crear el servicio (`docker compose up -d --force-recreate sqlserver`) y conecta SSMS a `127.0.0.1,14331`. No cambies el puerto interno `1433`.
 
-<p align="center">
-  <sub>Desarrollado con ❤️ por Brady Moncada</sub>
-</p>
+### Quiero revisar qué guardó la API
+
+```powershell
+docker compose logs --tail 100 api
+docker compose logs --tail 100 sqlserver
+```
+
+Para seguir los registros en tiempo real, añade `-f`; pulsa `Ctrl+C` para dejar de verlos. Eso detiene la lectura de logs, no los contenedores.
+
+## GitHub Pages y publicación
+
+GitHub Pages sigue siendo la versión estática. Publica `index.html`, `premium-ui.css`, `local-auth.js`, `runtime-config.js` y `sw.js` junto con los otros archivos originales del sitio. En Pages el inicio Google y Firestore siguen disponibles; SQL local no está instalado allí y la app lo indica en el selector. La publicación en GitHub Pages no publica el laboratorio Docker ni los datos guardados en tu PC.
+
+Después de publicar, si el navegador muestra una versión anterior, fuerza una recarga con `Ctrl+F5` o `Ctrl+Shift+R`. El service worker cambió de versión y limpia la caché anterior para cargar los nuevos archivos.
+
+## Seguridad y límites
+
+El puerto de SSMS está ligado a `127.0.0.1`, no a la red local. No cambies esa dirección para exponer SQL a otros equipos. Usa este montaje sólo para aprender y probar: no está diseñado como servicio de producción en Internet, ni reemplaza copias de seguridad. El volumen Docker conserva información mientras no lo elimines, pero no sustituye un backup independiente.

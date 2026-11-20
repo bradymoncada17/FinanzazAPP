@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)"/>
-<meta name="theme-color" content="#f1f5f9" media="(prefers-color-scheme: light)"/>
+<meta name="theme-color" content="#08151b" media="(prefers-color-scheme: dark)"/>
+<meta name="theme-color" content="#f4f6f5" media="(prefers-color-scheme: light)"/>
 <title>FinanzApp Pro</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%234f46e5'/><stop offset='100%' stop-color='%232563eb'/></linearGradient></defs><rect width='32' height='32' rx='10' fill='url(%23g)'/><path d='M9 16l5 5 9-9' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' fill='none'/><circle cx='23' cy='9' r='3' fill='white' opacity='0.3'/></svg>"/>
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%234f46e5'/><stop offset='100%' stop-color='%232563eb'/></linearGradient></defs><rect width='180' height='180' rx='46' fill='url(%23g)'/><path d='M50 95l30 30 50-50' stroke='white' stroke-width='14' stroke-linecap='round' stroke-linejoin='round' fill='none'/><circle cx='130' cy='50' r='18' fill='white' opacity='0.3'/></svg>"/>
@@ -20,6 +20,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="./runtime-config.js"></script>
 
 <style>
 :root{
@@ -743,36 +744,103 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
   .fp-table tbody tr:last-child{margin-bottom:0}
 }
 </style>
+<link rel="stylesheet" href="./premium-ui.css"/>
 </head>
 <body class="is-loading">
 
-<!-- PANTALLA DE LOGIN -->
-<div id="view-login">
-  <div class="login-box">
-    <div class="login-logo"><i class="bi bi-wallet2"></i></div>
-    <h1 class="login-title">FinanzApp Pro</h1>
-    <p class="login-sub">Gestiona tu dinero con inteligencia</p>
-    
-    <button class="btn-social btn-google" onclick="loginWithGoogle()">
-      <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.8 2.73v2.27h2.9c1.7-1.57 2.7-3.88 2.7-6.63z" fill="#4285F4"/>
-        <path d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.9-2.27c-.8.54-1.83.87-3.06.87-2.35 0-4.33-1.58-5.04-3.71H.95v2.35C2.43 16.07 5.51 18 9 18z" fill="#34A853"/>
-        <path d="M3.96 10.72c-.18-.54-.28-1.12-.28-1.72s.1-1.18.28-1.72V4.93H.95C.35 6.15 0 7.53 0 9s.35 2.85.95 4.07l3.01-2.35z" fill="#FBBC05"/>
-        <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.51 0 2.43 1.93.95 4.93l3.01 2.35c.71-2.13 2.69-3.71 5.04-3.71z" fill="#EA4335"/>
-      </svg>
-      Acceder con Google
-    </button>
+<!-- ACCESO: cuentas locales en Docker o acceso cloud existente con Google/Firebase -->
+<div id="view-login" class="auth-stage">
+  <div class="auth-shell">
+    <aside class="auth-story" aria-label="FinanzApp Pro">
+      <div class="auth-brand">
+        <div class="auth-brand-mark"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></div>
+        <div><p class="auth-brand-name">FinanzApp Pro</p><span class="auth-brand-tag">Control con propósito</span></div>
+      </div>
+      <div class="auth-story-copy">
+        <div class="auth-eyebrow">Finanzas, con dirección</div>
+        <h2>Un mejor control.<br><span>Decisiones más tuyas.</span></h2>
+        <p>Organiza tus ingresos, metas y compromisos en un espacio diseñado para ayudarte a ver con claridad lo que sigue.</p>
+      </div>
+      <div class="auth-showcase" aria-label="Ilustración decorativa de análisis financiero">
+        <div class="auth-showcase-top"><span>Tu panorama financiero</span><span class="auth-showcase-status">Más claridad, paso a paso</span></div>
+        <div class="auth-showcase-value">Del dato a la decisión</div>
+        <div class="auth-showcase-chart" aria-hidden="true">
+          <i style="--bar:35%;--delay:.08s"></i><i style="--bar:52%;--delay:.16s"></i><i style="--bar:43%;--delay:.24s"></i><i style="--bar:70%;--delay:.32s"></i><i style="--bar:59%;--delay:.4s"></i><i style="--bar:88%;--delay:.48s"></i><i style="--bar:76%;--delay:.56s"></i><i style="--bar:100%;--delay:.64s"></i>
+        </div>
+        <div class="auth-showcase-foot"><span>Metas · hábitos · seguimiento</span><strong>Tu ritmo, tu plan</strong></div>
+      </div>
+      <div class="auth-story-foot"><span>FinanzApp Pro</span><span>Los datos no se mezclan entre modos</span></div>
+    </aside>
 
-    <div style="margin: 20px 0; color: rgba(255,255,255,0.2); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">O</div>
-    
-    <button class="btn-social" onclick="loginGuest()">
-      <i class="bi bi-person-fill"></i>
-      Entrar como Invitado
-    </button>
+    <main class="auth-panel">
+      <div class="auth-panel-head">
+        <div class="auth-mobile-brand">
+          <div class="auth-brand-mark"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></div>
+          <div><p class="auth-brand-name">FinanzApp Pro</p><span class="auth-brand-tag">Control con propósito</span></div>
+        </div>
+        <span class="auth-env-pill" id="authEnvironmentBadge"><i class="bi bi-circle-fill" aria-hidden="true"></i> Comprobando entorno…</span>
+      </div>
 
-    <p style="margin-top: 32px; font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 500;">
-      Tu privacidad es nuestra prioridad. <br> El inicio de sesión con Google es recomendado.
-    </p>
+      <div class="auth-panel-content">
+        <section class="auth-section" id="authChooser">
+          <div class="auth-kicker">Tu espacio financiero</div>
+          <h1 class="auth-heading">Elige cómo continuar</h1>
+          <p class="auth-description">Selecciona dónde quieres guardar tus datos. Cada modo mantiene sus propias cuentas y almacenamiento.</p>
+          <div class="auth-mode-grid">
+            <button class="auth-mode-card" id="authLocalModeButton" type="button" onclick="LocalAuthUI.openMode('local')">
+              <span class="auth-mode-icon"><i class="bi bi-hdd-stack" aria-hidden="true"></i></span>
+              <span class="auth-mode-copy"><span class="auth-mode-title">Cuenta local · SQL Server</span><span class="auth-mode-note">Regístrate o inicia sesión en este laboratorio Docker.</span></span>
+              <i class="bi bi-arrow-right auth-mode-arrow" aria-hidden="true"></i>
+            </button>
+            <button class="auth-mode-card" type="button" onclick="LocalAuthUI.openMode('online')">
+              <span class="auth-mode-icon auth-mode-icon--online"><i class="bi bi-cloud-check" aria-hidden="true"></i></span>
+              <span class="auth-mode-copy"><span class="auth-mode-title">Continuar con Google</span><span class="auth-mode-note">Usa tu cuenta habitual y sincroniza con Firebase/Firestore.</span></span>
+              <i class="bi bi-arrow-right auth-mode-arrow" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="auth-mode-label">Almacenamiento independiente</div>
+          <p class="auth-inline-note" id="authModeNote"><i class="bi bi-info-circle" aria-hidden="true"></i> Comprobando las opciones disponibles…</p>
+        </section>
+
+        <section class="auth-section" id="authLocalPanel" hidden>
+          <button type="button" class="auth-back" onclick="LocalAuthUI.showChooser()"><i class="bi bi-arrow-left" aria-hidden="true"></i> Cambiar modo</button>
+          <div class="auth-kicker" id="localAuthKicker">Cuenta local · SQL Server</div>
+          <h1 class="auth-heading" id="localAuthHeading">Accede a tu espacio</h1>
+          <p class="auth-description">Esta cuenta existe solo en tu laboratorio local. Su contraseña se almacena protegida en SQL Server.</p>
+          <form id="localSignInForm" class="auth-form" autocomplete="on">
+            <div class="auth-field"><label for="localEmail">Correo electrónico</label><input id="localEmail" name="email" type="email" autocomplete="username" maxlength="254" placeholder="nombre@correo.com" required/></div>
+            <div class="auth-field"><label for="localPassword">Contraseña</label><div class="auth-password-wrap"><input id="localPassword" name="password" type="password" autocomplete="current-password" maxlength="128" placeholder="Tu contraseña" required/><button type="button" class="auth-password-toggle" data-password-toggle="localPassword" aria-label="Mostrar contraseña"><i class="bi bi-eye" aria-hidden="true"></i></button></div></div>
+            <button type="submit" class="auth-submit"><i class="bi bi-unlock" aria-hidden="true"></i> Iniciar sesión local</button>
+          </form>
+          <form id="localRegisterForm" class="auth-form" autocomplete="on" hidden>
+            <div class="auth-field"><label for="localDisplayName">Nombre</label><input id="localDisplayName" name="name" type="text" autocomplete="name" maxlength="80" placeholder="Cómo quieres que te llamemos" required/></div>
+            <div class="auth-field"><label for="localRegisterEmail">Correo electrónico</label><input id="localRegisterEmail" name="email" type="email" autocomplete="email" maxlength="254" placeholder="nombre@correo.com" required/></div>
+            <div class="auth-field"><label for="localRegisterPassword">Contraseña</label><div class="auth-password-wrap"><input id="localRegisterPassword" name="new-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" placeholder="Mínimo 10 caracteres" required/><button type="button" class="auth-password-toggle" data-password-toggle="localRegisterPassword" aria-label="Mostrar contraseña"><i class="bi bi-eye" aria-hidden="true"></i></button></div></div>
+            <div class="auth-field"><label for="localConfirmPassword">Confirmar contraseña</label><div class="auth-password-wrap"><input id="localConfirmPassword" name="confirm-password" type="password" autocomplete="new-password" minlength="10" maxlength="128" placeholder="Repite la contraseña" required/><button type="button" class="auth-password-toggle" data-password-toggle="localConfirmPassword" aria-label="Mostrar contraseña"><i class="bi bi-eye" aria-hidden="true"></i></button></div></div>
+            <button type="submit" class="auth-submit"><i class="bi bi-person-check" aria-hidden="true"></i> Crear cuenta local</button>
+          </form>
+          <p class="auth-switch-line" id="localLoginSwitch">¿Aún no tienes cuenta? <button type="button" class="auth-link-button" onclick="LocalAuthUI.toggleForm('register')">Crear una cuenta</button></p>
+          <p class="auth-switch-line" id="localRegisterSwitch" hidden>¿Ya tienes cuenta? <button type="button" class="auth-link-button" onclick="LocalAuthUI.toggleForm('login')">Iniciar sesión</button></p>
+          <p class="auth-message" id="localAuthMessage" role="status" aria-live="polite"></p>
+          <p class="auth-status-line"><i class="bi bi-shield-check" aria-hidden="true"></i> Contraseñas protegidas; la sesión se conserva en este navegador.</p>
+        </section>
+
+        <section class="auth-section" id="authOnlinePanel" hidden>
+          <button type="button" class="auth-back" onclick="LocalAuthUI.showChooser()"><i class="bi bi-arrow-left" aria-hidden="true"></i> Cambiar modo</button>
+          <div class="auth-kicker">Modo en línea</div>
+          <h1 class="auth-heading">Continúa con tu cuenta</h1>
+          <p class="auth-description">Inicia sesión con Google. La app conservará su flujo habitual de autenticación y sincronización con Firestore.</p>
+          <button class="btn auth-google-button d-flex align-items-center justify-content-center gap-2" type="button" onclick="loginWithGoogle()">
+            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.8 2.73v2.27h2.9c1.7-1.57 2.7-3.88 2.7-6.63z" fill="#4285F4"/><path d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.9-2.27c-.8.54-1.83.87-3.06.87-2.35 0-4.33-1.58-5.04-3.71H.95v2.35C2.43 16.07 5.51 18 9 18z" fill="#34A853"/><path d="M3.96 10.72c-.18-.54-.28-1.12-.28-1.72s.1-1.18.28-1.72V4.93H.95C.35 6.15 0 7.53 0 9s.35 2.85.95 4.07l3.01-2.35z" fill="#FBBC05"/><path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.51 0 2.43 1.93.95 4.93l3.01 2.35c.71-2.13 2.69-3.71 5.04-3.71z" fill="#EA4335"/></svg>
+            Continuar con Google
+          </button>
+          <div class="auth-divider">o</div>
+          <button class="btn auth-guest-button" type="button" data-guest-action onclick="loginGuest()"><i class="bi bi-person-fill me-2" aria-hidden="true"></i>Continuar como invitado en este dispositivo</button>
+          <p class="auth-inline-note"><i class="bi bi-cloud-check" aria-hidden="true"></i> En GitHub Pages este es el modo con cuenta disponible. Los datos de SQL local no se sincronizan automáticamente con Firestore.</p>
+          <p class="auth-message" id="onlineAuthMessage" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+    </main>
   </div>
 </div>
 
@@ -1253,7 +1321,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--fp-bg);color:va
         <div class="col-lg-5">
           <div class="fp-card"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-shield-check-fill text-success"></i> Estado</div></div><div class="fp-card-body"><div id="syncDetailStatus"><div class="empty-state">Sin configurar</div></div></div></div>
           <div class="fp-card mt-3"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-arrow-down-up"></i> Respaldo local</div></div><div class="fp-card-body"><div class="d-flex gap-2 flex-wrap"><button class="btn fp-btn-ghost fp-btn-sm" onclick="exportData()"><i class="bi bi-download me-1"></i>Exportar</button><button class="btn fp-btn-ghost fp-btn-sm" onclick="document.getElementById('importFile').click()"><i class="bi bi-upload me-1"></i>Importar</button></div></div></div>
-          <div class="fp-card mt-3"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-google"></i> Cuenta Google</div></div><div class="fp-card-body"><div class="d-flex gap-2 flex-wrap"><button class="btn fp-btn-outline fp-btn-sm" onclick="switchGoogleAccount()"><i class="bi bi-arrow-repeat me-1"></i>Cambiar cuenta</button><button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</button></div></div></div>
+          <div class="fp-card mt-3"><div class="fp-card-header"><div class="fp-card-title"><i class="bi bi-person-vcard"></i> Cuenta y almacenamiento</div></div><div class="fp-card-body"><p id="accountModeInfo" class="mb-3" style="font-size:12px;color:var(--fp-text2)">Modo activo</p><div class="d-flex gap-2 flex-wrap"><button id="btnChangeGoogleAccount" class="btn fp-btn-outline fp-btn-sm" onclick="switchGoogleAccount()"><i class="bi bi-arrow-repeat me-1"></i>Cambiar cuenta Google</button><button class="btn fp-btn-ghost fp-btn-sm text-danger" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</button></div></div></div>
         </div>
       </div>
     </div>
@@ -1966,6 +2034,7 @@ var KEYS={TX:'fp_tx',DEBTS:'fp_debts',SAV:'fp_sav',CLIENTS:'fp_clients',INIT:'fp
 function getUID() {
   var mode = localStorage.getItem('fp_user_mode');
   if (mode === 'guest') return 'local_guest';
+  if (mode === 'local') return localStorage.getItem('fp_user_uid') || 'local_user';
   return localStorage.getItem('fp_user_uid') || 'guest';
 }
 
@@ -6124,7 +6193,20 @@ function maybePullCloudData() {
   });
 }
 
+function isSqlServerDockerMode() {
+  return Boolean(window.FINANZAPP_CONFIG && window.FINANZAPP_CONFIG.sqlServerApi === true);
+}
+function isSqlServerLocalMode() {
+  return isSqlServerDockerMode() && localStorage.getItem('fp_user_mode') === 'local';
+}
+
+var _authObserverStarted = false;
 function initFirebase() {
+  if (window.LocalAuthUI) window.LocalAuthUI.init();
+  var restoreLocal = Promise.resolve(false);
+  if (isSqlServerDockerMode() && window.LocalAuthUI) {
+    restoreLocal = window.LocalAuthUI.restoreSession();
+  }
   if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "TU_API_KEY") {
     try {
       if (!firebase.apps.length) {
@@ -6138,15 +6220,17 @@ function initFirebase() {
         });
       }
       firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(function () { return restoreLocal; })
         .then(function () { setupAuthObserver(); })
         .catch(function (e) {
           console.warn('[Auth] setPersistence:', e);
-          setupAuthObserver();
+          restoreLocal.then(function () { setupAuthObserver(); });
         });
     } catch (e) {
       console.error("Error al inicializar Firebase:", e);
+      if (isSqlServerDockerMode() && window.LocalAuthUI) window.LocalAuthUI.restoreSession();
     }
-  } else {
+  } else if (!isSqlServerDockerMode()) {
     setTimeout(initFirebase, 1000);
   }
 }
@@ -6203,8 +6287,64 @@ function showSyncConflictWarning() {
 
 // Guardar en Firestore o Gist (throttle 3s para no saturar)
 var _saveThrottle = null;
+var _sqlServerLoading = false;
+
+async function saveToSqlServerNow(keepalive) {
+  var response = await fetch('/api/data/all', {
+    method: 'PUT',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ payload: buildSyncPayload() }),
+    keepalive: Boolean(keepalive)
+  });
+  if (!response.ok) throw new Error('API SQL Server respondió HTTP ' + response.status);
+  return response.json();
+}
+
+async function loadFromSqlServer(uid, callback) {
+  var loaded = false;
+  _sqlServerLoading = true;
+  try {
+    var response = await fetch('/api/data/all', {
+      credentials: 'same-origin',
+      cache: 'no-store'
+    });
+    if (!response.ok) throw new Error('API SQL Server respondió HTTP ' + response.status);
+    var result = await response.json();
+    if (result.value) {
+      applySyncPayload(result.value);
+      loaded = true;
+    } else {
+      // Si el navegador ya tenía datos, initData los conserva y se copian al volumen SQL.
+      initData();
+      await saveToSqlServerNow(false);
+    }
+  } catch (error) {
+    console.error('[SQL Server] No se pudieron cargar datos:', error);
+    initData();
+    showToast('No se pudo conectar con SQL Server; se conservarán los datos locales.', 'warning');
+  } finally {
+    _sqlServerLoading = false;
+    if (callback) callback(loaded);
+  }
+}
+
 function saveToFirestore() {
   var mode = localStorage.getItem('fp_user_mode');
+  if (isSqlServerLocalMode()) {
+    if (_sqlServerLoading) return;
+    clearTimeout(_saveThrottle);
+    _saveThrottle = setTimeout(function() {
+      saveToSqlServerNow(false).then(function() {
+        var el = document.getElementById('syncStatusMini');
+        if (el) el.innerHTML = '<i class="bi bi-circle-fill" style="color:#68d391;font-size:7px"></i><span>SQL Server: guardado</span>';
+      }).catch(function(error) {
+        console.error('[SQL Server] Error guardando datos:', error);
+      });
+    }, 1000);
+    return;
+  }
+  if (mode === 'local') return;
   // Si hay Gist configurado, usar Gist (funciona para todos los modos)
   if (localStorage.getItem(KEYS.GIST_TOKEN)) {
     debouncedSyncToGist();
@@ -6262,6 +6402,15 @@ function saveToFirestore() {
 }
 
 function flushSaveToFirestore() {
+  if (isSqlServerLocalMode()) {
+    if (_sqlServerLoading) return;
+    clearTimeout(_saveThrottle);
+    saveToSqlServerNow(true).catch(function(error) {
+      console.warn('[SQL Server] No se pudo completar el guardado al salir:', error.message);
+    });
+    return;
+  }
+  if (localStorage.getItem('fp_user_mode') === 'local') return;
   if (!_db || localStorage.getItem('fp_user_mode') !== 'auth') return;
   var uid = localStorage.getItem('fp_user_uid');
   if (!uid) return;
@@ -6314,6 +6463,10 @@ function loginWithGoogle(forceSelectAccount) {
     showToast("Error: Firebase no cargado. Revisa tu conexión.", "danger");
     return;
   }
+  localStorage.setItem('fp_auth_intent', 'online');
+  localStorage.removeItem('fp_user_mode');
+  localStorage.removeItem('fp_user_uid');
+  localStorage.removeItem('fp_user_display_name');
   var provider = new firebase.auth.GoogleAuthProvider();
   
   // Si forceSelectAccount es true, forzamos a seleccionar cuenta
@@ -6348,8 +6501,10 @@ function switchGoogleAccount() {
   var auth = firebase.auth();
   
   // Limpiar estados locales primero
+  localStorage.setItem('fp_auth_intent', 'online');
   localStorage.removeItem('fp_user_mode');
   localStorage.removeItem('fp_user_uid');
+  localStorage.removeItem('fp_user_display_name');
   localStorage.removeItem('fp_user_role');
   localStorage.removeItem('fp_last_activity_ts');
   localStorage.removeItem('fp_hidden_since_ts');
@@ -6365,6 +6520,11 @@ function switchGoogleAccount() {
 }
 
 function loginGuest() {
+  if (isSqlServerDockerMode()) {
+    showToast('En Docker debes usar una cuenta local SQL o continuar con Google.', 'info');
+    return;
+  }
+  localStorage.setItem('fp_auth_intent', 'guest');
   localStorage.setItem('fp_user_mode', 'guest');
   localStorage.setItem('fp_user_uid', 'local_guest');
   showToast("Modo invitado: datos solo locales", "info");
@@ -6372,10 +6532,16 @@ function loginGuest() {
 }
 
 function logout() {
+  if (localStorage.getItem('fp_user_mode') === 'local' && window.LocalAuthUI) {
+    window.LocalAuthUI.logout();
+    return;
+  }
   // Desuscribir listener de Firestore si existe
   if (_firestoreListener) { _firestoreListener(); _firestoreListener = null; }
+  localStorage.setItem('fp_auth_intent', 'choose');
   localStorage.removeItem('fp_user_mode');
   localStorage.removeItem('fp_user_uid');
+  localStorage.removeItem('fp_user_display_name');
   localStorage.removeItem('fp_user_role');
   localStorage.removeItem('fp_last_activity_ts');
   localStorage.removeItem('fp_hidden_since_ts');
@@ -6399,28 +6565,51 @@ function initAppSession(user) {
   var mode = localStorage.getItem('fp_user_mode');
   var userProfile = document.getElementById('userProfileNav');
   var sidebarUserInfo = document.getElementById('sidebarUserInfo');
+  var fallbackAvatar = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="#0f766e"/><circle cx="32" cy="24" r="11" fill="#e7f5ef"/><path d="M11 58c2-13 10-20 21-20s19 7 21 20" fill="#e7f5ef"/></svg>');
+  var accountInfo = document.getElementById('accountModeInfo');
+  var googleSwitch = document.getElementById('btnChangeGoogleAccount');
+  if (accountInfo) {
+    var accountLabel = mode === 'local' ? 'Cuenta local · datos en SQL Server de Docker'
+      : mode === 'auth' ? 'Cuenta en línea · datos en Firebase/Firestore'
+      : 'Invitado · datos locales de este navegador';
+    accountInfo.textContent = accountLabel + (user && user.email ? ' · ' + user.email : '');
+  }
+  if (googleSwitch) googleSwitch.classList.toggle('d-none', mode !== 'auth');
   
-  if (user && mode === 'auth') {
+  if (user && (mode === 'auth' || mode === 'local')) {
     // Mostrar foto y nombre en navbar desktop
     if (userProfile) {
       userProfile.classList.add('d-flex');
       userProfile.classList.remove('d-none');
-      document.getElementById('userPhoto').src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'U') + '&background=1a56db&color=fff';
-      document.getElementById('userName').textContent = (user.displayName || "").split(' ')[0];
+      document.getElementById('userPhoto').src = user.photoURL || fallbackAvatar;
+      document.getElementById('userName').textContent = (user.displayName || user.email || 'Usuario').split(' ')[0];
     }
     // Mostrar foto y nombre en sidebar mobile
     if (sidebarUserInfo) {
       sidebarUserInfo.style.display = 'flex';
-      document.getElementById('sidebarUserPhoto').src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'U') + '&background=1a56db&color=fff';
+      document.getElementById('sidebarUserPhoto').src = user.photoURL || fallbackAvatar;
       document.getElementById('sidebarUserName').textContent = user.displayName || user.email || 'Usuario';
     }
-    showToast("¡Bienvenido, " + ((user.displayName || "").split(' ')[0] || "Usuario") + "! 👋", "success");
+    if (mode === 'auth') showToast("¡Bienvenido, " + ((user.displayName || "").split(' ')[0] || "Usuario") + "! 👋", "success");
+    else showToast('Sesión local activa. Los datos se guardan en SQL Server.', 'info');
   } else {
     if (userProfile) userProfile.classList.add('d-none');
     if (sidebarUserInfo) sidebarUserInfo.style.display = 'none';
     if (mode === 'guest') {
       showToast("Modo invitado activo. Los datos no se sincronizan.", "info");
     }
+  }
+
+  if (isSqlServerLocalMode()) {
+    loadFromSqlServer(localStorage.getItem('fp_user_uid'), function() {
+      rebuildCatSelects();
+      updateChips();
+      loadGistConfigToUI();
+      updateSyncMiniStatus();
+      navigateTo(getRestoreView());
+      restoreScrollAfterLoad();
+    });
+    return;
   }
 
   // Cargar datos desde Firestore si es usuario autenticado
@@ -6452,7 +6641,10 @@ function initAppSession(user) {
 }
 
 // Observador de estado de Auth
+var _authObserverStarted = false;
 function setupAuthObserver() {
+  if (_authObserverStarted) return;
+  _authObserverStarted = true;
   if (typeof firebase !== 'undefined' && firebase.auth) {
     // Manejar redirect result (para mobile donde popup no funciona)
     firebase.auth().getRedirectResult().then(function(result) {
@@ -6464,6 +6656,24 @@ function setupAuthObserver() {
     });
 
     firebase.auth().onAuthStateChanged(async function(user) {
+      var intent = localStorage.getItem('fp_auth_intent');
+      if (intent === 'local' || intent === 'choose' || intent === 'guest') {
+        if (intent === 'guest' && localStorage.getItem('fp_user_mode') === 'guest') {
+          initAppSession(null);
+        } else if (intent === 'choose') {
+          localStorage.removeItem('fp_user_mode');
+          localStorage.removeItem('fp_user_uid');
+          localStorage.removeItem('fp_user_role');
+          document.getElementById('view-login').classList.remove('d-none');
+          document.body.classList.remove('is-loading');
+          if (window.LocalAuthUI) window.LocalAuthUI.showChooser();
+        } else if (intent === 'local' && localStorage.getItem('fp_user_mode') !== 'local') {
+          document.getElementById('view-login').classList.remove('d-none');
+          document.body.classList.remove('is-loading');
+          if (window.LocalAuthUI) window.LocalAuthUI.openMode('local');
+        }
+        return;
+      }
       if (user) {
         if (checkIdleSessionExpired()) {
           firebase.auth().signOut();
@@ -6475,6 +6685,8 @@ function setupAuthObserver() {
         // Permitir cualquier usuario con cuenta Google autenticada
         localStorage.setItem('fp_user_mode', 'auth');
         localStorage.setItem('fp_user_uid', user.uid);
+        localStorage.setItem('fp_auth_intent', 'online');
+        localStorage.removeItem('fp_user_display_name');
         
         // Solo el admin principal tiene rol de admin
         if (userEmail === AUTH_ADMIN.toLowerCase()) {
@@ -6493,8 +6705,11 @@ function setupAuthObserver() {
         localStorage.removeItem('fp_user_mode');
         localStorage.removeItem('fp_user_uid');
         localStorage.removeItem('fp_user_role');
+        localStorage.removeItem('fp_user_display_name');
         document.getElementById('view-login').classList.remove('d-none');
         document.body.classList.remove('is-loading');
+        if (intent === 'online' && window.LocalAuthUI) window.LocalAuthUI.openMode('online');
+        else if (window.LocalAuthUI) window.LocalAuthUI.showChooser();
       }
     });
   } else {
@@ -6513,6 +6728,7 @@ function loadGistConfigToUI(){var t=document.getElementById('gistToken');var g=d
 function gistLog(msg){var el=document.getElementById('gistLog');if(el)el.innerHTML='<i class="bi bi-clock-history me-1"></i>'+msg;}
 function updateSyncMiniStatus(){
   var el=document.getElementById('syncStatusMini');if(!el)return;
+  if(isSqlServerLocalMode()){el.innerHTML='<i class="bi bi-circle-fill" style="color:#68d391;font-size:7px"></i><span>Cuenta local · SQL Server</span>';return;}
   var mode=localStorage.getItem('fp_user_mode');
   if(mode==='auth'&&_db){
     el.innerHTML='<i class="bi bi-circle-fill" style="color:#68d391;font-size:7px"></i><span>Sync automático activo ☁</span>';
@@ -6524,6 +6740,7 @@ function updateSyncMiniStatus(){
   el.innerHTML='<i class="bi bi-circle-fill" style="color:#68d391;font-size:7px"></i><span>Gist configurado</span>';
 }
 function updateSyncDetailStatus(){var el=document.getElementById('syncDetailStatus');if(!el)return;
+  if(isSqlServerLocalMode()){el.innerHTML='<div class="empty-state">Persistencia local en Microsoft SQL Server. Los datos se conservan en el volumen Docker del laboratorio; no se sincronizan automáticamente con Firestore.</div>';return;}
   var mode=localStorage.getItem('fp_user_mode');
   if(mode==='auth'&&_db){
     el.innerHTML='<div class="d-flex flex-column gap-2"><div class="d-flex justify-content-between align-items-center p-2" style="background:var(--fp-success-lt);border-radius:8px"><span style="font-size:12.5px"><i class="bi bi-cloud-check-fill me-2 text-success"></i>Sincronización automática</span><span class="fp-badge fp-badge-green">Activa</span></div><div style="font-size:12px;color:var(--fp-text2);padding:4px 8px">Tus datos se guardan automáticamente en Firebase y están disponibles en cualquier dispositivo donde inicies sesión.</div><button class="btn fp-btn-success fp-btn-sm mt-2" onclick="loadFromFirestore(localStorage.getItem(\'fp_user_uid\'),function(){rebuildCatSelects();updateChips();navigateTo(State.currentView);showToast(\'Datos actualizados desde la nube ✓\',\'success\');})"><i class="bi bi-cloud-download me-1"></i>Forzar actualización desde nube</button></div>';
@@ -6551,5 +6768,6 @@ function importData(e){var file=e.target.files[0];if(!file)return;var r=new File
 function clearAllData(){if(!confirm('¿Borrar TODOS los datos?'))return;if(!confirm('¿Seguro?'))return;Object.values(KEYS).forEach(function(k){localStorage.removeItem(k);});location.reload();}
 function showToast(msg,type){type=type||'success';var icons={success:'check-circle-fill',danger:'x-circle-fill',warning:'exclamation-triangle-fill',info:'info-circle-fill'};var colors={success:'var(--fp-success)',danger:'var(--fp-danger)',warning:'var(--fp-gold)',info:'var(--fp-primary)'};var titles={success:'Éxito',danger:'Error',warning:'Aviso',info:'Info'};var id='t'+Date.now();var html='<div id="'+id+'" class="fp-toast show mb-2"><div class="toast-header border-0" style="background:transparent"><i class="bi bi-'+icons[type]+' me-2" style="color:'+colors[type]+'"></i><strong class="me-auto" style="font-size:12px;color:'+colors[type]+'">'+titles[type]+'</strong><button class="btn-close btn-close-sm" onclick="document.getElementById(\''+id+'\')&&document.getElementById(\''+id+'\').remove()"></button></div><div class="toast-body">'+esc(msg)+'</div></div>';var stack=document.getElementById('toastStack');if(stack)stack.insertAdjacentHTML('beforeend',html);setTimeout(function(){var el=document.getElementById(id);if(el)el.remove();},4500);}
 </script>
+<script src="./local-auth.js"></script>
 </body>
 </html>

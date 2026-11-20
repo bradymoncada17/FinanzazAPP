@@ -1,0 +1,104 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Define MSSQL_SA_PASSWORD en el archivo .env}"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    ports:
+      - "127.0.0.1:${FINANZAPP_SQL_PORT:-14330}:1433"
+    networks:
+      - red_estudiantes
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 2G
+
+  init-db:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    command: ["node", "src/init-db.js"]
+    environment:
+      DB_HOST: sqlserver
+      DB_PORT: "1433"
+      DB_USER: sa
+      DB_PASSWORD: "${MSSQL_SA_PASSWORD:?Define MSSQL_SA_PASSWORD en el archivo .env}"
+      DB_NAME: FinanzApp
+      INIT_SQL_PATH: /app/database/init.sql
+    volumes:
+      - ./database/init.sql:/app/database/init.sql:ro
+    depends_on:
+      sqlserver:
+        condition: service_started
+    networks:
+      - red_estudiantes
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      PORT: "3000"
+      DB_HOST: sqlserver
+      DB_PORT: "1433"
+      DB_USER: sa
+      DB_PASSWORD: "${MSSQL_SA_PASSWORD:?Define MSSQL_SA_PASSWORD en el archivo .env}"
+      DB_NAME: FinanzApp
+    expose:
+      - "3000"
+    depends_on:
+      init-db:
+        condition: service_completed_successfully
+    networks:
+      - red_estudiantes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      FINANZAPP_SQLSERVER_API: "true"
+    ports:
+      - "127.0.0.1:${FINANZAPP_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - red_estudiantes
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+volumes:
+  sqlserver_data:
+
+networks:
+  red_estudiantes:
+    name: red_estudiantes
+    driver: bridge

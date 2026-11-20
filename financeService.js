@@ -12,7 +12,7 @@ const FinanceService = (() => {
   // ─────────────────────────────────────────────
   // CONFIGURACIÓN
   // ─────────────────────────────────────────────
-  const db = firebase ? firebase.firestore() : null;
+  const db = typeof firebase !== 'undefined' && firebase ? firebase.firestore() : null;
 
   // ─────────────────────────────────────────────
   // UTILIDADES
@@ -45,7 +45,7 @@ const FinanceService = (() => {
   // ─────────────────────────────────────────────
   // HELPERS DE USUARIO
   // ─────────────────────────────────────────────
-  const getUser = () => firebase && firebase.auth ? firebase.auth().currentUser : null;
+  const getUser = () => typeof firebase !== 'undefined' && firebase && firebase.auth ? firebase.auth().currentUser : null;
   const isGuest = () => localStorage.getItem(KEYS.USER_MODE) === 'guest';
   const getUID = () => {
     const user = getUser();

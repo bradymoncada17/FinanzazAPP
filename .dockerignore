@@ -1,0 +1,15 @@
+.git
+.idea
+.vscode
+.ai
+node_modules
+.env
+.env.*
+.gitignore
+*.zip
+Dockerfile
+.dockerignore
+docker-compose.yml
+README.md
+api
+database
