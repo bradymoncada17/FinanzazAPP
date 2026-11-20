@@ -198,12 +198,3 @@ docker compose logs --tail 100 sqlserver
 
 Para seguir los registros en tiempo real, añade `-f`; pulsa `Ctrl+C` para dejar de verlos. Eso detiene la lectura de logs, no los contenedores.
 
-## GitHub Pages y publicación
-
-GitHub Pages sigue siendo la versión estática. Publica `index.html`, `premium-ui.css`, `local-auth.js`, `runtime-config.js` y `sw.js` junto con los otros archivos originales del sitio. En Pages el inicio Google y Firestore siguen disponibles; SQL local no está instalado allí y la app lo indica en el selector. La publicación en GitHub Pages no publica el laboratorio Docker ni los datos guardados en tu PC.
-
-Después de publicar, si el navegador muestra una versión anterior, fuerza una recarga con `Ctrl+F5` o `Ctrl+Shift+R`. El service worker cambió de versión y limpia la caché anterior para cargar los nuevos archivos.
-
-## Seguridad y límites
-
-El puerto de SSMS está ligado a `127.0.0.1`, no a la red local. No cambies esa dirección para exponer SQL a otros equipos. Usa este montaje sólo para aprender y probar: no está diseñado como servicio de producción en Internet, ni reemplaza copias de seguridad. El volumen Docker conserva información mientras no lo elimines, pero no sustituye un backup independiente.
